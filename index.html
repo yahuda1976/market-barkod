@@ -3,351 +3,528 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Market Pro - Basit Kamera ile Barkod</title>
+    <title>Market Pro Max | SKT & Kamera</title>
+    <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
     <style>
-        * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
-        body { background: #f5f2eb; margin: 0; padding: 16px; }
-        .container { max-width: 600px; margin: 0 auto; }
-        .card { background: white; border-radius: 28px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
-        h1 { font-size: 1.6rem; margin: 0; color: #1e4a2f; text-align: center; }
-        .sub { text-align: center; color: #b45f2b; margin-bottom: 20px; font-size: 0.85rem; }
-        button { padding: 14px; border-radius: 60px; border: none; font-size: 1rem; font-weight: bold; margin-top: 8px; cursor: pointer; width: 100%; transition: 0.2s; }
-        button:active { transform: scale(0.97); }
-        .btn-primary { background: #1e6b3b; color: white; }
-        .btn-camera { background: #e67e22; color: white; font-size: 1.1rem; }
-        .btn-danger { background: #c0392b; color: white; }
-        .flex { display: flex; gap: 10px; flex-wrap: wrap; }
-        .flex button { flex: 1; margin: 0; }
-        input, select { width: 100%; padding: 14px; border-radius: 60px; border: 1px solid #ddd; font-size: 1rem; margin-top: 8px; }
-        .price-box { background: #eaf5ea; border-radius: 24px; padding: 20px; text-align: center; margin-top: 15px; }
-        .price { font-size: 2.5rem; font-weight: bold; color: #c0392b; }
-        .video-container { position: relative; margin-top: 15px; background: #000; border-radius: 24px; overflow: hidden; text-align: center; }
-        video { width: 100%; max-height: 400px; object-fit: cover; }
-        .error { background: #ffe6e6; padding: 12px; border-radius: 24px; color: #c0392b; text-align: center; margin-top: 10px; }
-        .success { background: #e0f2e0; padding: 12px; border-radius: 24px; color: #1e6b3b; text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
-        th, td { text-align: left; padding: 8px 4px; border-bottom: 1px solid #eee; }
-        .small-text { font-size: 0.7rem; color: #888; text-align: center; margin-top: 10px; }
-        .expiring { background: #fff3cd; }
-        .expired { background: #ffcccc; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #e0cba0 0%, #d4b483 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* Ana Konteyner */
+        .container {
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        /* Kartlar */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(2px);
+            border-radius: 48px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255,255,255,0.6);
+            transition: transform 0.2s ease, box-shadow 0.2s;
+            border: 1px solid rgba(255,215,150,0.8);
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 25px 40px -12px black;
+        }
+
+        /* Başlık */
+        .header {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .header h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, #a3441a, #6b2e00);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+            letter-spacing: -0.5px;
+        }
+        .badge {
+            background: #ffd966;
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 60px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #5a2a00;
+            margin-top: 6px;
+        }
+
+        /* Butonlar (cafcaflı) */
+        .btn {
+            border: none;
+            padding: 14px 18px;
+            border-radius: 60px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.2);
+        }
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+        }
+        .btn-camera {
+            background: linear-gradient(120deg, #f39c12, #e67e22);
+            color: white;
+            font-size: 1.1rem;
+        }
+        .btn-primary {
+            background: linear-gradient(120deg, #2c6e2f, #1e4a2a);
+            color: white;
+        }
+        .btn-danger {
+            background: linear-gradient(120deg, #c0392b, #a82313);
+            color: white;
+        }
+        .btn-outline {
+            background: #f4e4c1;
+            color: #7b3f00;
+            border: 1px solid #e0b070;
+            box-shadow: none;
+        }
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            width: auto;
+            display: inline-flex;
+        }
+
+        /* Formlar */
+        input, select {
+            width: 100%;
+            padding: 14px 18px;
+            margin-top: 12px;
+            border-radius: 60px;
+            border: 1px solid #e2c294;
+            background: #fffcf5;
+            font-size: 0.95rem;
+            transition: 0.2s;
+        }
+        input:focus {
+            border-color: #e67e22;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(230,126,34,0.2);
+        }
+
+        /* Video & Kamera */
+        .video-wrapper {
+            background: #1e1e1e;
+            border-radius: 32px;
+            overflow: hidden;
+            margin: 15px 0;
+            border: 3px solid #f1c40f;
+            box-shadow: 0 0 0 2px #7b3f00;
+        }
+        video {
+            width: 100%;
+            display: block;
+        }
+
+        /* SKT Uyarı Kartları */
+        .alert-card {
+            background: #fff0e0;
+            border-left: 8px solid #e67e22;
+            border-radius: 28px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.05);
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .alert-red {
+            background: #ffe0e0;
+            border-left-color: #c0392b;
+        }
+        .price-tag {
+            background: #2e6b3c;
+            color: white;
+            border-radius: 50px;
+            padding: 6px 14px;
+            font-size: 1.1rem;
+        }
+
+        /* Ürün Listesi */
+        .product-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fef7e8;
+            margin: 10px 0;
+            padding: 12px 16px;
+            border-radius: 80px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .product-name {
+            font-weight: 800;
+        }
+        .product-price {
+            font-weight: bold;
+            background: #ffd966;
+            padding: 4px 12px;
+            border-radius: 40px;
+        }
+
+        .flex-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .gece-modu-toggle {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 60px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #4a2e1a;
+            margin: 20px;
+        }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <div class="card">
-        <h1>🛒 Hamburg Türk Market</h1>
-        <div class="sub">Kamera ile Sorgula • Kamera ile Ekle • SKT Takibi</div>
+    <!-- GECE MODU BUTONU -->
+    <div style="display: flex; justify-content: flex-end;">
+        <button class="gece-modu-toggle" onclick="document.body.classList.toggle('dark-body')">🌙 Gece Modu</button>
+    </div>
 
-        <div class="flex">
-            <button id="searchCameraBtn" class="btn-camera">📷 Fiyat Sorgula</button>
-            <button id="addCameraBtn" class="btn-camera">➕ Kamera ile Ekle</button>
+    <div class="card">
+        <div class="header">
+            <h1>🛍️ HAMBURG MARKET</h1>
+            <div class="badge">⚡ Kameralı | SKT Takip | Euro €</div>
         </div>
+        <input type="text" id="searchInput" placeholder="🔍 Ara (ürün adı / barkod)" onkeyup="renderProducts()">
+    </div>
 
-        <div id="cameraArea" style="display:none;">
-            <div class="video-container">
-                <video id="video" autoplay playsinline></video>
-            </div>
-            <button id="closeCameraBtn" class="btn-danger">✖ Kapat</button>
-            <div id="scannerStatus" class="small-text" style="color:#e67e22; margin-top:5px;">📷 Barkodu göster, otomatik okunacak...</div>
+    <!-- SKT UYARI BÖLGESİ -->
+    <div id="sktWarningArea" class="card"></div>
+
+    <!-- KAMERA KARTI -->
+    <div class="card">
+        <div style="display: flex; gap: 12px;">
+            <button onclick="openCamera('search')" class="btn btn-camera">📷 FİYAT SORGULA</button>
+            <button onclick="openCamera('add')" class="btn btn-camera">➕ KAMERA İLE EKLE</button>
         </div>
-
-        <div id="resultArea"></div>
+        <div id="cameraContainer" style="display: none;" class="video-wrapper">
+            <video id="video" autoplay muted playsinline></video>
+            <button onclick="closeCamera()" class="btn btn-danger" style="margin-top: 8px;">❌ Kapat</button>
+        </div>
+        <div id="cameraResult" style="margin-top: 12px; text-align: center; font-weight: bold;"></div>
     </div>
 
-    <!-- SKT Uyarı Bölümü -->
-    <div class="card" id="expiryCard">
-        <strong>⚠️ SON KULLANMA TARİHİ YAKLAŞANLAR (≤5 gün)</strong>
-        <div id="expiryList"></div>
-    </div>
-
+    <!-- MANUEL ÜRÜN EKLEME -->
     <div class="card">
-        <strong>✏️ Ürün Ekle / Düzenle</strong>
-        <input type="text" id="barcodeInput" placeholder="Barkod numarası">
-        <input type="text" id="nameInput" placeholder="Ürün adı">
-        <input type="number" step="0.01" id="priceInput" placeholder="Fiyat (€)">
-        <input type="number" id="quantityInput" placeholder="Adet" value="1">
-        <input type="date" id="expiryInput" placeholder="Son Kullanma Tarihi">
-        <button id="saveBtn" class="btn-primary">💾 Kaydet</button>
-        <div class="flex">
-            <button id="backupBtn" class="btn-primary" style="background:#555;">💾 Yedekle</button>
-            <button id="restoreBtn" class="btn-primary" style="background:#555;">📂 Geri Yükle</button>
+        <strong>📦 Ürün Ekle / Düzenle</strong>
+        <input type="text" id="barcode" placeholder="Barkod Numarası">
+        <input type="text" id="productName" placeholder="Ürün Adı (Örn: Çaykur Çay)">
+        <input type="number" step="0.01" id="price" placeholder="Fiyat (€)">
+        <input type="number" id="quantity" placeholder="Adet (Stok)" value="1">
+        <input type="date" id="expiryDate" placeholder="Son Kullanma Tarihi">
+        <button onclick="saveProduct()" class="btn btn-primary">💾 KAYDET</button>
+        <div class="flex-btns">
+            <button onclick="backupData()" class="btn btn-outline btn-small">📀 Yedek Al</button>
+            <button onclick="restoreData()" class="btn btn-outline btn-small">📂 Geri Yükle</button>
         </div>
     </div>
 
+    <!-- ÜRÜN LİSTESİ -->
     <div class="card">
-        <strong>🔍 Ara (Barkod / Ürün Adı)</strong>
-        <input type="text" id="searchInput" placeholder="Ara...">
-        <div id="searchResults"></div>
+        <strong>📋 Envanter Listesi</strong>
+        <div id="productListContainer"></div>
     </div>
-
-    <div class="card">
-        <strong>📋 Tüm Ürünler</strong>
-        <div id="productList"></div>
-    </div>
+    <footer>🔔 SKT 5 gün kala uyarı verir. Kamera otomatik okur.</footer>
 </div>
 
 <script>
     let products = [];
-    let currentMode = null;
-    let stream = null;
-    let scanInterval = null;
+    let currentStream = null;
+    let currentCameraMode = null;
 
-    // Ses
-    function playBeep() {
-        try {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            oscillator.connect(gain);
-            gain.connect(audioCtx.destination);
-            oscillator.frequency.value = 880;
-            gain.gain.value = 0.3;
-            oscillator.start();
-            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.3);
-            oscillator.stop(audioCtx.currentTime + 0.3);
-            audioCtx.resume();
-        } catch(e) { console.log("ses hatası"); }
-    }
-
-    // Barkod okuma (Basit bir simülasyon, aslında manuel giriş yapacaksın)
-    // Not: Gerçek barkod okuma için tarayıcı desteği gerekiyor. Şimdilik manuel giriş yapalım.
-    // Ama kamera butonlarına basınca manuel girişi kolaylaştıralım.
-    
-    function startCamera(mode) {
-        currentMode = mode;
-        const video = document.getElementById('video');
-        const cameraArea = document.getElementById('cameraArea');
-        
-        cameraArea.style.display = 'block';
-        
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-            .then(function(mediaStream) {
-                stream = mediaStream;
-                video.srcObject = mediaStream;
-                video.play();
-                document.getElementById('scannerStatus').innerHTML = '📷 Barkodu göster ve MANUEL olarak aşağıdaki kutuya yaz (Otomatik okuma şimdilik devre dışı)';
-                // Otomatik okuma için çok uğraştık, şimdilik manuel yapalım ki çalışsın.
-            })
-            .catch(function(err) {
-                document.getElementById('scannerStatus').innerHTML = '❌ Kamera açılamadı: ' + err.message;
-            });
-        } else {
-            document.getElementById('scannerStatus').innerHTML = '❌ Tarayıcınız kamerayı desteklemiyor.';
-        }
-    }
-
-    function stopCamera() {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            stream = null;
-        }
-        document.getElementById('cameraArea').style.display = 'none';
-        currentMode = null;
-    }
-
-    // Ürünleri yükle
-    function loadProducts() {
-        const stored = localStorage.getItem('market_advanced');
-        if (stored) products = JSON.parse(stored);
+    // ---------- Veri Yönetimi ----------
+    function loadData() {
+        const stored = localStorage.getItem("market_pro_max");
+        if(stored) products = JSON.parse(stored);
         else {
             products = [
-                { barcode: "8690504003016", name: "Ülker Çikolata", price: 1.29, quantity: 5, expiry: "2025-06-15", priceHistory: [1.29] },
-                { barcode: "8690804349850", name: "Suntat Tuz", price: 2.99, quantity: 3, expiry: "2026-12-31", priceHistory: [2.99] }
+                { barcode: "4003998000470", name: "Çaykur Rize Çayı", price: 4.99, quantity: 12, expiry: "2025-08-15", priceHistory: [4.99] },
+                { barcode: "8690504003016", name: "Ülker Çikolata", price: 1.29, quantity: 30, expiry: "2025-06-20", priceHistory: [1.29] },
+                { barcode: "8690804349850", name: "Suntat Himalaya Tuzu", price: 2.99, quantity: 8, expiry: "2026-12-01", priceHistory: [2.99] }
             ];
-            saveProducts();
+            saveData();
         }
-        renderAll();
+        renderProducts();
+        checkExpiryAlerts();
     }
 
-    function saveProducts() { localStorage.setItem('market_advanced', JSON.stringify(products)); }
-
-    function checkExpiry(expiryDate) {
-        if (!expiryDate) return null;
-        const today = new Date(); today.setHours(0,0,0,0);
-        const expiry = new Date(expiryDate);
-        const diff = Math.ceil((expiry - today) / (1000*60*60*24));
-        if (diff < 0) return 'expired';
-        if (diff <= 5) return 'warning';
-        return 'ok';
+    function saveData() {
+        localStorage.setItem("market_pro_max", JSON.stringify(products));
     }
 
-    function renderAll() {
-        renderProductTable();
-        renderExpiryAlerts();
-        renderSearch();
-    }
-
-    function renderProductTable() {
-        const container = document.getElementById('productList');
-        if (!products.length) { container.innerHTML = '<div class="small-text">Ürün yok</div>'; return; }
-        let html = `<table><thead><tr><th>Ürün</th><th>Fiyat</th><th>Adet</th><th>SKT</th><th></th></tr></thead><tbody>`;
-        products.forEach((p, i) => {
-            const expiryStatus = checkExpiry(p.expiry);
-            let rowClass = '';
-            let expiryText = p.expiry || '-';
-            if (expiryStatus === 'expired') { rowClass = 'expired'; expiryText = '🔴 GEÇTİ!'; }
-            else if (expiryStatus === 'warning') { rowClass = 'expiring'; expiryText += ' ⚠️ (≤5 gün)'; }
-            html += `<tr class="${rowClass}">
-                        <td><strong>${escapeHtml(p.name)}</strong><br><span style="font-size:0.7rem;">${p.barcode}</span></td>
-                        <td>${p.price.toFixed(2)} €</td>
-                        <td>${p.quantity}</td>
-                        <td>${expiryText}</td>
-                        <td><button class="edit-product" data-idx="${i}">✏️</button> <button class="delete-product" data-idx="${i}">🗑️</button></td>
-                     </tr>`;
+    // ---------- SKT Uyarıları (5 gün kala) ----------
+    function checkExpiryAlerts() {
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const warningProducts = products.filter(p => {
+            if(!p.expiry) return false;
+            const diffDays = Math.ceil((new Date(p.expiry) - today) / (1000*3600*24));
+            return diffDays >= 0 && diffDays <= 5;
         });
-        html += `</tbody></table>`;
-        container.innerHTML = html;
+        const alertDiv = document.getElementById("sktWarningArea");
+        if(warningProducts.length === 0) {
+            alertDiv.innerHTML = `<div style="background:#d9f0d9; border-radius:28px; padding:12px; text-align:center;">✅ Son kullanma tarihi yaklaşan ürün yok</div>`;
+        } else {
+            let html = `<strong>⚠️ SKT YAKLAŞANLAR (≤5 gün)</strong>`;
+            warningProducts.forEach(p => {
+                const days = Math.ceil((new Date(p.expiry) - today) / (1000*3600*24));
+                html += `<div class="alert-card alert-red">
+                            <span>📅 ${p.name}</span>
+                            <span>🗓️ ${p.expiry} (${days} gün)</span>
+                            <span class="price-tag">${p.price.toFixed(2)}€</span>
+                         </div>`;
+            });
+            alertDiv.innerHTML = html;
+        }
+    }
+
+    // ---------- Listeleme ve Arama ----------
+    function renderProducts() {
+        const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+        const filtered = products.filter(p => p.name.toLowerCase().includes(searchTerm) || p.barcode.includes(searchTerm));
+        const container = document.getElementById("productListContainer");
+        if(filtered.length === 0) { container.innerHTML = "<div>Ürün bulunamadı</div>"; return; }
         
-        document.querySelectorAll('.edit-product').forEach(btn => {
-            btn.onclick = () => {
-                const p = products[btn.dataset.idx];
-                document.getElementById('barcodeInput').value = p.barcode;
-                document.getElementById('nameInput').value = p.name;
-                document.getElementById('priceInput').value = p.price;
-                document.getElementById('quantityInput').value = p.quantity;
-                document.getElementById('expiryInput').value = p.expiry || '';
-                showMessage('Ürün yüklendi, düzenleyip kaydedin', 'success');
-            };
-        });
-        document.querySelectorAll('.delete-product').forEach(btn => {
-            btn.onclick = () => { if(confirm('Sil?')) { products.splice(btn.dataset.idx,1); saveProducts(); renderAll(); showMessage('Silindi','success'); } };
-        });
-    }
-
-    function renderExpiryAlerts() {
-        const container = document.getElementById('expiryList');
-        const warningProducts = products.filter(p => checkExpiry(p.expiry) === 'warning');
-        if (!warningProducts.length) { container.innerHTML = '<div class="small-text">✅ Uyarı yok</div>'; return; }
-        let html = '';
-        warningProducts.forEach(p => {
-            const expiry = new Date(p.expiry);
-            const today = new Date();
-            const diff = Math.ceil((expiry - today) / (1000*60*60*24));
-            html += `<div class="error" style="margin:5px 0;">⚠️ ${p.name} - SKT: ${p.expiry} (${diff} gün kaldı) - Adet: ${p.quantity}</div>`;
+        let html = "";
+        filtered.forEach((p, idx) => {
+            const expiryStatus = (p.expiry && new Date(p.expiry) < new Date()) ? "🔴 SKT GEÇMİŞ" : (p.expiry || "SKT yok");
+            html += `<div class="product-row">
+                        <div>
+                            <div class="product-name">${escapeHtml(p.name)}</div>
+                            <div style="font-size:0.7rem;">${p.barcode} | Stok: ${p.quantity}</div>
+                            <div style="font-size:0.7rem;">📅 ${expiryStatus}</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="product-price">${p.price.toFixed(2)} €</div>
+                            <div>
+                                <button onclick="editProduct(${idx})" style="background:none; border:none; font-size:1.2rem;">✏️</button>
+                                <button onclick="deleteProduct(${idx})" style="background:none; border:none; font-size:1.2rem;">🗑️</button>
+                            </div>
+                        </div>
+                    </div>`;
         });
         container.innerHTML = html;
+        checkExpiryAlerts();
     }
 
-    function renderSearch() {
-        const term = document.getElementById('searchInput').value.toLowerCase();
-        const container = document.getElementById('searchResults');
-        if (!term) { container.innerHTML = ''; return; }
-        const filtered = products.filter(p => p.barcode.includes(term) || p.name.toLowerCase().includes(term));
-        if (!filtered.length) { container.innerHTML = '<div class="small-text">Bulunamadı</div>'; return; }
-        let html = '';
-        filtered.forEach(p => {
-            html += `<div class="price-box" style="padding:10px; margin:5px 0;">${p.name} - ${p.price.toFixed(2)} € - Stok: ${p.quantity}</div>`;
-        });
-        container.innerHTML = html;
+    function editProduct(index) {
+        const p = products[index];
+        document.getElementById("barcode").value = p.barcode;
+        document.getElementById("productName").value = p.name;
+        document.getElementById("price").value = p.price;
+        document.getElementById("quantity").value = p.quantity;
+        document.getElementById("expiryDate").value = p.expiry || "";
+        showTemporaryMessage("Ürün bilgileri yüklendi, düzenleyip kaydedin", "#2ecc71");
     }
 
-    function showMessage(msg, type) {
-        const area = document.getElementById('resultArea');
-        area.innerHTML = `<div class="${type}">${msg}</div>`;
-        setTimeout(() => { if(area.innerHTML.includes(msg)) area.innerHTML = ''; }, 3000);
-    }
-
-    function showProductInfo(product) {
-        document.getElementById('resultArea').innerHTML = `
-            <div class="price-box">
-                <div class="price">${product.price.toFixed(2)} €</div>
-                <div><strong>${escapeHtml(product.name)}</strong></div>
-                <div>📦 Adet: ${product.quantity}</div>
-                <div>📅 SKT: ${product.expiry || 'Belirtilmemiş'}</div>
-            </div>
-        `;
-    }
-
-    // Eventler
-    document.getElementById('searchCameraBtn').onclick = () => {
-        startCamera('search');
-        // Kullanıcı manuel barkod girecek
-        const barcode = prompt('Kamera açıldı. Barkodu manuel girin:');
-        if (barcode) {
-            const product = products.find(p => p.barcode === barcode);
-            if (product) showProductInfo(product);
-            else showMessage('Ürün bulunamadı', 'error');
+    function deleteProduct(index) {
+        if(confirm("Ürün silinsin mi?")) {
+            products.splice(index,1);
+            saveData();
+            renderProducts();
         }
-        stopCamera();
-    };
-    
-    document.getElementById('addCameraBtn').onclick = () => {
-        startCamera('add');
-        const barcode = prompt('Kamera açıldı. Barkodu manuel girin:');
-        if (barcode) {
-            document.getElementById('barcodeInput').value = barcode;
-            showMessage('Barkod eklendi. Ürün bilgilerini girip kaydedin.', 'success');
+    }
+
+    function saveProduct() {
+        const barcode = document.getElementById("barcode").value.trim();
+        const name = document.getElementById("productName").value.trim();
+        const price = parseFloat(document.getElementById("price").value);
+        const quantity = parseInt(document.getElementById("quantity").value);
+        const expiry = document.getElementById("expiryDate").value;
+
+        if(!barcode || !name || isNaN(price)) {
+            showTemporaryMessage("Barkod, ad ve fiyat zorunlu!", "#e67e22");
+            return;
         }
-        stopCamera();
-    };
-    
-    document.getElementById('closeCameraBtn').onclick = () => stopCamera();
-    
-    document.getElementById('saveBtn').onclick = () => {
-        const barcode = document.getElementById('barcodeInput').value.trim();
-        const name = document.getElementById('nameInput').value.trim();
-        const price = parseFloat(document.getElementById('priceInput').value);
-        const quantity = parseInt(document.getElementById('quantityInput').value) || 1;
-        const expiry = document.getElementById('expiryInput').value;
-        if (!barcode || !name || isNaN(price)) { showMessage('Barkod, ad ve fiyat gerekli!', 'error'); return; }
-        
         const existing = products.findIndex(p => p.barcode === barcode);
-        if (existing !== -1) {
-            if (products[existing].price !== price) {
-                if (!products[existing].priceHistory) products[existing].priceHistory = [];
+        if(existing !== -1) {
+            if(products[existing].price !== price) {
+                if(!products[existing].priceHistory) products[existing].priceHistory = [];
                 products[existing].priceHistory.push(price);
             }
             products[existing] = { ...products[existing], name, price, quantity, expiry };
-            showMessage(`${name} güncellendi`, 'success');
+            showTemporaryMessage("Ürün GÜNCELLENDI", "#2ecc71");
         } else {
             products.push({ barcode, name, price, quantity, expiry, priceHistory: [price] });
-            showMessage(`${name} eklendi`, 'success');
+            showTemporaryMessage("Yeni ürün EKLENDI", "#27ae60");
         }
-        saveProducts();
-        renderAll();
-        document.getElementById('barcodeInput').value = '';
-        document.getElementById('nameInput').value = '';
-        document.getElementById('priceInput').value = '';
-        document.getElementById('quantityInput').value = '1';
-        document.getElementById('expiryInput').value = '';
-    };
-    
-    document.getElementById('backupBtn').onclick = () => {
-        const data = JSON.stringify(products);
-        const blob = new Blob([data], {type: 'application/json'});
-        const a = document.createElement('a');
+        saveData();
+        renderProducts();
+        document.getElementById("barcode").value = "";
+        document.getElementById("productName").value = "";
+        document.getElementById("price").value = "";
+        document.getElementById("quantity").value = "1";
+        document.getElementById("expiryDate").value = "";
+    }
+
+    // ---------- KAMERA (Gemini'nin çalışan yöntemi) ----------
+    async function openCamera(mode) {
+        currentCameraMode = mode;
+        const videoElem = document.getElementById("video");
+        const container = document.getElementById("cameraContainer");
+        const resultDiv = document.getElementById("cameraResult");
+        container.style.display = "block";
+        resultDiv.innerHTML = "📷 Kamera başlatılıyor... İzin verin.";
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+            videoElem.srcObject = stream;
+            currentStream = stream;
+            videoElem.play();
+
+            Quagga.init({
+                inputStream: { name: "LiveStream", type: "LiveStream", target: videoElem },
+                decoder: { readers: ["ean_reader", "ean_8_reader", "code_128_reader", "upc_reader"] }
+            }, function(err) {
+                if(err) {
+                    resultDiv.innerHTML = "❌ Quagga başlatılamadı: " + err;
+                    return;
+                }
+                Quagga.start();
+                resultDiv.innerHTML = "🎥 Barkodu gösterin, otomatik algılanacak...";
+            });
+
+            Quagga.onDetected((data) => {
+                const code = data.codeResult.code;
+                // Bip sesi
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = audioCtx.createOscillator();
+                    osc.type = "sine";
+                    osc.frequency.value = 880;
+                    osc.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.1);
+                } catch(e) {}
+                
+                closeCamera();
+                if(mode === 'search') {
+                    const found = products.find(p => p.barcode === code);
+                    if(found) {
+                        document.getElementById("cameraResult").innerHTML = `<div style="background:#2ecc71; padding:10px; border-radius:60px;">✅ ${found.name} — ${found.price.toFixed(2)} € (Stok:${found.quantity})</div>`;
+                    } else {
+                        document.getElementById("cameraResult").innerHTML = `<div style="background:#f1c40f; padding:10px; border-radius:60px;">⚠️ Ürün bulunamadı. Barkod: ${code}</div>`;
+                        document.getElementById("barcode").value = code;
+                    }
+                } else if(mode === 'add') {
+                    document.getElementById("barcode").value = code;
+                    document.getElementById("cameraResult").innerHTML = `<div style="background:#3498db; padding:10px; border-radius:60px;">✅ Barkod alındı: ${code}. Şimdi ürün bilgilerini girip kaydedin.</div>`;
+                }
+                setTimeout(() => { document.getElementById("cameraResult").innerHTML = ""; }, 3000);
+            });
+        } catch(error) {
+            resultDiv.innerHTML = "❌ Kamera hatası: İzin vermediniz veya kamera yok.";
+        }
+    }
+
+    function closeCamera() {
+        if(Quagga) Quagga.stop();
+        if(currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+            currentStream = null;
+        }
+        document.getElementById("cameraContainer").style.display = "none";
+        const video = document.getElementById("video");
+        if(video.srcObject) video.srcObject = null;
+    }
+
+    // Yedekleme ve geri yükleme
+    function backupData() {
+        const dataStr = JSON.stringify(products);
+        const blob = new Blob([dataStr], {type: "application/json"});
+        const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = `market_${Date.now()}.json`;
+        a.download = `market_backup_${Date.now()}.json`;
         a.click();
-        showMessage('Yedek alındı', 'success');
-    };
-    
-    document.getElementById('restoreBtn').onclick = () => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'application/json';
-        input.onchange = e => {
+        showTemporaryMessage("💾 Yedek alındı", "#2c3e50");
+    }
+    function restoreData() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "application/json";
+        input.onchange = (e) => {
             const file = e.target.files[0];
             const reader = new FileReader();
-            reader.onload = ev => {
+            reader.onload = (ev) => {
                 try {
                     products = JSON.parse(ev.target.result);
-                    saveProducts();
-                    renderAll();
-                    showMessage('Yedek yüklendi', 'success');
-                } catch(err) { showMessage('Hatalı dosya', 'error'); }
+                    saveData();
+                    renderProducts();
+                    showTemporaryMessage("📂 Yedek başarıyla yüklendi", "#27ae60");
+                } catch(err) { showTemporaryMessage("Hatalı dosya", "#c0392b"); }
             };
             reader.readAsText(file);
         };
         input.click();
-    };
-    
-    document.getElementById('searchInput').oninput = () => renderSearch();
-    
-    function escapeHtml(str) { return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m; }); }
-    
-    loadProducts();
+    }
+
+    function showTemporaryMessage(msg, color) {
+        const resultDiv = document.getElementById("cameraResult");
+        resultDiv.innerHTML = `<div style="background:${color}; padding:8px; border-radius:60px; color:white;">${msg}</div>`;
+        setTimeout(() => { if(resultDiv.innerHTML.includes(msg)) resultDiv.innerHTML = ""; }, 2500);
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m){
+            if(m === '&') return '&amp;';
+            if(m === '<') return '&lt;';
+            if(m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // Dark mode tamamlayıcı
+    const style = document.createElement('style');
+    style.textContent = `
+        .dark-body { background: linear-gradient(145deg, #1a2a2a, #0f1a1a); }
+        .dark-body .card { background: #2c2c2c; color: #f0e6d0; }
+        .dark-body input { background: #3e3e3e; color: white; border-color: #e67e22; }
+        .dark-body .product-row { background: #3a2a1a; }
+        .dark-body .product-price { background: #e67e22; color: black; }
+    `;
+    document.head.appendChild(style);
+
+    loadData();
+    window.onload = () => { if(window.Quagga) Quagga.stop(); };
 </script>
 </body>
 </html>
