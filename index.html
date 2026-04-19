@@ -6,298 +6,47 @@
     <title>MARKET PRO</title>
     <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
-        }
-
-        body {
-            background-color: #1a1a1a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .app-container {
-            max-width: 450px;
-            width: 100%;
-            background-color: #1a1a1a;
-            border-radius: 48px;
-            padding: 24px 20px;
-        }
-
-        /* SKT BUTONU */
-        .skt-button {
-            background: #2a2a2a;
-            border-radius: 28px;
-            padding: 16px 20px;
-            margin-bottom: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid #3a3a3a;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif; }
+        body { background-color: #1a1a1a; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .app-container { max-width: 450px; width: 100%; background-color: #1a1a1a; border-radius: 48px; padding: 24px 20px; }
+        .skt-button { background: #2a2a2a; border-radius: 28px; padding: 16px 20px; margin-bottom: 30px; text-align: center; cursor: pointer; transition: 0.2s; border: 1px solid #3a3a3a; }
         .skt-button:active { transform: scale(0.98); background: #333; }
-        .skt-title {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: #ff8888;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-        .skt-message {
-            font-size: 1rem;
-            font-weight: 800;
-            color: #ff4444;
-            text-transform: uppercase;
-        }
+        .skt-title { font-size: 0.8rem; font-weight: 700; color: #ff8888; text-transform: uppercase; margin-bottom: 4px; }
+        .skt-message { font-size: 1rem; font-weight: 800; color: #ff4444; text-transform: uppercase; }
         .skt-message.normal { color: #ffaa88; }
-
-        /* BUTON GRUBU */
-        .button-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 30px;
-        }
-        .btn {
-            background: #d4c9b8;
-            border: none;
-            border-radius: 28px;
-            padding: 20px 12px;
-            font-size: 1rem;
-            font-weight: 900;
-            letter-spacing: 1px;
-            color: #c0392b;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            box-shadow: 0 5px 0 #8f7a5c;
-            text-align: center;
-            aspect-ratio: 4 / 3;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 2px 0 #8f7a5c;
-        }
-
-        /* KAMERA */
-        .camera-container {
-            display: none;
-            margin: 15px 0;
-            background: #2a2a2a;
-            border-radius: 32px;
-            padding: 12px;
-        }
-        .video-wrapper {
-            background: #000;
-            border-radius: 24px;
-            overflow: hidden;
-        }
+        .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 30px; }
+        .btn { background: #d4c9b8; border: none; border-radius: 28px; padding: 20px 12px; font-size: 1rem; font-weight: 900; letter-spacing: 1px; color: #c0392b; text-transform: uppercase; cursor: pointer; transition: 0.15s; box-shadow: 0 5px 0 #8f7a5c; text-align: center; aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center; }
+        .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #8f7a5c; }
+        .camera-container { display: none; margin: 15px 0; background: #2a2a2a; border-radius: 32px; padding: 12px; }
+        .video-wrapper { background: #000; border-radius: 24px; overflow: hidden; }
         video { width: 100%; display: block; }
-        .close-camera-btn {
-            background: #444;
-            color: white;
-            border: none;
-            border-radius: 40px;
-            padding: 12px;
-            margin-top: 10px;
-            width: 100%;
-            font-weight: bold;
-            text-transform: uppercase;
-            cursor: pointer;
-        }
-
-        /* SONUÇ ALANI */
-        .result-area {
-            background: #2a2a2a;
-            border-radius: 32px;
-            padding: 20px 16px;
-            text-align: center;
-            min-height: 180px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        .result-placeholder {
-            color: #888;
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        .result-price {
-            font-size: 3rem;
-            font-weight: 900;
-            color: #ff4444;
-            margin: 8px 0;
-        }
-        .result-name {
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: #ffaa88;
-            text-transform: uppercase;
-        }
-        .product-image {
-            max-width: 100%;
-            max-height: 150px;
-            border-radius: 20px;
-            margin: 10px auto;
-            display: block;
-        }
-        .edit-result-btn {
-            background: #c0392b;
-            border: none;
-            border-radius: 40px;
-            padding: 10px 20px;
-            margin-top: 12px;
-            color: white;
-            font-weight: bold;
-            font-size: 0.8rem;
-            cursor: pointer;
-            text-transform: uppercase;
-            display: inline-block;
-        }
-
-        /* MODAL */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background: #2a2a2a;
-            width: 90%;
-            max-width: 450px;
-            border-radius: 48px;
-            padding: 20px;
-            max-height: 85%;
-            overflow-y: auto;
-            position: relative;
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            position: sticky;
-            top: 0;
-            background: #2a2a2a;
-            padding-bottom: 10px;
-            z-index: 10;
-        }
-        .modal-title {
-            color: #ff6666;
-            font-size: 1.3rem;
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-        .close-modal-btn {
-            background: #c0392b;
-            border: none;
-            border-radius: 40px;
-            padding: 8px 16px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        /* ENVANTER LİSTESİ (sadece isimler) */
-        .product-list-simple {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .product-name-item {
-            background: #3a3a3a;
-            border-radius: 40px;
-            padding: 14px 20px;
-            cursor: pointer;
-            transition: 0.1s;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #ffaa88;
-            text-align: center;
-        }
-        .product-name-item:active {
-            background: #555;
-            transform: scale(0.98);
-        }
-        .product-detail-card {
-            background: #3a3a3a;
-            border-radius: 32px;
-            padding: 16px;
-            margin-top: 16px;
-            text-align: center;
-        }
-        .detail-image {
-            max-width: 100%;
-            max-height: 180px;
-            border-radius: 24px;
-            margin: 10px auto;
-        }
-        .detail-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-            justify-content: center;
-        }
-        .detail-actions button {
-            background: #c0392b;
-            border: none;
-            border-radius: 40px;
-            padding: 8px 16px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        /* FORM ELEMANLARI */
-        .edit-form, .add-product-form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        input {
-            width: 100%;
-            padding: 14px;
-            border-radius: 40px;
-            border: none;
-            background: #555;
-            color: white;
-            font-size: 1rem;
-        }
-        button {
-            background: #c0392b;
-            border: none;
-            border-radius: 40px;
-            padding: 14px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .image-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 5px;
-        }
-        .image-buttons button {
-            flex: 1;
-            background: #2c6e2f;
-        }
+        .close-camera-btn { background: #444; color: white; border: none; border-radius: 40px; padding: 12px; margin-top: 10px; width: 100%; font-weight: bold; cursor: pointer; }
+        .result-area { background: #2a2a2a; border-radius: 32px; padding: 20px 16px; text-align: center; min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
+        .result-placeholder { color: #888; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; }
+        .result-price { font-size: 3rem; font-weight: 900; color: #ff4444; margin: 8px 0; }
+        .result-name { font-size: 1.3rem; font-weight: 800; color: #ffaa88; text-transform: uppercase; }
+        .product-image { max-width: 100%; max-height: 150px; border-radius: 20px; margin: 10px auto; display: block; }
+        .edit-result-btn { background: #c0392b; border: none; border-radius: 40px; padding: 10px 20px; margin-top: 12px; color: white; font-weight: bold; cursor: pointer; display: inline-block; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: #2a2a2a; width: 90%; max-width: 450px; border-radius: 48px; padding: 20px; max-height: 85%; overflow-y: auto; position: relative; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; position: sticky; top: 0; background: #2a2a2a; padding-bottom: 10px; z-index: 10; }
+        .modal-title { color: #ff6666; font-size: 1.3rem; font-weight: 800; text-transform: uppercase; }
+        .close-modal-btn { background: #c0392b; border: none; border-radius: 40px; padding: 8px 16px; color: white; font-weight: bold; cursor: pointer; }
+        .product-list-simple { display: flex; flex-direction: column; gap: 12px; }
+        .product-name-item { background: #3a3a3a; border-radius: 40px; padding: 14px 20px; cursor: pointer; font-weight: bold; text-transform: uppercase; color: #ffaa88; text-align: center; }
+        .product-name-item:active { background: #555; transform: scale(0.98); }
+        .product-detail-card { background: #3a3a3a; border-radius: 32px; padding: 16px; margin-top: 16px; text-align: center; }
+        .detail-image { max-width: 100%; max-height: 180px; border-radius: 24px; margin: 10px auto; }
+        .detail-actions { display: flex; gap: 10px; margin-top: 12px; justify-content: center; flex-wrap: wrap; }
+        .detail-actions button { background: #c0392b; border: none; border-radius: 40px; padding: 8px 16px; color: white; font-weight: bold; cursor: pointer; }
+        .edit-form, .add-product-form { display: flex; flex-direction: column; gap: 12px; }
+        input { width: 100%; padding: 14px; border-radius: 40px; border: none; background: #555; color: white; font-size: 1rem; }
+        button { background: #c0392b; border: none; border-radius: 40px; padding: 14px; color: white; font-weight: bold; cursor: pointer; }
+        .image-buttons { display: flex; gap: 10px; margin-top: 5px; flex-wrap: wrap; }
+        .image-buttons button { flex: 1; background: #2c6e2f; }
         .hidden { display: none; }
+        .paste-url-area { display: flex; gap: 8px; margin-top: 5px; }
+        .paste-url-area input { flex: 1; margin: 0; }
     </style>
 </head>
 <body>
@@ -315,9 +64,7 @@
     </div>
 
     <div id="cameraContainer" class="camera-container">
-        <div class="video-wrapper">
-            <video id="video" autoplay muted playsinline></video>
-        </div>
+        <div class="video-wrapper"><video id="video" autoplay muted playsinline></video></div>
         <button class="close-camera-btn" onclick="closeCamera()">✖ KAPAT</button>
         <div id="cameraStatus" style="color:#aaa; text-align:center; margin-top:8px;"></div>
     </div>
@@ -332,10 +79,7 @@
 <!-- ENVANTER MODAL -->
 <div id="inventoryModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <span class="modal-title">📦 ENVANTER</span>
-            <button class="close-modal-btn" onclick="closeInventoryModal()">✖ KAPAT</button>
-        </div>
+        <div class="modal-header"><span class="modal-title">📦 ENVANTER</span><button class="close-modal-btn" onclick="closeInventoryModal()">✖ KAPAT</button></div>
         <div id="modalProductList" class="product-list-simple"></div>
         <div id="productDetailArea" style="margin-top: 16px;"></div>
     </div>
@@ -344,10 +88,7 @@
 <!-- SKT MODAL -->
 <div id="sktModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <span class="modal-title">⚠️ SKT YAKIN ÜRÜNLER</span>
-            <button class="close-modal-btn" onclick="closeSktModal()">✖ KAPAT</button>
-        </div>
+        <div class="modal-header"><span class="modal-title">⚠️ SKT YAKIN ÜRÜNLER</span><button class="close-modal-btn" onclick="closeSktModal()">✖ KAPAT</button></div>
         <div id="sktProductList"></div>
     </div>
 </div>
@@ -355,14 +96,8 @@
 <!-- AYARLAR MODAL -->
 <div id="settingsModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <span class="modal-title">⚙️ AYARLAR</span>
-            <button class="close-modal-btn" onclick="closeSettingsModal()">✖ KAPAT</button>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-            <button onclick="backupData()">💾 YEDEK AL</button>
-            <button onclick="restoreData()">📂 GERİ YÜKLE</button>
-        </div>
+        <div class="modal-header"><span class="modal-title">⚙️ AYARLAR</span><button class="close-modal-btn" onclick="closeSettingsModal()">✖ KAPAT</button></div>
+        <div style="display: flex; flex-direction: column; gap: 12px;"><button onclick="backupData()">💾 YEDEK AL</button><button onclick="restoreData()">📂 GERİ YÜKLE</button></div>
     </div>
 </div>
 
@@ -373,7 +108,7 @@
     let lastScannedProduct = null;
 
     function loadData() {
-        const stored = localStorage.getItem("market_pro_final_v4");
+        const stored = localStorage.getItem("market_pro_final_v5");
         if(stored) products = JSON.parse(stored);
         else {
             products = [
@@ -385,84 +120,53 @@
         }
         updateSktButton();
     }
-    function saveData() { localStorage.setItem("market_pro_final_v4", JSON.stringify(products)); }
+    function saveData() { localStorage.setItem("market_pro_final_v5", JSON.stringify(products)); }
 
     function updateSktButton() {
         const today = new Date(); today.setHours(0,0,0,0);
-        const warnings = products.filter(p => {
-            if(!p.expiry) return false;
-            const diff = Math.ceil((new Date(p.expiry) - today) / (86400000));
-            return diff >= 0 && diff <= 5;
-        });
+        const warnings = products.filter(p => { if(!p.expiry) return false; const diff = Math.ceil((new Date(p.expiry) - today) / 86400000); return diff >= 0 && diff <= 5; });
         const sktMsg = document.getElementById("sktMessage");
-        if(warnings.length === 0) {
-            sktMsg.innerHTML = "YAKIN ÜRÜN YOK";
-            sktMsg.className = "skt-message normal";
-        } else {
-            sktMsg.innerHTML = `${warnings.length} ÜRÜN YAKIN`;
-            sktMsg.className = "skt-message";
-        }
+        if(warnings.length === 0) { sktMsg.innerHTML = "YAKIN ÜRÜN YOK"; sktMsg.className = "skt-message normal"; }
+        else { sktMsg.innerHTML = `${warnings.length} ÜRÜN YAKIN`; sktMsg.className = "skt-message"; }
     }
 
-    // SKT MODAL
     function openSktModal() {
         const modal = document.getElementById("sktModal");
         const container = document.getElementById("sktProductList");
         const today = new Date(); today.setHours(0,0,0,0);
-        const warnings = products.filter(p => {
-            if(!p.expiry) return false;
-            const diff = Math.ceil((new Date(p.expiry) - today) / (86400000));
-            return diff >= 0 && diff <= 5;
-        });
-        if(warnings.length === 0) {
-            container.innerHTML = "<div style='color:#aaa; text-align:center;'>YAKLAŞAN SKT ÜRÜNÜ YOK</div>";
-        } else {
+        const warnings = products.filter(p => { if(!p.expiry) return false; const diff = Math.ceil((new Date(p.expiry) - today) / 86400000); return diff >= 0 && diff <= 5; });
+        if(warnings.length === 0) container.innerHTML = "<div style='color:#aaa; text-align:center;'>YAKLAŞAN SKT ÜRÜNÜ YOK</div>";
+        else {
             let html = "";
-            warnings.forEach(p => {
-                const diff = Math.ceil((new Date(p.expiry) - today) / (86400000));
-                html += `<div class="product-item" style="background:#3a3a3a; border-radius:28px; padding:12px; margin-bottom:10px;">
-                            <strong>${escapeHtml(p.name)}</strong><br>
-                            ${p.barcode}<br>
-                            SKT: ${p.expiry} (${diff} GÜN)<br>
-                            FİYAT: ${p.price.toFixed(2)} € | STOK: ${p.quantity}
-                         </div>`;
-            });
+            warnings.forEach(p => { const diff = Math.ceil((new Date(p.expiry) - today) / 86400000); html += `<div class="product-item" style="background:#3a3a3a; border-radius:28px; padding:12px; margin-bottom:10px;"><strong>${escapeHtml(p.name)}</strong><br>${p.barcode}<br>SKT: ${p.expiry} (${diff} GÜN)<br>FİYAT: ${p.price.toFixed(2)} € | STOK: ${p.quantity}</div>`; });
             container.innerHTML = html;
         }
         modal.style.display = "flex";
     }
     function closeSktModal() { document.getElementById("sktModal").style.display = "none"; }
 
-    // ENVANTER MODAL (sadece isimler, tıklanabilir)
     function openInventoryModal() {
         const modal = document.getElementById("inventoryModal");
         const container = document.getElementById("modalProductList");
-        if(products.length === 0) {
-            container.innerHTML = "<div style='color:#aaa; text-align:center;'>ÜRÜN YOK</div>";
-        } else {
+        if(products.length === 0) container.innerHTML = "<div style='color:#aaa; text-align:center;'>ÜRÜN YOK</div>";
+        else {
             let html = "";
-            products.forEach((p, idx) => {
-                html += `<div class="product-name-item" onclick="showProductDetail(${idx})">${escapeHtml(p.name)}</div>`;
-            });
+            products.forEach((p, idx) => { html += `<div class="product-name-item" onclick="showProductDetail(${idx})">${escapeHtml(p.name)}</div>`; });
             container.innerHTML = html;
         }
-        document.getElementById("productDetailArea").innerHTML = ""; // detay alanını temizle
+        document.getElementById("productDetailArea").innerHTML = "";
         modal.style.display = "flex";
     }
     function closeInventoryModal() { document.getElementById("inventoryModal").style.display = "none"; }
 
-    // Ürün detayını göster (tıklanınca)
     function showProductDetail(idx) {
         const p = products[idx];
         const detailArea = document.getElementById("productDetailArea");
         detailArea.innerHTML = `
             <div class="product-detail-card">
                 ${p.image ? `<img src="${p.image}" class="detail-image">` : '<div style="color:#aaa;">📷 RESİM YOK</div>'}
-                <div style="font-weight:bold; margin-top:8px;">${escapeHtml(p.name)}</div>
-                <div>${p.barcode}</div>
-                <div style="color:#ff6666;">${p.price.toFixed(2)} €</div>
-                <div>STOK: ${p.quantity}</div>
-                <div>SKT: ${p.expiry || "YOK"}</div>
+                <div style="font-weight:bold; margin-top:8px;">${escapeHtml(p.name)}</div><div>${p.barcode}</div>
+                <div style="color:#ff6666;">${p.price.toFixed(2)} €</div><div>STOK: ${p.quantity}</div><div>SKT: ${p.expiry || "YOK"}</div>
                 <div class="detail-actions">
                     <button onclick="editProductWithForm(${idx})">✏️ DÜZENLE</button>
                     <button onclick="deleteProductFromModal(${idx})">🗑️ SİL</button>
@@ -472,36 +176,52 @@
         `;
     }
 
-    // Resim ekleme (galeri veya kamera)
+    // RESİM EKLEME - YAPIŞTIR DESTEKLİ
     function addImageToProduct(idx) {
-        // Kullanıcıya iki seçenek sun: "Galeriden Seç" veya "Kamera ile Çek"
-        const choice = confirm("Resim ekleme yöntemi:\nTamam -> Galeriden Seç\nİptal -> Kamera ile Çek");
-        const input = document.createElement("input");
+        const choice = confirm("Tamam -> Galeriden/Kameradan Seç\nİptal -> URL veya Panodan Yapıştır");
         if (choice) {
+            const input = document.createElement("input");
             input.type = "file";
             input.accept = "image/*";
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => { products[idx].image = ev.target.result; saveData(); showProductDetail(idx); playBeep(); };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
         } else {
-            input.type = "file";
-            input.accept = "image/*";
-            input.capture = "environment";
-        }
-        input.onchange = (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    products[idx].image = ev.target.result;
-                    saveData();
-                    showProductDetail(idx); // yenile
-                    playBeep();
-                };
-                reader.readAsDataURL(file);
+            // URL veya panodan yapıştır
+            const url = prompt("Resmin URL'sini yapıştırın (Google'dan kopyaladığınız adres):");
+            if (url && (url.startsWith("http") || url.startsWith("data"))) {
+                products[idx].image = url;
+                saveData();
+                showProductDetail(idx);
+                playBeep();
+                alert("Resim URL ile eklendi!");
+            } else if (url) alert("Geçersiz URL!");
+            else {
+                // Panodan okumayı dene (mobilde sıkıntılı ama dene)
+                navigator.clipboard.read().then(items => {
+                    for (let item of items) {
+                        const imageType = item.types.find(type => type.startsWith('image/'));
+                        if (imageType) {
+                            item.getType(imageType).then(blob => {
+                                const reader = new FileReader();
+                                reader.onload = ev => { products[idx].image = ev.target.result; saveData(); showProductDetail(idx); playBeep(); };
+                                reader.readAsDataURL(blob);
+                            });
+                            return;
+                        }
+                    }
+                    alert("Panoda resim bulunamadı. URL yöntemini deneyin.");
+                }).catch(() => alert("Panodan okuma izni verilmedi veya desteklenmiyor. URL yöntemini kullanın."));
             }
-        };
-        input.click();
+        }
     }
 
-    // Düzenleme formu (tek sütun)
     function editProductWithForm(idx) {
         const p = products[idx];
         const detailArea = document.getElementById("productDetailArea");
@@ -514,7 +234,11 @@
                 <input type="date" id="editExpiry" value="${p.expiry || ''}" placeholder="SKT">
                 <div class="image-buttons">
                     <button onclick="openGoogleImageSearch('${encodeURIComponent(p.name)}')">🔍 GOOGLE'DA ARA</button>
-                    <button onclick="addImageToProduct(${idx})">📷 FOTOĞRAF ÇEK/SEÇ</button>
+                    <button onclick="addImageToProduct(${idx})">📷 RESİM EKLE</button>
+                </div>
+                <div class="paste-url-area">
+                    <input type="text" id="pasteUrlInput" placeholder="Resim URL'sini yapıştır">
+                    <button onclick="pasteUrlToProduct(${idx})">📋 YAPIŞTIR</button>
                 </div>
                 <button onclick="saveEditedProduct(${idx})">💾 KAYDET</button>
                 <button onclick="showProductDetail(${idx})">İPTAL</button>
@@ -522,10 +246,21 @@
         `;
     }
 
+    function pasteUrlToProduct(idx) {
+        const urlInput = document.getElementById("pasteUrlInput");
+        const url = urlInput.value.trim();
+        if (url && (url.startsWith("http") || url.startsWith("data"))) {
+            products[idx].image = url;
+            saveData();
+            alert("Resim URL ile eklendi!");
+            showProductDetail(idx);
+            playBeep();
+        } else alert("Geçerli bir URL girin (http ile başlamalı)");
+    }
+
     function openGoogleImageSearch(query) {
-        // Yeni sekmede Google Görsel aramasını açar
         window.open(`https://www.google.com/search?q=${query}&tbm=isch`, '_blank');
-        alert("Google Görsel araması açıldı. Beğendiğiniz resmi indirip, ardından 'FOTOĞRAF ÇEK/SEÇ' ile yükleyebilirsiniz.");
+        alert("Google Görsel araması açıldı. Beğendiğiniz resme tıklayıp 'Resim adresini kopyala' yapın, ardından 'YAPIŞTIR' butonu ile ekleyin.");
     }
 
     function saveEditedProduct(idx) {
@@ -533,80 +268,32 @@
         const newPrice = parseFloat(document.getElementById("editPrice").value);
         const newQuantity = parseInt(document.getElementById("editQuantity").value);
         const newExpiry = document.getElementById("editExpiry").value;
-        if(!newName || isNaN(newPrice) || isNaN(newQuantity)) {
-            alert("GEÇERSİZ BİLGİ!");
-            return;
-        }
+        if(!newName || isNaN(newPrice) || isNaN(newQuantity)) { alert("GEÇERSİZ BİLGİ!"); return; }
         const oldPrice = products[idx].price;
-        products[idx] = {
-            ...products[idx],
-            name: newName,
-            price: newPrice,
-            quantity: newQuantity,
-            expiry: newExpiry
-        };
-        if(oldPrice !== newPrice) {
-            if(!products[idx].priceHistory) products[idx].priceHistory = [];
-            products[idx].priceHistory.push(newPrice);
-        }
-        saveData();
-        updateSktButton();
-        showProductDetail(idx); // detayı göster
-        playBeep();
+        products[idx] = { ...products[idx], name: newName, price: newPrice, quantity: newQuantity, expiry: newExpiry };
+        if(oldPrice !== newPrice) { if(!products[idx].priceHistory) products[idx].priceHistory = []; products[idx].priceHistory.push(newPrice); }
+        saveData(); updateSktButton(); showProductDetail(idx); playBeep();
     }
 
     function deleteProductFromModal(idx) {
-        if(confirm(`${products[idx].name} SİLİNSİN Mİ?`)) {
-            products.splice(idx,1);
-            saveData();
-            updateSktButton();
-            openInventoryModal(); // listeyi yenile
-            playBeep();
-        }
+        if(confirm(`${products[idx].name} SİLİNSİN Mİ?`)) { products.splice(idx,1); saveData(); updateSktButton(); openInventoryModal(); playBeep(); }
     }
 
-    // SONUÇ GÖSTER (fiyat sorgulama)
     function showResult(product) {
         lastScannedProduct = product;
         const resultDiv = document.getElementById("resultArea");
         let imageHtml = product.image ? `<img src="${product.image}" class="product-image">` : '<div style="color:#aaa;">📷 RESİM YOK</div>';
-        resultDiv.innerHTML = `
-            ${imageHtml}
-            <div class="result-name">${escapeHtml(product.name)}</div>
-            <div class="result-price">${product.price.toFixed(2)} €</div>
-            <div style="color:#aaa; font-size:0.8rem;">STOK: ${product.quantity} | SKT: ${product.expiry || "YOK"}</div>
-            <button class="edit-result-btn" onclick="editCurrentProduct()">✏️ FİYAT DÜZENLE</button>
-        `;
+        resultDiv.innerHTML = `${imageHtml}<div class="result-name">${escapeHtml(product.name)}</div><div class="result-price">${product.price.toFixed(2)} €</div><div style="color:#aaa;">STOK: ${product.quantity} | SKT: ${product.expiry || "YOK"}</div><button class="edit-result-btn" onclick="editCurrentProduct()">✏️ FİYAT DÜZENLE</button>`;
     }
 
     function editCurrentProduct() {
         if(!lastScannedProduct) return;
         const newPrice = prompt("YENİ FİYAT (€):", lastScannedProduct.price);
-        if(newPrice && !isNaN(parseFloat(newPrice))) {
-            lastScannedProduct.price = parseFloat(newPrice);
-            if(!lastScannedProduct.priceHistory) lastScannedProduct.priceHistory = [];
-            lastScannedProduct.priceHistory.push(parseFloat(newPrice));
-            saveData();
-            showResult(lastScannedProduct);
-            playBeep();
-        }
+        if(newPrice && !isNaN(parseFloat(newPrice))) { lastScannedProduct.price = parseFloat(newPrice); if(!lastScannedProduct.priceHistory) lastScannedProduct.priceHistory = []; lastScannedProduct.priceHistory.push(parseFloat(newPrice)); saveData(); showResult(lastScannedProduct); playBeep(); }
     }
 
-    // BİP SESİ
-    function playBeep() {
-        try {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            osc.type = "sine";
-            osc.frequency.value = 880;
-            osc.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.15);
-            audioCtx.resume();
-        } catch(e) {}
-    }
+    function playBeep() { try { const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const osc = audioCtx.createOscillator(); osc.type = "sine"; osc.frequency.value = 880; osc.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15); audioCtx.resume(); } catch(e) {} }
 
-    // KAMERA (Fiyat sorgula ve Ürün ekle)
     async function openCamera(mode) {
         currentCameraMode = mode;
         const videoElem = document.getElementById("video");
@@ -616,36 +303,13 @@
         statusDiv.innerHTML = "📷 KAMERA BAŞLATILIYOR...";
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-            videoElem.srcObject = stream;
-            currentStream = stream;
-            videoElem.play();
-            Quagga.init({
-                inputStream: { name: "LiveStream", type: "LiveStream", target: videoElem },
-                decoder: { readers: ["ean_reader", "ean_8_reader", "code_128_reader", "upc_reader"] }
-            }, function(err) {
-                if(err) { statusDiv.innerHTML = "❌ HATA"; return; }
-                Quagga.start();
-                statusDiv.innerHTML = "🎥 BARKODU GÖSTERİN...";
-            });
-            Quagga.onDetected((data) => {
-                const code = data.codeResult.code;
-                playBeep();
-                closeCamera();
-                if(mode === 'search') {
-                    const found = products.find(p => p.barcode === code);
-                    if(found) showResult(found);
-                    else {
-                        document.getElementById("resultArea").innerHTML = `<div style="color:#ff6666; text-align:center; padding:20px;">❌ "${code}" BULUNAMADI<br><button onclick="showAddFormForBarcode('${code}')" style="background:#c0392b; border:none; border-radius:40px; padding:8px 16px; margin-top:10px; color:white;">➕ ÜRÜN EKLE</button></div>`;
-                    }
-                } else if(mode === 'add') {
-                    showAddFormForBarcode(code);
-                }
-            });
-        } catch(e) {
-            statusDiv.innerHTML = "❌ KAMERA İZNİ GEREKLİ!";
-        }
+            videoElem.srcObject = stream; currentStream = stream; videoElem.play();
+            Quagga.init({ inputStream: { name: "LiveStream", type: "LiveStream", target: videoElem }, decoder: { readers: ["ean_reader", "ean_8_reader", "code_128_reader", "upc_reader"] } }, function(err) { if(err) { statusDiv.innerHTML = "❌ HATA"; return; } Quagga.start(); statusDiv.innerHTML = "🎥 BARKODU GÖSTERİN..."; });
+            Quagga.onDetected((data) => { const code = data.codeResult.code; playBeep(); closeCamera(); if(mode === 'search') { const found = products.find(p => p.barcode === code); if(found) showResult(found); else { document.getElementById("resultArea").innerHTML = `<div style="color:#ff6666; text-align:center; padding:20px;">❌ "${code}" BULUNAMADI<br><button onclick="showAddFormForBarcode('${code}')" style="background:#c0392b; border:none; border-radius:40px; padding:8px 16px; margin-top:10px; color:white;">➕ ÜRÜN EKLE</button></div>`; } } else if(mode === 'add') { showAddFormForBarcode(code); } });
+        } catch(e) { statusDiv.innerHTML = "❌ KAMERA İZNİ GEREKLİ!"; }
     }
 
+    let tempImageData = null;
     function showAddFormForBarcode(barcode) {
         const container = document.getElementById("addFormContainer");
         container.classList.remove("hidden");
@@ -661,6 +325,10 @@
                     <button onclick="openGoogleImageSearch(document.getElementById('addName').value)">🔍 GOOGLE'DA ARA</button>
                     <button onclick="captureImageForAdd()">📷 FOTOĞRAF ÇEK/SEÇ</button>
                 </div>
+                <div class="paste-url-area">
+                    <input type="text" id="addPasteUrl" placeholder="Resim URL'sini yapıştır">
+                    <button onclick="pasteUrlToNewProduct()">📋 YAPIŞTIR</button>
+                </div>
                 <button onclick="saveNewProduct()">💾 KAYDET</button>
                 <button onclick="closeAddForm()" style="background:#555;">İPTAL</button>
             </div>
@@ -668,7 +336,15 @@
         document.getElementById("resultArea").innerHTML = `<div class="result-placeholder">🎯 BARKOD OKUTUNCA<br>FİYAT GÖRÜNÜR</div>`;
     }
 
-    let tempImageData = null;
+    function pasteUrlToNewProduct() {
+        const urlInput = document.getElementById("addPasteUrl");
+        const url = urlInput.value.trim();
+        if (url && (url.startsWith("http") || url.startsWith("data"))) {
+            tempImageData = url;
+            alert("Resim URL'si kaydedildi. Ürünü kaydedince eklenecek.");
+        } else alert("Geçerli bir URL girin");
+    }
+
     function captureImageForAdd() {
         const choice = confirm("Tamam -> Galeriden Seç\nİptal -> Kamera ile Çek");
         const input = document.createElement("input");
@@ -677,14 +353,7 @@
         if (!choice) input.capture = "environment";
         input.onchange = (e) => {
             const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    tempImageData = ev.target.result;
-                    alert("Resim yüklendi. Ürünü kaydettiğinizde eklenecektir.");
-                };
-                reader.readAsDataURL(file);
-            }
+            if (file) { const reader = new FileReader(); reader.onload = (ev) => { tempImageData = ev.target.result; alert("Resim yüklendi. Ürünü kaydettiğinizde eklenecektir."); }; reader.readAsDataURL(file); }
         };
         input.click();
     }
@@ -695,88 +364,28 @@
         const price = parseFloat(document.getElementById("addPrice").value);
         const quantity = parseInt(document.getElementById("addQuantity").value) || 1;
         const expiry = document.getElementById("addExpiry").value;
-        if(!name || isNaN(price)) {
-            alert("ÜRÜN ADI VE FİYAT GEREKLİ!");
-            return;
-        }
+        if(!name || isNaN(price)) { alert("ÜRÜN ADI VE FİYAT GEREKLİ!"); return; }
         const existing = products.findIndex(p => p.barcode === barcode);
         if(existing !== -1) {
             if(confirm("BARKOD ZATEN VAR! ÜZERİNE YAZILSIN MI?")) {
                 products[existing] = { ...products[existing], name, price, quantity, expiry, image: tempImageData || products[existing].image };
-                saveData();
-                alert("GÜNCELLENDİ");
+                saveData(); alert("GÜNCELLENDİ");
             }
         } else {
             products.push({ barcode, name, price, quantity, expiry, priceHistory: [price], image: tempImageData });
-            saveData();
-            alert("ÜRÜN EKLENDİ");
+            saveData(); alert("ÜRÜN EKLENDİ");
         }
-        tempImageData = null;
-        updateSktButton();
-        closeAddForm();
+        tempImageData = null; updateSktButton(); closeAddForm();
     }
 
-    function closeAddForm() {
-        document.getElementById("addFormContainer").classList.add("hidden");
-        document.getElementById("addFormContainer").innerHTML = "";
-        tempImageData = null;
-    }
+    function closeAddForm() { document.getElementById("addFormContainer").classList.add("hidden"); document.getElementById("addFormContainer").innerHTML = ""; tempImageData = null; }
+    function closeCamera() { if(Quagga) Quagga.stop(); if(currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; } document.getElementById("cameraContainer").style.display = "none"; const video = document.getElementById("video"); if(video.srcObject) video.srcObject = null; }
+    function openSettingsModal() { document.getElementById("settingsModal").style.display = "flex"; }
+    function closeSettingsModal() { document.getElementById("settingsModal").style.display = "none"; }
+    function backupData() { const dataStr = JSON.stringify(products); const blob = new Blob([dataStr], {type: "application/json"}); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `market_backup_${Date.now()}.json`; a.click(); alert("YEDEK ALINDI"); }
+    function restoreData() { const input = document.createElement("input"); input.type = "file"; input.accept = "application/json"; input.onchange = e => { const file = e.target.files[0]; const reader = new FileReader(); reader.onload = ev => { try { products = JSON.parse(ev.target.result); saveData(); updateSktButton(); alert("YEDEK YÜKLENDİ"); } catch(err) { alert("HATALI DOSYA"); } }; reader.readAsText(file); }; input.click(); }
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m; }); }
 
-    function closeCamera() {
-        if(Quagga) Quagga.stop();
-        if(currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; }
-        document.getElementById("cameraContainer").style.display = "none";
-        const video = document.getElementById("video");
-        if(video.srcObject) video.srcObject = null;
-    }
-
-    // AYARLAR
-    function openSettingsModal() {
-        document.getElementById("settingsModal").style.display = "flex";
-    }
-    function closeSettingsModal() {
-        document.getElementById("settingsModal").style.display = "none";
-    }
-    function backupData() {
-        const dataStr = JSON.stringify(products);
-        const blob = new Blob([dataStr], {type: "application/json"});
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `market_backup_${Date.now()}.json`;
-        a.click();
-        alert("YEDEK ALINDI");
-    }
-    function restoreData() {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = "application/json";
-        input.onchange = e => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = ev => {
-                try {
-                    products = JSON.parse(ev.target.result);
-                    saveData();
-                    updateSktButton();
-                    alert("YEDEK YÜKLENDİ");
-                } catch(err) { alert("HATALI DOSYA"); }
-            };
-            reader.readAsText(file);
-        };
-        input.click();
-    }
-
-    function escapeHtml(str) {
-        if(!str) return '';
-        return str.replace(/[&<>]/g, function(m){
-            if(m === '&') return '&amp;';
-            if(m === '<') return '&lt;';
-            if(m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    // EVENTLER
     document.getElementById("searchBtn").onclick = () => openCamera('search');
     document.getElementById("addBtn").onclick = () => openCamera('add');
     document.getElementById("inventoryBtn").onclick = () => openInventoryModal();
