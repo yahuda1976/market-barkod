@@ -17,20 +17,13 @@
         .product-image { max-width: 100%; max-height: 140px; border-radius: 20px; margin: 8px auto; display: block; object-fit: contain; background: #3a3a3a; }
         .edit-result-btn { background: #c0392b; border: none; border-radius: 40px; padding: 10px 20px; margin-top: 10px; color: white; font-weight: bold; cursor: pointer; display: inline-block; }
         
-        /* Form stilleri - daha geniş ve okunabilir */
         .inline-edit-form, .edit-form, .add-product-form { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
         input, select { width: 100%; padding: 14px; border-radius: 40px; border: none; background: #555; color: white; font-size: 1rem; }
         button { background: #2c6e2f; border: none; border-radius: 40px; padding: 14px; color: white; font-weight: bold; cursor: pointer; margin-top: 5px; }
         .image-buttons { display: flex; gap: 12px; margin-top: 8px; }
         .image-buttons button { flex: 1; background: #c0392b; }
         
-        /* Hesap makinesi bölümü - düzenli ve geniş */
-        .calc-group {
-            background: #3a3a3a;
-            border-radius: 32px;
-            padding: 12px;
-            margin: 8px 0;
-        }
+        .calc-group { background: #3a3a3a; border-radius: 32px; padding: 12px; margin: 8px 0; }
         .calc-row { margin-bottom: 10px; }
         .calc-row label { display: block; color: #ffaa88; font-size: 0.8rem; margin-bottom: 4px; text-transform: uppercase; }
         .calc-row input { margin: 0; }
@@ -134,8 +127,9 @@
     let lastScannedProduct = null;
     let isEditMode = false;
 
+    // ---------- VERİ YÖNETİMİ ----------
     function loadData() {
-        const stored = localStorage.getItem("market_pro_final_v10");
+        const stored = localStorage.getItem("market_pro_final_v11");
         if(stored) products = JSON.parse(stored);
         else {
             products = [
@@ -147,7 +141,7 @@
         }
         updateSktButton();
     }
-    function saveData() { localStorage.setItem("market_pro_final_v10", JSON.stringify(products)); }
+    function saveData() { localStorage.setItem("market_pro_final_v11", JSON.stringify(products)); }
 
     function updateSktButton() {
         const today = new Date(); today.setHours(0,0,0,0);
@@ -157,48 +151,84 @@
         else { sktMsg.innerHTML = `${warnings.length} ÜRÜN YAKIN`; sktMsg.className = "skt-message"; }
     }
 
-    // HESAP MAKİNESİ (daha geniş ve düzenli)
+    // HESAP MAKİNESİ
     function calculatePrice(cost, profitPercent, taxPercent) {
         let totalPercent = (profitPercent || 0) + (taxPercent || 0);
         let price = cost * (1 + totalPercent / 100);
         return Math.round(price * 100) / 100;
     }
 
-    function createCalcGroup(targetId, priceFieldId) {
-        // Bu fonksiyon dinamik olarak çağrılacak, ancak doğrudan HTML içinde oluşturacağız.
-        // Aşağıdaki yardımcı fonksiyonlar ile hesaplama yapılacak.
-    }
-
-    // Hesaplama fonksiyonları (inline, edit, add için)
     function calculateAndSetFor(target) {
         let cost, profit, tax, priceField;
         if (target === 'inline') {
-            cost = parseFloat(document.getElementById("inlineCost").value);
-            profit = parseFloat(document.getElementById("inlineProfit").value);
-            tax = parseFloat(document.getElementById("inlineTax").value);
+            cost = parseFloat(document.getElementById("inlineCost")?.value);
+            profit = parseFloat(document.getElementById("inlineProfit")?.value);
+            tax = parseFloat(document.getElementById("inlineTax")?.value);
             priceField = document.getElementById("inlinePrice");
         } else if (target === 'edit') {
-            cost = parseFloat(document.getElementById("editCost").value);
-            profit = parseFloat(document.getElementById("editProfit").value);
-            tax = parseFloat(document.getElementById("editTax").value);
+            cost = parseFloat(document.getElementById("editCost")?.value);
+            profit = parseFloat(document.getElementById("editProfit")?.value);
+            tax = parseFloat(document.getElementById("editTax")?.value);
             priceField = document.getElementById("editPrice");
         } else if (target === 'add') {
-            cost = parseFloat(document.getElementById("addCost").value);
-            profit = parseFloat(document.getElementById("addProfit").value);
-            tax = parseFloat(document.getElementById("addTax").value);
+            cost = parseFloat(document.getElementById("addCost")?.value);
+            profit = parseFloat(document.getElementById("addProfit")?.value);
+            tax = parseFloat(document.getElementById("addTax")?.value);
             priceField = document.getElementById("addPrice");
         } else return;
         if (isNaN(cost) || isNaN(profit) || isNaN(tax)) { alert("Maliyet, kar ve vergi girin!"); return; }
         let newPrice = calculatePrice(cost, profit, tax);
-        priceField.value = newPrice;
+        if (priceField) priceField.value = newPrice;
     }
 
-    // ----- ENVANTER MODAL -----
-    function openSktModal() { /* aynı */ }
+    // ---------- SKT MODAL ----------
+    function openSktModal() {
+        const modal = document.getElementById("sktModal");
+        const container = document.getElementById("sktProductList");
+        const today = new Date(); today.setHours(0,0,0,0);
+        const warnings = products.filter(p => { if(!p.expiry) return false; const diff = Math.ceil((new Date(p.expiry) - today) / 86400000); return diff >= 0 && diff <= 5; });
+        if(warnings.length === 0) container.innerHTML = "<div style='color:#aaa; text-align:center;'>YAKLAŞAN SKT ÜRÜNÜ YOK</div>";
+        else {
+            let html = "";
+            warnings.forEach(p => { const diff = Math.ceil((new Date(p.expiry) - today) / 86400000); html += `<div style="background:#3a3a3a; border-radius:28px; padding:12px; margin-bottom:10px;"><strong>${escapeHtml(p.name)}</strong><br>${p.barcode}<br>SKT: ${p.expiry} (${diff} GÜN)<br>FİYAT: ${p.price.toFixed(2)} € | STOK: ${p.quantity}</div>`; });
+            container.innerHTML = html;
+        }
+        modal.style.display = "flex";
+    }
     function closeSktModal() { document.getElementById("sktModal").style.display = "none"; }
-    function openInventoryModal() { /* aynı */ }
+
+    // ---------- ENVANTER MODAL (TAM ÇALIŞAN) ----------
+    function openInventoryModal() {
+        const modal = document.getElementById("inventoryModal");
+        const container = document.getElementById("modalProductList");
+        if(products.length === 0) container.innerHTML = "<div style='color:#aaa; text-align:center;'>ÜRÜN YOK</div>";
+        else {
+            let html = "";
+            products.forEach((p, idx) => { html += `<div class="product-name-item" onclick="showProductDetail(${idx})">${escapeHtml(p.name)}</div>`; });
+            container.innerHTML = html;
+        }
+        document.getElementById("productDetailArea").innerHTML = "";
+        modal.style.display = "flex";
+    }
     function closeInventoryModal() { document.getElementById("inventoryModal").style.display = "none"; }
-    function showProductDetail(idx) { /* aynı */ }
+
+    function showProductDetail(idx) {
+        const p = products[idx];
+        const detailArea = document.getElementById("productDetailArea");
+        detailArea.innerHTML = `
+            <div class="product-detail-card">
+                ${p.image ? `<img src="${p.image}" class="detail-image" onerror="this.onerror=null; this.src=''; this.alt='Resim yüklenemedi';">` : '<div style="color:#aaa;">📷 RESİM YOK</div>'}
+                <div style="font-weight:bold; margin-top:8px;">${escapeHtml(p.name)}</div><div>${p.barcode}</div>
+                <div style="color:#ff6666;">${p.price.toFixed(2)} €</div><div>STOK: ${p.quantity}</div><div>SKT: ${p.expiry || "YOK"}</div>
+                <div class="detail-actions">
+                    <button onclick="editProductFromDetail(${idx})">✏️ DÜZENLE</button>
+                    <button onclick="deleteProductFromModal(${idx})">🗑️ SİL</button>
+                    <button onclick="addImageToProduct(${idx}, true)">📷 RESİM EKLE</button>
+                </div>
+            </div>
+        `;
+    }
+
     function editProductFromDetail(idx) {
         const p = products[idx];
         const detailArea = document.getElementById("productDetailArea");
@@ -207,14 +237,12 @@
                 <input type="text" id="editName" value="${escapeHtml(p.name)}" placeholder="ÜRÜN ADI">
                 <input type="text" id="editBarcode" value="${p.barcode}" readonly>
                 <input type="number" step="0.01" id="editPrice" value="${p.price}" placeholder="SATIŞ FİYATI (€)">
-                
                 <div class="calc-group">
                     <div class="calc-row"><label>💰 MALİYET (€)</label><input type="number" step="0.01" id="editCost" placeholder="Maliyet"></div>
                     <div class="calc-row"><label>📈 KAR (%)</label><input type="number" id="editProfit" placeholder="Kar %"></div>
                     <div class="calc-row"><label>🧾 VERGİ (%)</label><input type="number" id="editTax" placeholder="Vergi %" value="7"></div>
                     <button class="calc-button" onclick="calculateAndSetFor('edit')">🧮 HESAPLA</button>
                 </div>
-                
                 <input type="number" id="editQuantity" value="${p.quantity}" placeholder="ADET">
                 <input type="date" id="editExpiry" value="${p.expiry || ''}" placeholder="SKT">
                 <div class="image-buttons">
@@ -226,6 +254,7 @@
             </div>
         `;
     }
+
     function saveEditedProductFromDetail(idx) {
         const newName = document.getElementById("editName").value.trim().toUpperCase();
         const newPrice = parseFloat(document.getElementById("editPrice").value);
@@ -235,6 +264,7 @@
         products[idx] = { ...products[idx], name: newName, price: newPrice, quantity: newQuantity, expiry: newExpiry };
         saveData(); updateSktButton(); showProductDetail(idx); playBeep();
     }
+
     function addImageToProduct(idx, refreshAfter) {
         const input = document.createElement("input");
         input.type = "file";
@@ -255,11 +285,12 @@
         };
         input.click();
     }
+
     function deleteProductFromModal(idx) {
         if(confirm(`${products[idx].name} SİLİNSİN Mİ?`)) { products.splice(idx,1); saveData(); updateSktButton(); openInventoryModal(); playBeep(); }
     }
 
-    // ANA EKRAN SONUÇ VE DÜZENLEME
+    // ---------- ANA EKRAN (Fiyat sorgulama ve düzenleme) ----------
     function showResult(product) {
         lastScannedProduct = product;
         const resultDiv = document.getElementById("resultArea");
@@ -273,6 +304,7 @@
         `;
         isEditMode = false;
     }
+
     function enableInlineEdit() {
         if(!lastScannedProduct) return;
         const p = lastScannedProduct;
@@ -281,14 +313,12 @@
             <div class="inline-edit-form">
                 <input type="text" id="inlineName" value="${escapeHtml(p.name)}" placeholder="ÜRÜN ADI">
                 <input type="number" step="0.01" id="inlinePrice" value="${p.price}" placeholder="SATIŞ FİYATI (€)">
-                
                 <div class="calc-group">
                     <div class="calc-row"><label>💰 MALİYET (€)</label><input type="number" step="0.01" id="inlineCost" placeholder="Maliyet"></div>
                     <div class="calc-row"><label>📈 KAR (%)</label><input type="number" id="inlineProfit" placeholder="Kar %"></div>
                     <div class="calc-row"><label>🧾 VERGİ (%)</label><input type="number" id="inlineTax" placeholder="Vergi %" value="7"></div>
                     <button class="calc-button" onclick="calculateAndSetFor('inline')">🧮 HESAPLA</button>
                 </div>
-                
                 <input type="number" id="inlineQuantity" value="${p.quantity}" placeholder="ADET">
                 <input type="date" id="inlineExpiry" value="${p.expiry || ''}" placeholder="SKT">
                 <div class="image-buttons">
@@ -301,6 +331,7 @@
         `;
         isEditMode = true;
     }
+
     function addImageToCurrentProduct() {
         if(!lastScannedProduct) return;
         const input = document.createElement("input");
@@ -316,7 +347,7 @@
                         products[idx].image = ev.target.result;
                         lastScannedProduct.image = ev.target.result;
                         saveData();
-                        if(isEditMode) enableInlineEdit(); // formu yenile
+                        if(isEditMode) enableInlineEdit();
                         else showResult(lastScannedProduct);
                         playBeep();
                     } else alert("Ürün bulunamadı!");
@@ -326,6 +357,7 @@
         };
         input.click();
     }
+
     function saveInlineEdit() {
         if(!lastScannedProduct) return;
         const newName = document.getElementById("inlineName").value.trim().toUpperCase();
@@ -341,7 +373,7 @@
         } else alert("Ürün bulunamadı!");
     }
 
-    // MANUEL ARAMA
+    // ---------- MANUEL ARAMA ----------
     const searchInput = document.getElementById("manualSearchInput");
     const searchResultsDiv = document.getElementById("searchResults");
     searchInput.addEventListener("input", function() {
@@ -368,13 +400,14 @@
         if (!searchInput.contains(e.target) && !searchResultsDiv.contains(e.target)) searchResultsDiv.style.display = "none";
     });
 
+    // ---------- GOOGLE ARAMA ve SES ----------
     function openGoogleImageSearch(query) {
         window.open(`https://www.google.com/search?q=${query}&tbm=isch`, '_blank');
         alert("Google Görsel araması açıldı. Beğendiğiniz resmi indirip, ardından 'RESİM EKLE' butonu ile yükleyin.");
     }
     function playBeep() { try { const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const osc = audioCtx.createOscillator(); osc.type = "sine"; osc.frequency.value = 880; osc.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15); audioCtx.resume(); } catch(e) {} }
 
-    // KAMERA
+    // ---------- KAMERA ----------
     async function openCamera(mode) {
         currentCameraMode = mode;
         const videoElem = document.getElementById("video");
@@ -400,14 +433,12 @@
                 <input type="text" id="addBarcode" value="${barcode}" readonly>
                 <input type="text" id="addName" placeholder="ÜRÜN ADI">
                 <input type="number" step="0.01" id="addPrice" placeholder="SATIŞ FİYATI (€)">
-                
                 <div class="calc-group">
                     <div class="calc-row"><label>💰 MALİYET (€)</label><input type="number" step="0.01" id="addCost" placeholder="Maliyet"></div>
                     <div class="calc-row"><label>📈 KAR (%)</label><input type="number" id="addProfit" placeholder="Kar %"></div>
                     <div class="calc-row"><label>🧾 VERGİ (%)</label><input type="number" id="addTax" placeholder="Vergi %" value="7"></div>
                     <button class="calc-button" onclick="calculateAndSetFor('add')">🧮 HESAPLA</button>
                 </div>
-                
                 <input type="number" id="addQuantity" placeholder="ADET" value="1">
                 <input type="date" id="addExpiry" placeholder="SKT (YYYY-AA-GG)">
                 <div class="image-buttons">
@@ -420,6 +451,7 @@
         `;
         document.getElementById("resultArea").innerHTML = `<div class="result-placeholder">🎯 BARKOD OKUTUNCA VEYA<br>MANUEL ARAMA YAPINCA<br>FİYAT GÖRÜNÜR</div>`;
     }
+
     function captureImageForAdd() {
         const input = document.createElement("input");
         input.type = "file";
@@ -431,6 +463,7 @@
         };
         input.click();
     }
+
     function saveNewProduct() {
         const barcode = document.getElementById("addBarcode").value;
         const name = document.getElementById("addName").value.trim().toUpperCase();
@@ -450,6 +483,7 @@
         }
         tempImageData = null; updateSktButton(); closeAddForm();
     }
+
     function closeAddForm() { document.getElementById("addFormContainer").classList.add("hidden"); document.getElementById("addFormContainer").innerHTML = ""; tempImageData = null; }
     function closeCamera() { if(Quagga) Quagga.stop(); if(currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; } document.getElementById("cameraContainer").style.display = "none"; const video = document.getElementById("video"); if(video.srcObject) video.srcObject = null; }
     function openSettingsModal() { document.getElementById("settingsModal").style.display = "flex"; }
@@ -458,6 +492,7 @@
     function restoreData() { const input = document.createElement("input"); input.type = "file"; input.accept = "application/json"; input.onchange = e => { const file = e.target.files[0]; const reader = new FileReader(); reader.onload = ev => { try { products = JSON.parse(ev.target.result); saveData(); updateSktButton(); alert("YEDEK YÜKLENDİ"); } catch(err) { alert("HATALI DOSYA"); } }; reader.readAsText(file); }; input.click(); }
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m; }); }
 
+    // EVENT LISTENER'LAR
     document.getElementById("searchBtn").onclick = () => openCamera('search');
     document.getElementById("addBtn").onclick = () => openCamera('add');
     document.getElementById("inventoryBtn").onclick = () => openInventoryModal();
