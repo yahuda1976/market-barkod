@@ -3,298 +3,672 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>MARKET PRO ULTRA</title>
+    <title>MARKET PRO</title>
     <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif; }
         body { background-color: #1a1a1a; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
         .app-container { max-width: 450px; width: 100%; background-color: #1a1a1a; border-radius: 48px; padding: 24px 20px; }
         
-        .result-area { background: #2a2a2a; border-radius: 32px; padding: 20px 16px; text-align: center; margin-bottom: 20px; border: 2px solid #333; }
+        /* Toplam Değer ve Kâr Göstergeleri */
+        .stats-area { display: flex; gap: 12px; margin-bottom: 20px; }
+        .stat-card { background: #2a2a2a; border-radius: 28px; padding: 12px; flex: 1; text-align: center; }
+        .stat-label { font-size: 0.7rem; color: #ffaa88; text-transform: uppercase; }
+        .stat-value { font-size: 1.3rem; font-weight: 800; color: #ff6666; }
+        
+        .result-area { background: #2a2a2a; border-radius: 32px; padding: 20px 16px; text-align: center; margin-bottom: 20px; }
         .result-placeholder { color: #888; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; }
         .result-price { font-size: 2.5rem; font-weight: 900; color: #ff4444; margin: 8px 0; }
         .result-name { font-size: 1.2rem; font-weight: 800; color: #ffaa88; text-transform: uppercase; }
         .product-image { max-width: 100%; max-height: 140px; border-radius: 20px; margin: 8px auto; display: block; object-fit: contain; background: #3a3a3a; }
+        .edit-result-btn { background: #c0392b; border: none; border-radius: 40px; padding: 10px 20px; margin-top: 10px; color: white; font-weight: bold; cursor: pointer; display: inline-block; }
         
-        /* Dashboard Stilleri */
-        .dashboard-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .stat-card { background: #2a2a2a; padding: 12px; border-radius: 20px; text-align: center; border: 1px solid #3a3a3a; }
-        .stat-val { color: #44ff44; font-weight: 900; font-size: 1.1rem; }
-        .stat-label { color: #aaa; font-size: 0.65rem; text-transform: uppercase; }
-
+        .inline-edit-form, .edit-form, .add-product-form { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+        input, select { width: 100%; padding: 14px; border-radius: 40px; border: none; background: #555; color: white; font-size: 1rem; }
+        button { background: #2c6e2f; border: none; border-radius: 40px; padding: 14px; color: white; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .image-buttons { display: flex; gap: 12px; margin-top: 8px; }
+        .image-buttons button { flex: 1; background: #c0392b; }
+        
+        .calc-group { background: #3a3a3a; border-radius: 32px; padding: 12px; margin: 8px 0; }
+        .calc-row { margin-bottom: 10px; }
+        .calc-row label { display: block; color: #ffaa88; font-size: 0.8rem; margin-bottom: 4px; text-transform: uppercase; }
+        .calc-row input { margin: 0; }
+        .calc-button { background: #c0392b; margin-top: 8px; }
+        
         .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-        .btn { background: #d4c9b8; border: none; border-radius: 28px; padding: 20px 12px; font-size: 1rem; font-weight: 900; letter-spacing: 1px; color: #c0392b; text-transform: uppercase; cursor: pointer; transition: 0.15s; box-shadow: 0 5px 0 #8f7a5c; text-align: center; aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .btn { background: #d4c9b8; border: none; border-radius: 28px; padding: 20px 12px; font-size: 1rem; font-weight: 900; letter-spacing: 1px; color: #c0392b; text-transform: uppercase; cursor: pointer; transition: 0.15s; box-shadow: 0 5px 0 #8f7a5c; text-align: center; aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center; }
         .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #8f7a5c; }
         
-        /* SKT Renkleri */
-        .skt-critical { background: #ff4444 !important; color: white !important; } /* 0-7 gün */
-        .skt-warning { background: #ffbb33 !important; color: black !important; }  /* 8-21 gün */
-        .skt-safe { background: #00c851 !important; color: white !important; }     /* 22+ gün */
-
-        .search-box input { width: 100%; padding: 14px 18px; border-radius: 60px; border: none; background: #2a2a2a; color: white; font-size: 1rem; text-align: center; margin-bottom: 10px;}
+        .search-box { margin-bottom: 20px; }
+        .search-box input { width: 100%; padding: 14px 18px; border-radius: 60px; border: none; background: #2a2a2a; color: white; font-size: 1rem; text-align: center; }
+        .search-results { background: #2a2a2a; border-radius: 28px; margin-top: 8px; max-height: 200px; overflow-y: auto; }
+        .search-result-item { padding: 12px 16px; border-bottom: 1px solid #444; cursor: pointer; }
+        .search-result-name { font-weight: bold; color: #ffaa88; text-transform: uppercase; }
+        .search-result-price { color: #ff6666; font-size: 0.9rem; }
         
-        /* Etiket Tasarımı (Gizli Render Alanı) */
-        #label-template { position: absolute; left: -9999px; background: white; color: black; width: 300px; padding: 20px; text-align: center; border: 2px solid black; }
+        .camera-container { display: none; margin: 15px 0; background: #2a2a2a; border-radius: 32px; padding: 12px; }
+        .video-wrapper { background: #000; border-radius: 24px; overflow: hidden; }
+        video { width: 100%; display: block; }
+        .close-camera-btn { background: #444; color: white; border: none; border-radius: 40px; padding: 12px; margin-top: 10px; width: 100%; font-weight: bold; cursor: pointer; }
         
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: #2a2a2a; width: 95%; max-width: 450px; border-radius: 32px; padding: 20px; max-height: 90%; overflow-y: auto; }
+        .skt-button { background: #2a2a2a; border-radius: 28px; padding: 16px 20px; margin-top: 20px; text-align: center; cursor: pointer; border: 1px solid #3a3a3a; }
+        .skt-title { font-size: 0.8rem; font-weight: 700; color: #ff8888; text-transform: uppercase; margin-bottom: 4px; }
+        .skt-message { font-size: 1rem; font-weight: 800; color: #ff4444; text-transform: uppercase; }
+        .skt-message.normal { color: #ffaa88; }
         
-        .product-item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #444; margin-bottom: 5px; border-radius: 15px; }
-        
-        input, select, button { border-radius: 20px; padding: 10px; margin: 5px 0; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: #2a2a2a; width: 90%; max-width: 450px; border-radius: 48px; padding: 20px; max-height: 85%; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; position: sticky; top: 0; background: #2a2a2a; padding-bottom: 10px; }
+        .modal-title { color: #ff6666; font-size: 1.3rem; font-weight: 800; text-transform: uppercase; }
+        .close-modal-btn { background: #c0392b; border: none; border-radius: 40px; padding: 8px 16px; color: white; font-weight: bold; cursor: pointer; }
+        .product-list-simple { display: flex; flex-direction: column; gap: 12px; }
+        .product-name-item { background: #3a3a3a; border-radius: 40px; padding: 14px 20px; cursor: pointer; font-weight: bold; text-transform: uppercase; color: #ffaa88; text-align: center; }
+        .product-detail-card { background: #3a3a3a; border-radius: 32px; padding: 16px; margin-top: 16px; text-align: center; }
+        .detail-image { max-width: 100%; max-height: 150px; border-radius: 24px; margin: 10px auto; }
+        .detail-actions { display: flex; gap: 10px; margin-top: 12px; justify-content: center; flex-wrap: wrap; }
         .hidden { display: none; }
-        video { width: 100%; border-radius: 20px; }
+        
+        /* Renk kodlaması için stiller */
+        .expiry-red { background-color: #ff4444 !important; color: white; }
+        .expiry-yellow { background-color: #ffaa33 !important; color: #1a1a1a; }
+        .expiry-green { background-color: #2ecc71 !important; color: white; }
+        .expiry-default { background: #3a3a3a; }
     </style>
 </head>
 <body>
-
 <div class="app-container">
-    <div class="dashboard-stats">
-        <div class="stat-card">
-            <div class="stat-label">Toplam Değer</div>
-            <div class="stat-val" id="totalValue">0.00 €</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Potansiyel Kâr</div>
-            <div class="stat-val" id="potentialProfit">0.00 €</div>
-        </div>
+    <!-- Toplam Değer ve Kâr Göstergeleri -->
+    <div class="stats-area" id="statsArea">
+        <div class="stat-card"><div class="stat-label">📦 TOPLAM ENVANTER</div><div class="stat-value" id="totalInventory">0 €</div></div>
+        <div class="stat-card"><div class="stat-label">💰 POTANSİYEL KÂR</div><div class="stat-value" id="totalProfit">0 €</div></div>
     </div>
 
     <div class="result-area" id="resultArea">
-        <div class="result-placeholder">🎯 BARKOD OKUTUN VEYA ARAYIN</div>
+        <div class="result-placeholder">🎯 BARKOD OKUTUNCA VEYA<br>MANUEL ARAMA YAPINCA<br>FİYAT GÖRÜNÜR</div>
     </div>
 
     <div class="search-box">
-        <input type="text" id="manualSearchInput" placeholder="🔍 Ürün adı veya barkod...">
+        <input type="text" id="manualSearchInput" placeholder="🔍 Ürün adı veya barkod ile ara..." autocomplete="off">
+        <div id="searchResults" class="search-results" style="display: none;"></div>
     </div>
 
     <div class="button-grid">
-        <button class="btn" onclick="openCamera('search')">📷 SORGULA</button>
-        <button class="btn" onclick="openCamera('add')">➕ ÜRÜN EKLE</button>
-        <button class="btn" onclick="openInventoryModal()">📋 ENVANTER</button>
-        <button class="btn" onclick="openSktFullModal()">📅 SKT LİSTESİ</button>
+        <button class="btn" id="searchBtn">📷 FİYAT SORGULA</button>
+        <button class="btn" id="addBtn">➕ ÜRÜN EKLE</button>
+        <button class="btn" id="inventoryBtn">📋 ENVANTER</button>
+        <button class="btn" id="settingsBtn">⚙️ AYARLAR</button>
     </div>
 
-    <div id="cameraContainer" class="hidden" style="background:#2a2a2a; padding:15px; border-radius:32px; margin-bottom:20px;">
-        <video id="video" autoplay muted playsinline></video>
-        <button onclick="closeCamera()" style="width:100%; background:#c0392b; color:white; border:none; padding:12px; margin-top:10px; font-weight:bold;">✖ KAPAT</button>
+    <div id="cameraContainer" class="camera-container">
+        <div class="video-wrapper"><video id="video" autoplay muted playsinline></video></div>
+        <button class="close-camera-btn" onclick="closeCamera()">✖ KAPAT</button>
+        <div id="cameraStatus" style="color:#aaa; text-align:center; margin-top:8px;"></div>
     </div>
 
     <div id="addFormContainer" class="hidden"></div>
-</div>
 
-<div id="sktFullModal" class="modal">
-    <div class="modal-content">
-        <h2 style="color:white; margin-bottom:15px;">📅 SKT DURUM LİSTESİ</h2>
-        <div id="sktFullList"></div>
-        <button onclick="closeModal('sktFullModal')" style="width:100%; margin-top:15px;">KAPAT</button>
+    <div class="skt-button" id="sktButton">
+        <div class="skt-title">⚠️ SKT YAKIN ÜRÜNLER</div>
+        <div class="skt-message" id="sktMessage">YÜKLENİYOR...</div>
     </div>
 </div>
 
+<!-- ENVANTER MODAL -->
 <div id="inventoryModal" class="modal">
     <div class="modal-content">
-        <h2 style="color:white; margin-bottom:15px;">📦 TÜM ÜRÜNLER</h2>
-        <div id="inventoryList"></div>
-        <button onclick="closeModal('inventoryModal')" style="width:100%; margin-top:15px;">KAPAT</button>
+        <div class="modal-header"><span class="modal-title">📦 ENVANTER</span><button class="close-modal-btn" onclick="closeInventoryModal()">✖ KAPAT</button></div>
+        <div id="modalProductList" class="product-list-simple"></div>
+        <div id="productDetailArea" style="margin-top: 16px;"></div>
     </div>
 </div>
 
-<div id="label-template">
-    <h1 id="lbl-name" style="font-size: 24px; margin: 10px 0;">URUN ADI</h1>
-    <div id="lbl-price" style="font-size: 48px; font-weight: 900;">0.00 €</div>
-    <p id="lbl-barcode" style="margin-top: 10px; font-family: monospace;">00000000</p>
-    <p style="font-size: 10px; margin-top: 5px;">MARKET PRO ULTRA</p>
+<!-- SKT MODAL -->
+<div id="sktModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><span class="modal-title">⚠️ SKT YAKIN ÜRÜNLER</span><button class="close-modal-btn" onclick="closeSktModal()">✖ KAPAT</button></div>
+        <div id="sktProductList"></div>
+    </div>
+</div>
+
+<!-- AYARLAR MODAL -->
+<div id="settingsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><span class="modal-title">⚙️ AYARLAR</span><button class="close-modal-btn" onclick="closeSettingsModal()">✖ KAPAT</button></div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button onclick="backupData()">💾 YEDEK AL</button>
+            <button onclick="restoreData()">📂 GERİ YÜKLE</button>
+            <button onclick="exportFullData()">📁 TÜM VERİYİ DIŞA AKTAR</button>
+            <button onclick="importFullData()">📂 VERİYİ İÇE AKTAR</button>
+        </div>
+    </div>
 </div>
 
 <script>
     let products = [];
     let currentStream = null;
+    let currentCameraMode = null;
+    let lastScannedProduct = null;
+    let isEditMode = false;
+    let speechSynth = window.speechSynthesis;
 
-    // ---------- VERİ VE DASHBOARD ----------
+    // ---------- VERİ YÖNETİMİ ----------
     function loadData() {
-        const stored = localStorage.getItem("market_pro_ultra_v1");
-        products = stored ? JSON.parse(stored) : [];
-        updateDashboard();
+        const stored = localStorage.getItem("market_pro_final_v14");
+        if(stored) products = JSON.parse(stored);
+        else {
+            products = [
+                { barcode: "4003998000470", name: "ÇAYKUR RİZE ÇAYI", price: 4.99, cost: 3.50, quantity: 12, expiry: "2025-08-15", priceHistory: [4.99], image: null },
+                { barcode: "8690504003016", name: "ÜLKER ÇİKOLATA", price: 1.29, cost: 0.90, quantity: 30, expiry: "2025-06-20", priceHistory: [1.29], image: null },
+                { barcode: "8690804349850", name: "SUNTAT HİMALAYA TUZU", price: 2.99, cost: 1.80, quantity: 8, expiry: "2025-04-25", priceHistory: [2.99], image: null }
+            ];
+            saveData();
+        }
+        updateStatsAndDisplay();
+    }
+    function saveData() { 
+        localStorage.setItem("market_pro_final_v14", JSON.stringify(products));
+        updateStatsAndDisplay();
     }
 
-    function saveData() {
-        localStorage.setItem("market_pro_ultra_v1", JSON.stringify(products));
-        updateDashboard();
-    }
-
-    function updateDashboard() {
-        let totalValue = 0;
+    // Toplam envanter değeri ve kâr hesaplama
+    function calculateStats() {
+        let totalInventory = 0;
         let totalProfit = 0;
-
-        products.forEach(p => {
-            const price = parseFloat(p.price || 0);
-            const cost = parseFloat(p.cost || 0);
-            const qty = parseInt(p.quantity || 0);
-            
-            totalValue += price * qty;
-            totalProfit += (price - cost) * qty;
-        });
-
-        document.getElementById("totalValue").innerText = totalValue.toFixed(2) + " €";
-        document.getElementById("potentialProfit").innerText = totalProfit.toFixed(2) + " €";
+        for (let p of products) {
+            totalInventory += p.price * p.quantity;
+            if (p.cost && p.cost > 0) {
+                totalProfit += (p.price - p.cost) * p.quantity;
+            }
+        }
+        return { totalInventory, totalProfit };
     }
 
-    // ---------- SESLİ OKUMA (TTS) ----------
-    function speakProduct(name, price) {
-        const text = `${name}, ${price.toFixed(2)} Euro.`;
+    function updateStatsAndDisplay() {
+        const stats = calculateStats();
+        document.getElementById("totalInventory").innerHTML = stats.totalInventory.toFixed(2) + " €";
+        document.getElementById("totalProfit").innerHTML = stats.totalProfit.toFixed(2) + " €";
+        updateSktButton();
+        renderProductListIfModalOpen(); // eğer envanter modalı açıksa güncelle
+    }
+
+    // SKT renk kodlaması (kırmızı: 7 gün ve altı, sarı: 14 gün ve altı, yeşil: 22+)
+    function getExpiryColorClass(expiryDate) {
+        if (!expiryDate) return "expiry-default";
+        const today = new Date(); today.setHours(0,0,0,0);
+        const expiry = new Date(expiryDate);
+        const diff = Math.ceil((expiry - today) / 86400000);
+        if (diff <= 7) return "expiry-red";
+        if (diff <= 14) return "expiry-yellow";
+        if (diff >= 22) return "expiry-green";
+        return "expiry-default";
+    }
+
+    // Sesli geri bildirim (Web Speech API)
+    function speakText(text) {
+        if (!window.speechSynthesis) return;
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'tr-TR';
-        utterance.rate = 1.0;
-        window.speechSynthesis.speak(utterance);
+        utterance.lang = "tr-TR";
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        speechSynth.cancel(); // önceki konuşmayı durdur
+        speechSynth.speak(utterance);
     }
 
-    // ---------- ETİKET OLUŞTURUCU ----------
-    async function downloadLabel(name, price, barcode) {
-        document.getElementById("lbl-name").innerText = name;
-        document.getElementById("lbl-price").innerText = price.toFixed(2) + " €";
-        document.getElementById("lbl-barcode").innerText = barcode;
-
-        const target = document.getElementById("label-template");
-        const canvas = await html2canvas(target);
-        const imgData = canvas.toDataURL("image/png");
-        
-        const link = document.createElement('a');
-        link.download = `etiket-${name}.png`;
-        link.href = imgData;
-        link.click();
-    }
-
-    // ---------- SKT HESAPLAMA VE RENKLENDİRME ----------
-    function getSktClass(expiryDate) {
-        if (!expiryDate) return "";
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        const exp = new Date(expiryDate);
-        const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
-
-        if (diffDays <= 7) return "skt-critical"; // Kırmızı
-        if (diffDays <= 21) return "skt-warning"; // Sarı (8-21 gün)
-        return "skt-safe"; // Yeşil (22+ gün)
-    }
-
-    // ---------- MODALLAR ----------
-    function openSktFullModal() {
-        const list = document.getElementById("sktFullList");
-        list.innerHTML = "";
-        
-        // Tarihi olanları sırala
-        const datedProducts = products.filter(p => p.expiry).sort((a,b) => new Date(a.expiry) - new Date(b.expiry));
-        
-        datedProducts.forEach(p => {
-            const sktClass = getSktClass(p.expiry);
-            list.innerHTML += `
-                <div class="product-item-row ${sktClass}">
-                    <span><strong>${p.name}</strong><br><small>${p.expiry}</small></span>
-                    <span>${p.quantity} Adet</span>
-                </div>`;
+    function updateSktButton() {
+        const today = new Date(); today.setHours(0,0,0,0);
+        const warnings = products.filter(p => {
+            if(!p.expiry) return false;
+            const diff = Math.ceil((new Date(p.expiry) - today) / 86400000);
+            return diff >= 0 && diff <= 5;
         });
-        document.getElementById("sktFullModal").style.display = "flex";
+        const sktMsg = document.getElementById("sktMessage");
+        if(warnings.length === 0) { sktMsg.innerHTML = "YAKIN ÜRÜN YOK"; sktMsg.className = "skt-message normal"; }
+        else { sktMsg.innerHTML = `${warnings.length} ÜRÜN YAKIN`; sktMsg.className = "skt-message"; }
     }
 
+    // HESAP MAKİNESİ
+    function calculatePrice(cost, profitPercent, taxPercent) {
+        let totalPercent = (profitPercent || 0) + (taxPercent || 0);
+        let price = cost * (1 + totalPercent / 100);
+        return Math.round(price * 100) / 100;
+    }
+
+    function calculateAndSetFor(target) {
+        let cost, profit, tax, priceField;
+        if (target === 'inline') {
+            cost = parseFloat(document.getElementById("inlineCost")?.value);
+            profit = parseFloat(document.getElementById("inlineProfit")?.value);
+            tax = parseFloat(document.getElementById("inlineTax")?.value);
+            priceField = document.getElementById("inlinePrice");
+        } else if (target === 'edit') {
+            cost = parseFloat(document.getElementById("editCost")?.value);
+            profit = parseFloat(document.getElementById("editProfit")?.value);
+            tax = parseFloat(document.getElementById("editTax")?.value);
+            priceField = document.getElementById("editPrice");
+        } else if (target === 'add') {
+            cost = parseFloat(document.getElementById("addCost")?.value);
+            profit = parseFloat(document.getElementById("addProfit")?.value);
+            tax = parseFloat(document.getElementById("addTax")?.value);
+            priceField = document.getElementById("addPrice");
+        } else return;
+        if (isNaN(cost) || isNaN(profit) || isNaN(tax)) { alert("Maliyet, kar ve vergi girin!"); return; }
+        let newPrice = calculatePrice(cost, profit, tax);
+        if (priceField) priceField.value = newPrice;
+    }
+
+    // ---------- SKT MODAL ----------
+    function openSktModal() {
+        const modal = document.getElementById("sktModal");
+        const container = document.getElementById("sktProductList");
+        const today = new Date(); today.setHours(0,0,0,0);
+        const warnings = products.filter(p => {
+            if(!p.expiry) return false;
+            const diff = Math.ceil((new Date(p.expiry) - today) / 86400000);
+            return diff >= 0 && diff <= 5;
+        });
+        if(warnings.length === 0) container.innerHTML = "<div style='color:#aaa; text-align:center;'>YAKLAŞAN SKT ÜRÜNÜ YOK</div>";
+        else {
+            let html = "";
+            warnings.forEach(p => {
+                const diff = Math.ceil((new Date(p.expiry) - today) / 86400000);
+                const colorClass = getExpiryColorClass(p.expiry);
+                html += `<div class="${colorClass}" style="border-radius:28px; padding:12px; margin-bottom:10px;">
+                            <strong>${escapeHtml(p.name)}</strong><br>${p.barcode}<br>SKT: ${p.expiry} (${diff} GÜN)<br>FİYAT: ${p.price.toFixed(2)} € | STOK: ${p.quantity}
+                         </div>`;
+            });
+            container.innerHTML = html;
+        }
+        modal.style.display = "flex";
+    }
+    function closeSktModal() { document.getElementById("sktModal").style.display = "none"; }
+
+    // ---------- ENVANTER MODAL (renk kodlamalı) ----------
     function openInventoryModal() {
-        const list = document.getElementById("inventoryList");
-        list.innerHTML = "";
-        products.forEach((p, idx) => {
-            list.innerHTML += `
-                <div class="product-item-row" style="background:#3a3a3a; color:white;">
-                    <span>${p.name}<br><small>${p.price.toFixed(2)} €</small></span>
-                    <button onclick="downloadLabel('${p.name}', ${p.price}, '${p.barcode}')">🖨️ Etiket</button>
-                </div>`;
-        });
-        document.getElementById("inventoryModal").style.display = "flex";
-    }
-
-    function closeModal(id) { document.getElementById(id).style.display = "none"; }
-
-    // ---------- KAMERA VE ARAMA (Mevcut mantığın güncellenmiş hali) ----------
-    function showResult(product) {
-        const resultDiv = document.getElementById("resultArea");
-        resultDiv.innerHTML = `
-            <div class="result-name">${product.name}</div>
-            <div class="result-price">${product.price.toFixed(2)} €</div>
-            <div style="color:#aaa;">STOK: ${product.quantity} | SKT: ${product.expiry || 'YOK'}</div>
-            <button onclick="downloadLabel('${product.name}', ${product.price}, '${product.barcode}')" style="margin-top:10px; background:#444; color:white; border:none; padding:8px; border-radius:10px;">🖨️ ETİKET İNDİR</button>
-        `;
-        speakProduct(product.name, product.price);
-    }
-
-    async function openCamera(mode) {
-        const container = document.getElementById("cameraContainer");
-        container.classList.remove("hidden");
-        
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-            document.getElementById("video").srcObject = stream;
-            currentStream = stream;
-
-            Quagga.init({
-                inputStream: { type: "LiveStream", target: document.getElementById("video") },
-                decoder: { readers: ["ean_reader", "upc_reader", "code_128_reader"] }
-            }, (err) => {
-                if(!err) Quagga.start();
+        const modal = document.getElementById("inventoryModal");
+        const container = document.getElementById("modalProductList");
+        if(products.length === 0) container.innerHTML = "<div style='color:#aaa; text-align:center;'>ÜRÜN YOK</div>";
+        else {
+            let html = "";
+            products.forEach((p, idx) => {
+                const colorClass = getExpiryColorClass(p.expiry);
+                html += `<div class="product-name-item ${colorClass}" onclick="showProductDetail(${idx})">${escapeHtml(p.name)}</div>`;
             });
-
-            Quagga.onDetected((data) => {
-                const code = data.codeResult.code;
-                closeCamera();
-                const found = products.find(p => p.barcode === code);
-                if (found) showResult(found);
-                else if (mode === 'add') showAddForm(code);
-                else alert("Ürün bulunamadı: " + code);
-            });
-
-        } catch (e) { alert("Kamera hatası!"); }
+            container.innerHTML = html;
+        }
+        document.getElementById("productDetailArea").innerHTML = "";
+        modal.style.display = "flex";
     }
+    function closeInventoryModal() { document.getElementById("inventoryModal").style.display = "none"; }
 
-    function closeCamera() {
-        if(Quagga) Quagga.stop();
-        if(currentStream) currentStream.getTracks().forEach(t => t.stop());
-        document.getElementById("cameraContainer").classList.add("hidden");
-    }
-
-    function showAddForm(barcode) {
-        const container = document.getElementById("addFormContainer");
-        container.classList.remove("hidden");
-        container.innerHTML = `
-            <div style="background:#2a2a2a; padding:20px; border-radius:24px; color:white;">
-                <h3>YENİ ÜRÜN</h3>
-                <input type="text" id="newName" placeholder="Ürün Adı" style="width:100%">
-                <input type="number" id="newPrice" placeholder="Satış Fiyatı" style="width:100%">
-                <input type="number" id="newCost" placeholder="Maliyet" style="width:100%">
-                <input type="number" id="newQty" placeholder="Stok Adedi" value="1" style="width:100%">
-                <input type="date" id="newExpiry" style="width:100%">
-                <button onclick="saveNewProduct('${barcode}')" style="width:100%; background:green; color:white;">KAYDET</button>
+    function showProductDetail(idx) {
+        const p = products[idx];
+        const detailArea = document.getElementById("productDetailArea");
+        const colorClass = getExpiryColorClass(p.expiry);
+        detailArea.innerHTML = `
+            <div class="product-detail-card ${colorClass}">
+                ${p.image ? `<img src="${p.image}" class="detail-image" onerror="this.onerror=null; this.src=''; this.alt='Resim yüklenemedi';">` : '<div style="color:#aaa;">📷 RESİM YOK</div>'}
+                <div style="font-weight:bold; margin-top:8px;">${escapeHtml(p.name)}</div><div>${p.barcode}</div>
+                <div style="color:#ff6666;">${p.price.toFixed(2)} €</div><div>STOK: ${p.quantity}</div><div>SKT: ${p.expiry || "YOK"}</div>
+                ${p.cost ? `<div>MALİYET: ${p.cost.toFixed(2)} €</div>` : ''}
+                <div class="detail-actions">
+                    <button onclick="editProductFromDetail(${idx})">✏️ DÜZENLE</button>
+                    <button onclick="deleteProductFromModal(${idx})">🗑️ SİL</button>
+                    <button onclick="addImageToProduct(${idx}, true)">📷 RESİM EKLE</button>
+                </div>
             </div>
         `;
     }
 
-    function saveNewProduct(barcode) {
-        const name = document.getElementById("newName").value.toUpperCase();
-        const price = parseFloat(document.getElementById("newPrice").value);
-        const cost = parseFloat(document.getElementById("newCost").value || 0);
-        const quantity = parseInt(document.getElementById("newQty").value);
-        const expiry = document.getElementById("newExpiry").value;
-
-        if(!name || isNaN(price)) return alert("Eksik bilgi!");
-
-        products.push({ barcode, name, price, cost, quantity, expiry });
-        saveData();
-        document.getElementById("addFormContainer").classList.add("hidden");
-        alert("Ürün başarıyla eklendi!");
+    function editProductFromDetail(idx) {
+        const p = products[idx];
+        const detailArea = document.getElementById("productDetailArea");
+        detailArea.innerHTML = `
+            <div class="edit-form">
+                <input type="text" id="editName" value="${escapeHtml(p.name)}" placeholder="ÜRÜN ADI">
+                <input type="text" id="editBarcode" value="${p.barcode}" readonly>
+                <input type="number" step="0.01" id="editPrice" value="${p.price}" placeholder="SATIŞ FİYATI (€)">
+                <input type="number" step="0.01" id="editCost" value="${p.cost || ''}" placeholder="MALİYET (€)">
+                <div class="calc-group">
+                    <div class="calc-row"><label>📈 KAR (%)</label><input type="number" id="editProfit" placeholder="Kar %"></div>
+                    <div class="calc-row"><label>🧾 VERGİ (%)</label><input type="number" id="editTax" placeholder="Vergi %" value="7"></div>
+                    <button class="calc-button" onclick="calculateAndSetFor('edit')">🧮 HESAPLA (MALİYET+ KAR+VERGİ)</button>
+                </div>
+                <input type="number" id="editQuantity" value="${p.quantity}" placeholder="ADET">
+                <input type="date" id="editExpiry" value="${p.expiry || ''}" placeholder="SKT">
+                <div class="image-buttons">
+                    <button onclick="openGoogleImageSearch('${encodeURIComponent(p.name)}')">🔍 GOOGLE'DA ARA</button>
+                    <button onclick="addImageToProduct(${idx}, false)">📷 RESİM EKLE</button>
+                </div>
+                <button onclick="saveEditedProductFromDetail(${idx})">💾 KAYDET</button>
+                <button onclick="showProductDetail(${idx})">İPTAL</button>
+            </div>
+        `;
     }
 
-    // Manuel Arama
-    document.getElementById("manualSearchInput").addEventListener("change", function(e) {
-        const val = e.target.value;
-        const found = products.find(p => p.barcode === val || p.name.includes(val.toUpperCase()));
-        if(found) showResult(found);
+    function saveEditedProductFromDetail(idx) {
+        const newName = document.getElementById("editName").value.trim().toUpperCase();
+        const newPrice = parseFloat(document.getElementById("editPrice").value);
+        const newCost = parseFloat(document.getElementById("editCost").value);
+        const newQuantity = parseInt(document.getElementById("editQuantity").value);
+        const newExpiry = document.getElementById("editExpiry").value;
+        if(!newName || isNaN(newPrice) || isNaN(newQuantity)) { alert("GEÇERSİZ BİLGİ!"); return; }
+        products[idx] = { ...products[idx], name: newName, price: newPrice, cost: isNaN(newCost) ? products[idx].cost : newCost, quantity: newQuantity, expiry: newExpiry };
+        saveData(); updateSktButton(); showProductDetail(idx); playBeep();
+    }
+
+    function addImageToProduct(idx, refreshAfter) {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => { 
+                    products[idx].image = ev.target.result; 
+                    saveData(); 
+                    if(refreshAfter) showProductDetail(idx);
+                    else if(lastScannedProduct && lastScannedProduct.barcode === products[idx].barcode) showResult(lastScannedProduct);
+                    playBeep();
+                };
+                reader.readAsDataURL(file);
+            } else alert("Dosya seçilmedi!");
+        };
+        input.click();
+    }
+
+    function deleteProductFromModal(idx) {
+        if(confirm(`${products[idx].name} SİLİNSİN Mİ?`)) { products.splice(idx,1); saveData(); updateSktButton(); openInventoryModal(); playBeep(); }
+    }
+
+    // ---------- ANA EKRAN ----------
+    function showResult(product) {
+        lastScannedProduct = product;
+        const resultDiv = document.getElementById("resultArea");
+        let imageHtml = product.image ? `<img src="${product.image}" class="product-image" onerror="this.onerror=null; this.src=''; this.alt='Resim yüklenemedi';">` : '<div style="color:#aaa;">📷 RESİM YOK</div>';
+        resultDiv.innerHTML = `
+            ${imageHtml}
+            <div class="result-name">${escapeHtml(product.name)}</div>
+            <div class="result-price">${product.price.toFixed(2)} €</div>
+            <div style="color:#aaa;">STOK: ${product.quantity} | SKT: ${product.expiry || "YOK"}</div>
+            <button class="edit-result-btn" onclick="enableInlineEdit()">📝 DÜZENLE</button>
+        `;
+        // Sesli geri bildirim
+        speakText(`${product.name}, ${product.price.toFixed(2)} Euro`);
+        isEditMode = false;
+    }
+
+    function enableInlineEdit() {
+        if(!lastScannedProduct) return;
+        const p = lastScannedProduct;
+        const resultDiv = document.getElementById("resultArea");
+        resultDiv.innerHTML = `
+            <div class="inline-edit-form">
+                <input type="text" id="inlineName" value="${escapeHtml(p.name)}" placeholder="ÜRÜN ADI">
+                <input type="number" step="0.01" id="inlinePrice" value="${p.price}" placeholder="SATIŞ FİYATI (€)">
+                <input type="number" step="0.01" id="inlineCost" value="${p.cost || ''}" placeholder="MALİYET (€)">
+                <div class="calc-group">
+                    <div class="calc-row"><label>📈 KAR (%)</label><input type="number" id="inlineProfit" placeholder="Kar %"></div>
+                    <div class="calc-row"><label>🧾 VERGİ (%)</label><input type="number" id="inlineTax" placeholder="Vergi %" value="7"></div>
+                    <button class="calc-button" onclick="calculateAndSetFor('inline')">🧮 HESAPLA (MALİYET+ KAR+VERGİ)</button>
+                </div>
+                <input type="number" id="inlineQuantity" value="${p.quantity}" placeholder="ADET">
+                <input type="date" id="inlineExpiry" value="${p.expiry || ''}" placeholder="SKT">
+                <div class="image-buttons">
+                    <button onclick="openGoogleImageSearch('${encodeURIComponent(p.name)}')">🔍 GOOGLE'DA ARA</button>
+                    <button onclick="addImageToCurrentProduct()">📷 RESİM EKLE</button>
+                </div>
+                <button onclick="saveInlineEdit()">💾 KAYDET</button>
+                <button onclick="showResult(lastScannedProduct)">İPTAL</button>
+            </div>
+        `;
+        isEditMode = true;
+    }
+
+    function addImageToCurrentProduct() {
+        if(!lastScannedProduct) return;
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const idx = products.findIndex(p => p.barcode === lastScannedProduct.barcode);
+                    if(idx !== -1) {
+                        products[idx].image = ev.target.result;
+                        lastScannedProduct.image = ev.target.result;
+                        saveData();
+                        if(isEditMode) enableInlineEdit();
+                        else showResult(lastScannedProduct);
+                        playBeep();
+                    } else alert("Ürün bulunamadı!");
+                };
+                reader.readAsDataURL(file);
+            } else alert("Dosya seçilmedi!");
+        };
+        input.click();
+    }
+
+    function saveInlineEdit() {
+        if(!lastScannedProduct) return;
+        const newName = document.getElementById("inlineName").value.trim().toUpperCase();
+        const newPrice = parseFloat(document.getElementById("inlinePrice").value);
+        const newCost = parseFloat(document.getElementById("inlineCost").value);
+        const newQuantity = parseInt(document.getElementById("inlineQuantity").value);
+        const newExpiry = document.getElementById("inlineExpiry").value;
+        if(!newName || isNaN(newPrice) || isNaN(newQuantity)) { alert("GEÇERSİZ BİLGİ!"); return; }
+        const idx = products.findIndex(p => p.barcode === lastScannedProduct.barcode);
+        if(idx !== -1) {
+            products[idx] = { ...products[idx], name: newName, price: newPrice, cost: isNaN(newCost) ? products[idx].cost : newCost, quantity: newQuantity, expiry: newExpiry };
+            lastScannedProduct = products[idx];
+            saveData(); updateSktButton(); showResult(lastScannedProduct); playBeep();
+        } else alert("Ürün bulunamadı!");
+    }
+
+    // ---------- MANUEL ARAMA ----------
+    const searchInput = document.getElementById("manualSearchInput");
+    const searchResultsDiv = document.getElementById("searchResults");
+    searchInput.addEventListener("input", function() {
+        const term = this.value.trim().toLowerCase();
+        if (term === "") { searchResultsDiv.style.display = "none"; return; }
+        const filtered = products.filter(p => p.name.toLowerCase().includes(term) || p.barcode.includes(term));
+        if (filtered.length === 0) { searchResultsDiv.style.display = "none"; return; }
+        let html = "";
+        filtered.forEach(p => {
+            html += `<div class="search-result-item" onclick="selectProductFromSearch('${p.barcode}')">
+                        <div class="search-result-name">${escapeHtml(p.name)}</div>
+                        <div class="search-result-price">${p.price.toFixed(2)} € | Stok: ${p.quantity}</div>
+                        <div style="font-size:0.7rem;">${p.barcode}</div>
+                    </div>`;
+        });
+        searchResultsDiv.innerHTML = html;
+        searchResultsDiv.style.display = "block";
     });
+    function selectProductFromSearch(barcode) {
+        const product = products.find(p => p.barcode === barcode);
+        if (product) { showResult(product); searchInput.value = ""; searchResultsDiv.style.display = "none"; }
+    }
+    document.addEventListener("click", function(e) {
+        if (!searchInput.contains(e.target) && !searchResultsDiv.contains(e.target)) searchResultsDiv.style.display = "none";
+    });
+
+    // ---------- GOOGLE ARAMA ve SES ----------
+    function openGoogleImageSearch(query) {
+        window.open(`https://www.google.com/search?q=${query}&tbm=isch`, '_blank');
+        alert("Google Görsel araması açıldı. Beğendiğiniz resmi indirip, ardından 'RESİM EKLE' butonu ile yükleyin.");
+    }
+    function playBeep() { 
+        try { 
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+            const osc = audioCtx.createOscillator(); 
+            osc.type = "sine"; 
+            osc.frequency.value = 880; 
+            const gain = audioCtx.createGain();
+            gain.gain.value = 0.15;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(); 
+            osc.stop(audioCtx.currentTime + 0.15); 
+            audioCtx.resume(); 
+        } catch(e) { console.log("ses hatası"); } 
+    }
+
+    // ---------- KAMERA ----------
+    async function openCamera(mode) {
+        currentCameraMode = mode;
+        const videoElem = document.getElementById("video");
+        const container = document.getElementById("cameraContainer");
+        const statusDiv = document.getElementById("cameraStatus");
+        container.style.display = "block";
+        statusDiv.innerHTML = "📷 KAMERA BAŞLATILIYOR...";
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+            videoElem.srcObject = stream; currentStream = stream; videoElem.play();
+            Quagga.init({ inputStream: { name: "LiveStream", type: "LiveStream", target: videoElem }, decoder: { readers: ["ean_reader", "ean_8_reader", "code_128_reader", "upc_reader"] } }, function(err) { if(err) { statusDiv.innerHTML = "❌ HATA"; return; } Quagga.start(); statusDiv.innerHTML = "🎥 BARKODU GÖSTERİN..."; });
+            Quagga.onDetected((data) => { const code = data.codeResult.code; playBeep(); closeCamera(); if(mode === 'search') { const found = products.find(p => p.barcode === code); if(found) showResult(found); else { document.getElementById("resultArea").innerHTML = `<div style="color:#ff6666; text-align:center; padding:20px;">❌ "${code}" BULUNAMADI<br><button onclick="showAddFormForBarcode('${code}')" style="background:#c0392b; border:none; border-radius:40px; padding:8px 16px; margin-top:10px; color:white;">➕ ÜRÜN EKLE</button></div>`; } } else if(mode === 'add') { showAddFormForBarcode(code); } });
+        } catch(e) { statusDiv.innerHTML = "❌ KAMERA İZNİ GEREKLİ!"; }
+    }
+
+    let tempImageData = null;
+    function showAddFormForBarcode(barcode) {
+        const container = document.getElementById("addFormContainer");
+        container.classList.remove("hidden");
+        container.innerHTML = `
+            <div class="add-product-form">
+                <strong style="color:#ffaa88;">YENİ ÜRÜN EKLE</strong>
+                <input type="text" id="addBarcode" value="${barcode}" readonly>
+                <input type="text" id="addName" placeholder="ÜRÜN ADI">
+                <input type="number" step="0.01" id="addPrice" placeholder="SATIŞ FİYATI (€)">
+                <input type="number" step="0.01" id="addCost" placeholder="MALİYET (€)">
+                <div class="calc-group">
+                    <div class="calc-row"><label>📈 KAR (%)</label><input type="number" id="addProfit" placeholder="Kar %"></div>
+                    <div class="calc-row"><label>🧾 VERGİ (%)</label><input type="number" id="addTax" placeholder="Vergi %" value="7"></div>
+                    <button class="calc-button" onclick="calculateAndSetFor('add')">🧮 HESAPLA (MALİYET+ KAR+VERGİ)</button>
+                </div>
+                <input type="number" id="addQuantity" placeholder="ADET" value="1">
+                <input type="date" id="addExpiry" placeholder="SKT (YYYY-AA-GG)">
+                <div class="image-buttons">
+                    <button onclick="openGoogleImageSearch(document.getElementById('addName').value)">🔍 GOOGLE'DA ARA</button>
+                    <button onclick="captureImageForAdd()">📷 RESİM EKLE</button>
+                </div>
+                <button onclick="saveNewProduct()">💾 KAYDET</button>
+                <button onclick="closeAddForm()" style="background:#555;">İPTAL</button>
+            </div>
+        `;
+        document.getElementById("resultArea").innerHTML = `<div class="result-placeholder">🎯 BARKOD OKUTUNCA VEYA<br>MANUEL ARAMA YAPINCA<br>FİYAT GÖRÜNÜR</div>`;
+    }
+
+    function captureImageForAdd() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) { const reader = new FileReader(); reader.onload = (ev) => { tempImageData = ev.target.result; alert("Resim yüklendi. Ürünü kaydettiğinizde eklenecektir."); }; reader.readAsDataURL(file); }
+            else alert("Dosya seçilmedi!");
+        };
+        input.click();
+    }
+
+    function saveNewProduct() {
+        const barcode = document.getElementById("addBarcode").value;
+        const name = document.getElementById("addName").value.trim().toUpperCase();
+        const price = parseFloat(document.getElementById("addPrice").value);
+        const cost = parseFloat(document.getElementById("addCost").value);
+        const quantity = parseInt(document.getElementById("addQuantity").value) || 1;
+        const expiry = document.getElementById("addExpiry").value;
+        if(!name || isNaN(price)) { alert("ÜRÜN ADI VE FİYAT GEREKLİ!"); return; }
+        const existing = products.findIndex(p => p.barcode === barcode);
+        if(existing !== -1) {
+            if(confirm("BARKOD ZATEN VAR! ÜZERİNE YAZILSIN MI?")) {
+                products[existing] = { ...products[existing], name, price, cost: isNaN(cost) ? products[existing].cost : cost, quantity, expiry, image: tempImageData || products[existing].image };
+                saveData(); alert("GÜNCELLENDİ"); playBeep();
+            }
+        } else {
+            products.push({ barcode, name, price, cost: isNaN(cost) ? null : cost, quantity, expiry, priceHistory: [price], image: tempImageData });
+            saveData(); alert("ÜRÜN EKLENDİ"); playBeep();
+        }
+        tempImageData = null; updateSktButton(); closeAddForm();
+    }
+
+    function closeAddForm() { document.getElementById("addFormContainer").classList.add("hidden"); document.getElementById("addFormContainer").innerHTML = ""; tempImageData = null; }
+    function closeCamera() { if(Quagga) Quagga.stop(); if(currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; } document.getElementById("cameraContainer").style.display = "none"; const video = document.getElementById("video"); if(video.srcObject) video.srcObject = null; }
+    function openSettingsModal() { document.getElementById("settingsModal").style.display = "flex"; }
+    function closeSettingsModal() { document.getElementById("settingsModal").style.display = "none"; }
+    
+    // GELİŞMİŞ YEDEKLEME (doğrulama ve hata yönetimi)
+    function backupData() {
+        const dataStr = JSON.stringify(products, null, 2);
+        const blob = new Blob([dataStr], {type: "application/json"});
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `market_backup_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.json`;
+        a.click();
+        alert("YEDEK ALINDI");
+        playBeep();
+    }
+    
+    function restoreData() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "application/json";
+        input.onchange = e => {
+            const file = e.target.files[0];
+            if (!file) { alert("Dosya seçilmedi!"); return; }
+            const reader = new FileReader();
+            reader.onload = ev => {
+                try {
+                    const imported = JSON.parse(ev.target.result);
+                    if (!Array.isArray(imported)) throw new Error("Geçersiz format");
+                    // Basit doğrulama: her ürünün barkod, name, price alanı var mı?
+                    for (let item of imported) {
+                        if (!item.barcode || !item.name || typeof item.price !== 'number') {
+                            throw new Error("Eksik veya hatalı veri");
+                        }
+                    }
+                    products = imported;
+                    saveData();
+                    updateSktButton();
+                    alert(`YEDEK BAŞARIYLA YÜKLENDİ (${products.length} ürün)`);
+                    playBeep();
+                    // Eğer envanter modalı açıksa kapatıp yeniden aç
+                    if (document.getElementById("inventoryModal").style.display === "flex") {
+                        closeInventoryModal();
+                        openInventoryModal();
+                    }
+                    // Sonuç alanını temizle
+                    document.getElementById("resultArea").innerHTML = `<div class="result-placeholder">🎯 BARKOD OKUTUNCA VEYA<br>MANUEL ARAMA YAPINCA<br>FİYAT GÖRÜNÜR</div>`;
+                } catch(err) {
+                    alert("HATALI DOSYA! Lütfen geçerli bir yedek dosyası seçin.\nHata: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+        };
+        input.click();
+    }
+    
+    // Ek olarak tüm veriyi dışa aktar (aynı backup)
+    function exportFullData() { backupData(); }
+    function importFullData() { restoreData(); }
+    
+    function renderProductListIfModalOpen() {
+        if (document.getElementById("inventoryModal").style.display === "flex") {
+            openInventoryModal(); // yeniden render et
+        }
+    }
+
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m; }); }
+
+    // EVENT LISTENER'LAR
+    document.getElementById("searchBtn").onclick = () => openCamera('search');
+    document.getElementById("addBtn").onclick = () => openCamera('add');
+    document.getElementById("inventoryBtn").onclick = () => openInventoryModal();
+    document.getElementById("settingsBtn").onclick = () => openSettingsModal();
+    document.getElementById("sktButton").onclick = () => openSktModal();
 
     loadData();
 </script>
