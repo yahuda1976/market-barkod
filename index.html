@@ -129,7 +129,7 @@
 
     // ---------- VERİ YÖNETİMİ ----------
     function loadData() {
-        const stored = localStorage.getItem("market_pro_final_v11");
+        const stored = localStorage.getItem("market_pro_final_v12");
         if(stored) products = JSON.parse(stored);
         else {
             products = [
@@ -141,7 +141,7 @@
         }
         updateSktButton();
     }
-    function saveData() { localStorage.setItem("market_pro_final_v11", JSON.stringify(products)); }
+    function saveData() { localStorage.setItem("market_pro_final_v12", JSON.stringify(products)); }
 
     function updateSktButton() {
         const today = new Date(); today.setHours(0,0,0,0);
@@ -197,7 +197,7 @@
     }
     function closeSktModal() { document.getElementById("sktModal").style.display = "none"; }
 
-    // ---------- ENVANTER MODAL (TAM ÇALIŞAN) ----------
+    // ---------- ENVANTER MODAL ----------
     function openInventoryModal() {
         const modal = document.getElementById("inventoryModal");
         const container = document.getElementById("modalProductList");
@@ -290,7 +290,7 @@
         if(confirm(`${products[idx].name} SİLİNSİN Mİ?`)) { products.splice(idx,1); saveData(); updateSktButton(); openInventoryModal(); playBeep(); }
     }
 
-    // ---------- ANA EKRAN (Fiyat sorgulama ve düzenleme) ----------
+    // ---------- ANA EKRAN ----------
     function showResult(product) {
         lastScannedProduct = product;
         const resultDiv = document.getElementById("resultArea");
@@ -407,7 +407,7 @@
     }
     function playBeep() { try { const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const osc = audioCtx.createOscillator(); osc.type = "sine"; osc.frequency.value = 880; osc.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15); audioCtx.resume(); } catch(e) {} }
 
-    // ---------- KAMERA ----------
+    // ---------- KAMERA (OTOMATİK KAYDIRMA EKLENDİ) ----------
     async function openCamera(mode) {
         currentCameraMode = mode;
         const videoElem = document.getElementById("video");
@@ -415,6 +415,10 @@
         const statusDiv = document.getElementById("cameraStatus");
         container.style.display = "block";
         statusDiv.innerHTML = "📷 KAMERA BAŞLATILIYOR...";
+        
+        // Sayfayı kamera konteynerine kaydır (yumuşak geçişle en üste)
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
             videoElem.srcObject = stream; currentStream = stream; videoElem.play();
