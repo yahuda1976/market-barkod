@@ -129,7 +129,7 @@
 
     // ---------- VERİ YÖNETİMİ ----------
     function loadData() {
-        const stored = localStorage.getItem("market_pro_final_v12");
+        const stored = localStorage.getItem("market_pro_final_v13");
         if(stored) products = JSON.parse(stored);
         else {
             products = [
@@ -141,7 +141,7 @@
         }
         updateSktButton();
     }
-    function saveData() { localStorage.setItem("market_pro_final_v12", JSON.stringify(products)); }
+    function saveData() { localStorage.setItem("market_pro_final_v13", JSON.stringify(products)); }
 
     function updateSktButton() {
         const today = new Date(); today.setHours(0,0,0,0);
@@ -400,14 +400,28 @@
         if (!searchInput.contains(e.target) && !searchResultsDiv.contains(e.target)) searchResultsDiv.style.display = "none";
     });
 
-    // ---------- GOOGLE ARAMA ve SES ----------
+    // ---------- GOOGLE ARAMA ve SES (daha kısık) ----------
     function openGoogleImageSearch(query) {
         window.open(`https://www.google.com/search?q=${query}&tbm=isch`, '_blank');
         alert("Google Görsel araması açıldı. Beğendiğiniz resmi indirip, ardından 'RESİM EKLE' butonu ile yükleyin.");
     }
-    function playBeep() { try { const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const osc = audioCtx.createOscillator(); osc.type = "sine"; osc.frequency.value = 880; osc.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15); audioCtx.resume(); } catch(e) {} }
+    function playBeep() { 
+        try { 
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+            const osc = audioCtx.createOscillator(); 
+            osc.type = "sine"; 
+            osc.frequency.value = 880; 
+            const gain = audioCtx.createGain();
+            gain.gain.value = 0.15;  // Ses seviyesi kısıldı (önceden 0.3)
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(); 
+            osc.stop(audioCtx.currentTime + 0.15); 
+            audioCtx.resume(); 
+        } catch(e) { console.log("ses hatası"); } 
+    }
 
-    // ---------- KAMERA (OTOMATİK KAYDIRMA EKLENDİ) ----------
+    // ---------- KAMERA ----------
     async function openCamera(mode) {
         currentCameraMode = mode;
         const videoElem = document.getElementById("video");
@@ -415,8 +429,6 @@
         const statusDiv = document.getElementById("cameraStatus");
         container.style.display = "block";
         statusDiv.innerHTML = "📷 KAMERA BAŞLATILIYOR...";
-        
-        // Sayfayı kamera konteynerine kaydır (yumuşak geçişle en üste)
         container.scrollIntoView({ behavior: 'smooth', block: 'start' });
         
         try {
@@ -479,11 +491,11 @@
         if(existing !== -1) {
             if(confirm("BARKOD ZATEN VAR! ÜZERİNE YAZILSIN MI?")) {
                 products[existing] = { ...products[existing], name, price, quantity, expiry, image: tempImageData || products[existing].image };
-                saveData(); alert("GÜNCELLENDİ");
+                saveData(); alert("GÜNCELLENDİ"); playBeep();
             }
         } else {
             products.push({ barcode, name, price, quantity, expiry, priceHistory: [price], image: tempImageData });
-            saveData(); alert("ÜRÜN EKLENDİ");
+            saveData(); alert("ÜRÜN EKLENDİ"); playBeep();
         }
         tempImageData = null; updateSktButton(); closeAddForm();
     }
@@ -492,8 +504,8 @@
     function closeCamera() { if(Quagga) Quagga.stop(); if(currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; } document.getElementById("cameraContainer").style.display = "none"; const video = document.getElementById("video"); if(video.srcObject) video.srcObject = null; }
     function openSettingsModal() { document.getElementById("settingsModal").style.display = "flex"; }
     function closeSettingsModal() { document.getElementById("settingsModal").style.display = "none"; }
-    function backupData() { const dataStr = JSON.stringify(products); const blob = new Blob([dataStr], {type: "application/json"}); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `market_backup_${Date.now()}.json`; a.click(); alert("YEDEK ALINDI"); }
-    function restoreData() { const input = document.createElement("input"); input.type = "file"; input.accept = "application/json"; input.onchange = e => { const file = e.target.files[0]; const reader = new FileReader(); reader.onload = ev => { try { products = JSON.parse(ev.target.result); saveData(); updateSktButton(); alert("YEDEK YÜKLENDİ"); } catch(err) { alert("HATALI DOSYA"); } }; reader.readAsText(file); }; input.click(); }
+    function backupData() { const dataStr = JSON.stringify(products); const blob = new Blob([dataStr], {type: "application/json"}); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `market_backup_${Date.now()}.json`; a.click(); alert("YEDEK ALINDI"); playBeep(); }
+    function restoreData() { const input = document.createElement("input"); input.type = "file"; input.accept = "application/json"; input.onchange = e => { const file = e.target.files[0]; const reader = new FileReader(); reader.onload = ev => { try { products = JSON.parse(ev.target.result); saveData(); updateSktButton(); alert("YEDEK YÜKLENDİ"); playBeep(); } catch(err) { alert("HATALI DOSYA"); } }; reader.readAsText(file); }; input.click(); }
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m; }); }
 
     // EVENT LISTENER'LAR
