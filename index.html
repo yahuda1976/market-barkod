@@ -17,12 +17,24 @@
         .product-image { max-width: 100%; max-height: 140px; border-radius: 20px; margin: 8px auto; display: block; object-fit: contain; background: #3a3a3a; }
         .edit-result-btn { background: #c0392b; border: none; border-radius: 40px; padding: 10px 20px; margin-top: 10px; color: white; font-weight: bold; cursor: pointer; display: inline-block; }
         
-        .inline-edit-form, .edit-form, .add-product-form { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
-        input, select { width: 100%; padding: 12px; border-radius: 40px; border: none; background: #555; color: white; font-size: 0.9rem; }
-        button { background: #2c6e2f; border: none; border-radius: 40px; padding: 10px; color: white; font-weight: bold; cursor: pointer; margin-top: 5px; }
-        .image-buttons, .calc-row { display: flex; gap: 8px; flex-wrap: wrap; }
-        .image-buttons button, .calc-row button { flex: 1; background: #c0392b; }
-        .calc-row input { flex: 2; margin: 0; }
+        /* Form stilleri - daha geniş ve okunabilir */
+        .inline-edit-form, .edit-form, .add-product-form { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+        input, select { width: 100%; padding: 14px; border-radius: 40px; border: none; background: #555; color: white; font-size: 1rem; }
+        button { background: #2c6e2f; border: none; border-radius: 40px; padding: 14px; color: white; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .image-buttons { display: flex; gap: 12px; margin-top: 8px; }
+        .image-buttons button { flex: 1; background: #c0392b; }
+        
+        /* Hesap makinesi bölümü - düzenli ve geniş */
+        .calc-group {
+            background: #3a3a3a;
+            border-radius: 32px;
+            padding: 12px;
+            margin: 8px 0;
+        }
+        .calc-row { margin-bottom: 10px; }
+        .calc-row label { display: block; color: #ffaa88; font-size: 0.8rem; margin-bottom: 4px; text-transform: uppercase; }
+        .calc-row input { margin: 0; }
+        .calc-button { background: #c0392b; margin-top: 8px; }
         
         .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
         .btn { background: #d4c9b8; border: none; border-radius: 28px; padding: 20px 12px; font-size: 1rem; font-weight: 900; letter-spacing: 1px; color: #c0392b; text-transform: uppercase; cursor: pointer; transition: 0.15s; box-shadow: 0 5px 0 #8f7a5c; text-align: center; aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center; }
@@ -123,7 +135,7 @@
     let isEditMode = false;
 
     function loadData() {
-        const stored = localStorage.getItem("market_pro_final_v9");
+        const stored = localStorage.getItem("market_pro_final_v10");
         if(stored) products = JSON.parse(stored);
         else {
             products = [
@@ -135,7 +147,7 @@
         }
         updateSktButton();
     }
-    function saveData() { localStorage.setItem("market_pro_final_v9", JSON.stringify(products)); }
+    function saveData() { localStorage.setItem("market_pro_final_v10", JSON.stringify(products)); }
 
     function updateSktButton() {
         const today = new Date(); today.setHours(0,0,0,0);
@@ -145,14 +157,43 @@
         else { sktMsg.innerHTML = `${warnings.length} ÜRÜN YAKIN`; sktMsg.className = "skt-message"; }
     }
 
-    // HESAP MAKİNESİ ORTAK FONKSİYONU
+    // HESAP MAKİNESİ (daha geniş ve düzenli)
     function calculatePrice(cost, profitPercent, taxPercent) {
         let totalPercent = (profitPercent || 0) + (taxPercent || 0);
         let price = cost * (1 + totalPercent / 100);
         return Math.round(price * 100) / 100;
     }
 
-    // ----- ENVANTER MODAL (aynı, sadece düzenleme formuna hesap makinesi eklendi) -----
+    function createCalcGroup(targetId, priceFieldId) {
+        // Bu fonksiyon dinamik olarak çağrılacak, ancak doğrudan HTML içinde oluşturacağız.
+        // Aşağıdaki yardımcı fonksiyonlar ile hesaplama yapılacak.
+    }
+
+    // Hesaplama fonksiyonları (inline, edit, add için)
+    function calculateAndSetFor(target) {
+        let cost, profit, tax, priceField;
+        if (target === 'inline') {
+            cost = parseFloat(document.getElementById("inlineCost").value);
+            profit = parseFloat(document.getElementById("inlineProfit").value);
+            tax = parseFloat(document.getElementById("inlineTax").value);
+            priceField = document.getElementById("inlinePrice");
+        } else if (target === 'edit') {
+            cost = parseFloat(document.getElementById("editCost").value);
+            profit = parseFloat(document.getElementById("editProfit").value);
+            tax = parseFloat(document.getElementById("editTax").value);
+            priceField = document.getElementById("editPrice");
+        } else if (target === 'add') {
+            cost = parseFloat(document.getElementById("addCost").value);
+            profit = parseFloat(document.getElementById("addProfit").value);
+            tax = parseFloat(document.getElementById("addTax").value);
+            priceField = document.getElementById("addPrice");
+        } else return;
+        if (isNaN(cost) || isNaN(profit) || isNaN(tax)) { alert("Maliyet, kar ve vergi girin!"); return; }
+        let newPrice = calculatePrice(cost, profit, tax);
+        priceField.value = newPrice;
+    }
+
+    // ----- ENVANTER MODAL -----
     function openSktModal() { /* aynı */ }
     function closeSktModal() { document.getElementById("sktModal").style.display = "none"; }
     function openInventoryModal() { /* aynı */ }
@@ -166,12 +207,14 @@
                 <input type="text" id="editName" value="${escapeHtml(p.name)}" placeholder="ÜRÜN ADI">
                 <input type="text" id="editBarcode" value="${p.barcode}" readonly>
                 <input type="number" step="0.01" id="editPrice" value="${p.price}" placeholder="SATIŞ FİYATI (€)">
-                <div class="calc-row">
-                    <input type="number" step="0.01" id="editCost" placeholder="MALİYET (€)">
-                    <input type="number" id="editProfit" placeholder="KAR %">
-                    <input type="number" id="editTax" placeholder="VERGİ %" value="7">
-                    <button onclick="calculateAndSetPrice('edit')">🧮 HESAPLA</button>
+                
+                <div class="calc-group">
+                    <div class="calc-row"><label>💰 MALİYET (€)</label><input type="number" step="0.01" id="editCost" placeholder="Maliyet"></div>
+                    <div class="calc-row"><label>📈 KAR (%)</label><input type="number" id="editProfit" placeholder="Kar %"></div>
+                    <div class="calc-row"><label>🧾 VERGİ (%)</label><input type="number" id="editTax" placeholder="Vergi %" value="7"></div>
+                    <button class="calc-button" onclick="calculateAndSetFor('edit')">🧮 HESAPLA</button>
                 </div>
+                
                 <input type="number" id="editQuantity" value="${p.quantity}" placeholder="ADET">
                 <input type="date" id="editExpiry" value="${p.expiry || ''}" placeholder="SKT">
                 <div class="image-buttons">
@@ -183,31 +226,6 @@
             </div>
         `;
     }
-    function calculateAndSetPrice(target) {
-        let cost, profit, tax;
-        if (target === 'edit') {
-            cost = parseFloat(document.getElementById("editCost").value);
-            profit = parseFloat(document.getElementById("editProfit").value);
-            tax = parseFloat(document.getElementById("editTax").value);
-            if (isNaN(cost) || isNaN(profit) || isNaN(tax)) { alert("Maliyet, kar ve vergi girin!"); return; }
-            let newPrice = calculatePrice(cost, profit, tax);
-            document.getElementById("editPrice").value = newPrice;
-        } else if (target === 'inline') {
-            cost = parseFloat(document.getElementById("inlineCost").value);
-            profit = parseFloat(document.getElementById("inlineProfit").value);
-            tax = parseFloat(document.getElementById("inlineTax").value);
-            if (isNaN(cost) || isNaN(profit) || isNaN(tax)) { alert("Maliyet, kar ve vergi girin!"); return; }
-            let newPrice = calculatePrice(cost, profit, tax);
-            document.getElementById("inlinePrice").value = newPrice;
-        } else if (target === 'add') {
-            cost = parseFloat(document.getElementById("addCost").value);
-            profit = parseFloat(document.getElementById("addProfit").value);
-            tax = parseFloat(document.getElementById("addTax").value);
-            if (isNaN(cost) || isNaN(profit) || isNaN(tax)) { alert("Maliyet, kar ve vergi girin!"); return; }
-            let newPrice = calculatePrice(cost, profit, tax);
-            document.getElementById("addPrice").value = newPrice;
-        }
-    }
     function saveEditedProductFromDetail(idx) {
         const newName = document.getElementById("editName").value.trim().toUpperCase();
         const newPrice = parseFloat(document.getElementById("editPrice").value);
@@ -217,10 +235,31 @@
         products[idx] = { ...products[idx], name: newName, price: newPrice, quantity: newQuantity, expiry: newExpiry };
         saveData(); updateSktButton(); showProductDetail(idx); playBeep();
     }
-    function addImageToProduct(idx, refreshAfter) { /* aynı */ }
-    function deleteProductFromModal(idx) { /* aynı */ }
+    function addImageToProduct(idx, refreshAfter) {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => { 
+                    products[idx].image = ev.target.result; 
+                    saveData(); 
+                    if(refreshAfter) showProductDetail(idx);
+                    else if(lastScannedProduct && lastScannedProduct.barcode === products[idx].barcode) showResult(lastScannedProduct);
+                    playBeep();
+                };
+                reader.readAsDataURL(file);
+            } else alert("Dosya seçilmedi!");
+        };
+        input.click();
+    }
+    function deleteProductFromModal(idx) {
+        if(confirm(`${products[idx].name} SİLİNSİN Mİ?`)) { products.splice(idx,1); saveData(); updateSktButton(); openInventoryModal(); playBeep(); }
+    }
 
-    // ANA EKRAN SONUÇ VE DÜZENLEME (inline edit)
+    // ANA EKRAN SONUÇ VE DÜZENLEME
     function showResult(product) {
         lastScannedProduct = product;
         const resultDiv = document.getElementById("resultArea");
@@ -242,12 +281,14 @@
             <div class="inline-edit-form">
                 <input type="text" id="inlineName" value="${escapeHtml(p.name)}" placeholder="ÜRÜN ADI">
                 <input type="number" step="0.01" id="inlinePrice" value="${p.price}" placeholder="SATIŞ FİYATI (€)">
-                <div class="calc-row">
-                    <input type="number" step="0.01" id="inlineCost" placeholder="MALİYET (€)">
-                    <input type="number" id="inlineProfit" placeholder="KAR %">
-                    <input type="number" id="inlineTax" placeholder="VERGİ %" value="7">
-                    <button onclick="calculateAndSetPrice('inline')">🧮 HESAPLA</button>
+                
+                <div class="calc-group">
+                    <div class="calc-row"><label>💰 MALİYET (€)</label><input type="number" step="0.01" id="inlineCost" placeholder="Maliyet"></div>
+                    <div class="calc-row"><label>📈 KAR (%)</label><input type="number" id="inlineProfit" placeholder="Kar %"></div>
+                    <div class="calc-row"><label>🧾 VERGİ (%)</label><input type="number" id="inlineTax" placeholder="Vergi %" value="7"></div>
+                    <button class="calc-button" onclick="calculateAndSetFor('inline')">🧮 HESAPLA</button>
                 </div>
+                
                 <input type="number" id="inlineQuantity" value="${p.quantity}" placeholder="ADET">
                 <input type="date" id="inlineExpiry" value="${p.expiry || ''}" placeholder="SKT">
                 <div class="image-buttons">
@@ -260,7 +301,31 @@
         `;
         isEditMode = true;
     }
-    function addImageToCurrentProduct() { /* aynı */ }
+    function addImageToCurrentProduct() {
+        if(!lastScannedProduct) return;
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const idx = products.findIndex(p => p.barcode === lastScannedProduct.barcode);
+                    if(idx !== -1) {
+                        products[idx].image = ev.target.result;
+                        lastScannedProduct.image = ev.target.result;
+                        saveData();
+                        if(isEditMode) enableInlineEdit(); // formu yenile
+                        else showResult(lastScannedProduct);
+                        playBeep();
+                    } else alert("Ürün bulunamadı!");
+                };
+                reader.readAsDataURL(file);
+            } else alert("Dosya seçilmedi!");
+        };
+        input.click();
+    }
     function saveInlineEdit() {
         if(!lastScannedProduct) return;
         const newName = document.getElementById("inlineName").value.trim().toUpperCase();
@@ -276,7 +341,7 @@
         } else alert("Ürün bulunamadı!");
     }
 
-    // MANUEL ARAMA (aynı)
+    // MANUEL ARAMA
     const searchInput = document.getElementById("manualSearchInput");
     const searchResultsDiv = document.getElementById("searchResults");
     searchInput.addEventListener("input", function() {
@@ -335,12 +400,14 @@
                 <input type="text" id="addBarcode" value="${barcode}" readonly>
                 <input type="text" id="addName" placeholder="ÜRÜN ADI">
                 <input type="number" step="0.01" id="addPrice" placeholder="SATIŞ FİYATI (€)">
-                <div class="calc-row">
-                    <input type="number" step="0.01" id="addCost" placeholder="MALİYET (€)">
-                    <input type="number" id="addProfit" placeholder="KAR %">
-                    <input type="number" id="addTax" placeholder="VERGİ %" value="7">
-                    <button onclick="calculateAndSetPrice('add')">🧮 HESAPLA</button>
+                
+                <div class="calc-group">
+                    <div class="calc-row"><label>💰 MALİYET (€)</label><input type="number" step="0.01" id="addCost" placeholder="Maliyet"></div>
+                    <div class="calc-row"><label>📈 KAR (%)</label><input type="number" id="addProfit" placeholder="Kar %"></div>
+                    <div class="calc-row"><label>🧾 VERGİ (%)</label><input type="number" id="addTax" placeholder="Vergi %" value="7"></div>
+                    <button class="calc-button" onclick="calculateAndSetFor('add')">🧮 HESAPLA</button>
                 </div>
+                
                 <input type="number" id="addQuantity" placeholder="ADET" value="1">
                 <input type="date" id="addExpiry" placeholder="SKT (YYYY-AA-GG)">
                 <div class="image-buttons">
@@ -353,7 +420,17 @@
         `;
         document.getElementById("resultArea").innerHTML = `<div class="result-placeholder">🎯 BARKOD OKUTUNCA VEYA<br>MANUEL ARAMA YAPINCA<br>FİYAT GÖRÜNÜR</div>`;
     }
-    function captureImageForAdd() { /* aynı */ }
+    function captureImageForAdd() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) { const reader = new FileReader(); reader.onload = (ev) => { tempImageData = ev.target.result; alert("Resim yüklendi. Ürünü kaydettiğinizde eklenecektir."); }; reader.readAsDataURL(file); }
+            else alert("Dosya seçilmedi!");
+        };
+        input.click();
+    }
     function saveNewProduct() {
         const barcode = document.getElementById("addBarcode").value;
         const name = document.getElementById("addName").value.trim().toUpperCase();
