@@ -108,7 +108,7 @@
     let lastScannedProduct = null;
 
     function loadData() {
-        const stored = localStorage.getItem("market_pro_final_v5");
+        const stored = localStorage.getItem("market_pro_final_v6");
         if(stored) products = JSON.parse(stored);
         else {
             products = [
@@ -120,7 +120,7 @@
         }
         updateSktButton();
     }
-    function saveData() { localStorage.setItem("market_pro_final_v5", JSON.stringify(products)); }
+    function saveData() { localStorage.setItem("market_pro_final_v6", JSON.stringify(products)); }
 
     function updateSktButton() {
         const today = new Date(); today.setHours(0,0,0,0);
@@ -164,7 +164,7 @@
         const detailArea = document.getElementById("productDetailArea");
         detailArea.innerHTML = `
             <div class="product-detail-card">
-                ${p.image ? `<img src="${p.image}" class="detail-image">` : '<div style="color:#aaa;">📷 RESİM YOK</div>'}
+                ${p.image ? `<img src="${p.image}" class="detail-image" onerror="this.onerror=null; this.src=''; this.alt='Resim yüklenemedi';">` : '<div style="color:#aaa;">📷 RESİM YOK</div>'}
                 <div style="font-weight:bold; margin-top:8px;">${escapeHtml(p.name)}</div><div>${p.barcode}</div>
                 <div style="color:#ff6666;">${p.price.toFixed(2)} €</div><div>STOK: ${p.quantity}</div><div>SKT: ${p.expiry || "YOK"}</div>
                 <div class="detail-actions">
@@ -176,9 +176,13 @@
         `;
     }
 
-    // RESİM EKLEME - YAPIŞTIR DESTEKLİ
+    // GELİŞTİRİLMİŞ URL YÖNTEMİ - daha esnek
+    function isValidImageUrl(url) {
+        return url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:image') || url.startsWith('blob:'));
+    }
+
     function addImageToProduct(idx) {
-        const choice = confirm("Tamam -> Galeriden/Kameradan Seç\nİptal -> URL veya Panodan Yapıştır");
+        const choice = confirm("Tamam -> Galeriden/Kameradan Seç\nİptal -> URL Yapıştır");
         if (choice) {
             const input = document.createElement("input");
             input.type = "file";
@@ -193,31 +197,23 @@
             };
             input.click();
         } else {
-            // URL veya panodan yapıştır
             const url = prompt("Resmin URL'sini yapıştırın (Google'dan kopyaladığınız adres):");
-            if (url && (url.startsWith("http") || url.startsWith("data"))) {
-                products[idx].image = url;
-                saveData();
-                showProductDetail(idx);
-                playBeep();
-                alert("Resim URL ile eklendi!");
-            } else if (url) alert("Geçersiz URL!");
-            else {
-                // Panodan okumayı dene (mobilde sıkıntılı ama dene)
-                navigator.clipboard.read().then(items => {
-                    for (let item of items) {
-                        const imageType = item.types.find(type => type.startsWith('image/'));
-                        if (imageType) {
-                            item.getType(imageType).then(blob => {
-                                const reader = new FileReader();
-                                reader.onload = ev => { products[idx].image = ev.target.result; saveData(); showProductDetail(idx); playBeep(); };
-                                reader.readAsDataURL(blob);
-                            });
-                            return;
-                        }
-                    }
-                    alert("Panoda resim bulunamadı. URL yöntemini deneyin.");
-                }).catch(() => alert("Panodan okuma izni verilmedi veya desteklenmiyor. URL yöntemini kullanın."));
+            if (url && isValidImageUrl(url)) {
+                // Resmin gerçekten yüklenip yüklenmediğini test et
+                const testImg = new Image();
+                testImg.onload = () => {
+                    products[idx].image = url;
+                    saveData();
+                    showProductDetail(idx);
+                    playBeep();
+                    alert("Resim başarıyla eklendi!");
+                };
+                testImg.onerror = () => {
+                    alert("Bu URL'den resim yüklenemedi. Lütfen geçerli bir resim adresi kopyalayın (resmin kendisine sağ tıklayıp 'Resim adresini kopyala' yapın).");
+                };
+                testImg.src = url;
+            } else {
+                alert("Geçersiz URL. Lütfen http:// veya https:// ile başlayan bir resim adresi girin.");
             }
         }
     }
@@ -249,13 +245,22 @@
     function pasteUrlToProduct(idx) {
         const urlInput = document.getElementById("pasteUrlInput");
         const url = urlInput.value.trim();
-        if (url && (url.startsWith("http") || url.startsWith("data"))) {
-            products[idx].image = url;
-            saveData();
-            alert("Resim URL ile eklendi!");
-            showProductDetail(idx);
-            playBeep();
-        } else alert("Geçerli bir URL girin (http ile başlamalı)");
+        if (url && isValidImageUrl(url)) {
+            const testImg = new Image();
+            testImg.onload = () => {
+                products[idx].image = url;
+                saveData();
+                alert("Resim URL ile eklendi!");
+                showProductDetail(idx);
+                playBeep();
+            };
+            testImg.onerror = () => {
+                alert("Bu URL'den resim yüklenemedi. Lütfen geçerli bir resim adresi kopyalayın.");
+            };
+            testImg.src = url;
+        } else {
+            alert("Geçersiz URL. Lütfen http:// veya https:// ile başlayan bir resim adresi girin.");
+        }
     }
 
     function openGoogleImageSearch(query) {
@@ -282,7 +287,7 @@
     function showResult(product) {
         lastScannedProduct = product;
         const resultDiv = document.getElementById("resultArea");
-        let imageHtml = product.image ? `<img src="${product.image}" class="product-image">` : '<div style="color:#aaa;">📷 RESİM YOK</div>';
+        let imageHtml = product.image ? `<img src="${product.image}" class="product-image" onerror="this.onerror=null; this.src=''; this.alt='Resim yüklenemedi';">` : '<div style="color:#aaa;">📷 RESİM YOK</div>';
         resultDiv.innerHTML = `${imageHtml}<div class="result-name">${escapeHtml(product.name)}</div><div class="result-price">${product.price.toFixed(2)} €</div><div style="color:#aaa;">STOK: ${product.quantity} | SKT: ${product.expiry || "YOK"}</div><button class="edit-result-btn" onclick="editCurrentProduct()">✏️ FİYAT DÜZENLE</button>`;
     }
 
@@ -339,10 +344,19 @@
     function pasteUrlToNewProduct() {
         const urlInput = document.getElementById("addPasteUrl");
         const url = urlInput.value.trim();
-        if (url && (url.startsWith("http") || url.startsWith("data"))) {
-            tempImageData = url;
-            alert("Resim URL'si kaydedildi. Ürünü kaydedince eklenecek.");
-        } else alert("Geçerli bir URL girin");
+        if (url && isValidImageUrl(url)) {
+            const testImg = new Image();
+            testImg.onload = () => {
+                tempImageData = url;
+                alert("Resim URL'si geçerli. Ürünü kaydedince eklenecek.");
+            };
+            testImg.onerror = () => {
+                alert("Bu URL'den resim yüklenemedi. Lütfen geçerli bir resim adresi kopyalayın.");
+            };
+            testImg.src = url;
+        } else {
+            alert("Geçersiz URL. Lütfen http:// veya https:// ile başlayan bir resim adresi girin.");
+        }
     }
 
     function captureImageForAdd() {
