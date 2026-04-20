@@ -8,35 +8,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif; }
         body { background-color: #1a1a1a; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .app-container { max-width: 450px; width: 100%; background-color: #1a1a1a; border-radius: 48px; padding: 24px 20px; transition: 0.3s; }
-        
-        /* Kamera fullscreen modu için */
-        .camera-fullscreen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            border-radius: 0;
-        }
-        .camera-fullscreen .video-wrapper {
-            width: 100%;
-            max-height: 80vh;
-        }
-        .camera-fullscreen .close-camera-btn {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-        }
+        .app-container { max-width: 450px; width: 100%; background-color: #1a1a1a; border-radius: 48px; padding: 24px 20px; }
         
         .stats-area { display: flex; gap: 12px; margin-bottom: 20px; }
         .stat-card { background: #2a2a2a; border-radius: 28px; padding: 12px; flex: 1; text-align: center; }
@@ -67,8 +39,47 @@
         .search-result-name { font-weight: bold; color: #ffaa88; text-transform: uppercase; }
         .search-result-price { color: #ff6666; font-size: 0.9rem; }
         
-        /* Normal kamera konteyneri (gizli olacak) */
-        .camera-container { display: none; }
+        /* KAMERA MODAL (POPUP) */
+        .camera-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .camera-modal .video-container {
+            width: 90%;
+            max-width: 500px;
+            background: #000;
+            border-radius: 32px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .camera-modal video {
+            width: 100%;
+            display: block;
+        }
+        .camera-modal button {
+            background: #c0392b;
+            border: none;
+            border-radius: 60px;
+            padding: 14px 30px;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+        .camera-modal .status {
+            color: #ffaa88;
+            margin-top: 15px;
+            text-align: center;
+        }
         
         .skt-button { background: #2a2a2a; border-radius: 28px; padding: 16px 20px; margin-top: 20px; text-align: center; cursor: pointer; border: 1px solid #3a3a3a; }
         .skt-title { font-size: 0.8rem; font-weight: 700; color: #ff8888; text-transform: uppercase; margin-bottom: 4px; }
@@ -116,21 +127,21 @@
         <button class="btn" id="settingsBtn">⚙️ AYARLAR</button>
     </div>
 
-    <!-- Kamera fullscreen için ayrı bir alan -->
-    <div id="cameraFullscreen" style="display: none;" class="camera-fullscreen">
-        <div class="video-wrapper" style="width:100%;">
-            <video id="video" autoplay muted playsinline style="width:100%; border-radius:24px;"></video>
-        </div>
-        <button class="close-camera-btn" id="closeCameraFullscreenBtn">✖ KAPAT</button>
-        <div id="cameraStatus" style="color:#aaa; text-align:center; margin-top:8px;"></div>
-    </div>
-
     <div id="addFormContainer" class="hidden"></div>
 
     <div class="skt-button" id="sktButton">
         <div class="skt-title">⚠️ SKT YAKIN ÜRÜNLER</div>
         <div class="skt-message" id="sktMessage">YÜKLENİYOR...</div>
     </div>
+</div>
+
+<!-- KAMERA MODAL (POPUP) -->
+<div id="cameraModal" class="camera-modal">
+    <div class="video-container">
+        <video id="cameraVideo" autoplay muted playsinline></video>
+    </div>
+    <button id="closeCameraModalBtn">✖ KAPAT</button>
+    <div id="cameraModalStatus" class="status">📷 KAMERA BAŞLATILIYOR...</div>
 </div>
 
 <!-- ENVANTER MODAL -->
@@ -167,9 +178,10 @@
     let currentCameraMode = null;
     let lastScannedProduct = null;
     let isEditMode = false;
+    let quaggaActive = false;
 
     function loadData() {
-        const stored = localStorage.getItem("market_pro_final_v19");
+        const stored = localStorage.getItem("market_pro_final_v20");
         if(stored) products = JSON.parse(stored);
         else {
             products = [
@@ -182,7 +194,7 @@
         updateStatsAndDisplay();
     }
     function saveData() { 
-        localStorage.setItem("market_pro_final_v19", JSON.stringify(products));
+        localStorage.setItem("market_pro_final_v20", JSON.stringify(products));
         updateStatsAndDisplay();
     }
 
@@ -504,39 +516,40 @@
         } catch(e) { } 
     }
 
-    // ----- KAMERA (FULLSCREEN) -----
-    async function openCamera(mode) {
+    // ----- KAMERA MODAL (POPUP) -----
+    async function openCameraModal(mode) {
         currentCameraMode = mode;
-        const fullscreenDiv = document.getElementById("cameraFullscreen");
-        const videoElem = document.getElementById("video");
-        const statusDiv = document.getElementById("cameraStatus");
-        const closeBtn = document.getElementById("closeCameraFullscreenBtn");
-        
-        // Ana içeriği gizle
-        document.getElementById("appContainer").style.opacity = "0";
-        document.getElementById("appContainer").style.pointerEvents = "none";
-        fullscreenDiv.style.display = "flex";
+        const modal = document.getElementById("cameraModal");
+        const video = document.getElementById("cameraVideo");
+        const statusDiv = document.getElementById("cameraModalStatus");
+        modal.style.display = "flex";
         statusDiv.innerHTML = "📷 KAMERA BAŞLATILIYOR...";
         
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-            videoElem.srcObject = stream;
+            video.srcObject = stream;
             currentStream = stream;
-            videoElem.play();
+            video.play();
             
+            // Quagga'yı başlat
+            if (quaggaActive) Quagga.stop();
             Quagga.init({
-                inputStream: { name: "LiveStream", type: "LiveStream", target: videoElem },
+                inputStream: { name: "LiveStream", type: "LiveStream", target: video },
                 decoder: { readers: ["ean_reader", "ean_8_reader", "code_128_reader", "upc_reader"] }
             }, function(err) {
-                if (err) { statusDiv.innerHTML = "❌ HATA"; return; }
+                if (err) {
+                    statusDiv.innerHTML = "❌ HATA: " + err;
+                    return;
+                }
                 Quagga.start();
+                quaggaActive = true;
                 statusDiv.innerHTML = "🎥 BARKODU GÖSTERİN...";
             });
             
             Quagga.onDetected(async (data) => {
                 const code = data.codeResult.code;
                 playBeep();
-                closeCameraFullscreen();
+                closeCameraModal();
                 if (mode === 'search') {
                     const found = products.find(p => p.barcode === code);
                     if (found) showResult(found);
@@ -555,26 +568,26 @@
                 }
             });
             
-            closeBtn.onclick = () => closeCameraFullscreen();
         } catch(e) {
             statusDiv.innerHTML = "❌ KAMERA İZNİ GEREKLİ!";
-            setTimeout(() => closeCameraFullscreen(), 2000);
+            setTimeout(() => closeCameraModal(), 2000);
         }
     }
     
-    function closeCameraFullscreen() {
-        if (Quagga) Quagga.stop();
+    function closeCameraModal() {
+        if (quaggaActive) {
+            Quagga.stop();
+            quaggaActive = false;
+        }
         if (currentStream) {
             currentStream.getTracks().forEach(track => track.stop());
             currentStream = null;
         }
-        document.getElementById("cameraFullscreen").style.display = "none";
-        document.getElementById("appContainer").style.opacity = "1";
-        document.getElementById("appContainer").style.pointerEvents = "auto";
-        const video = document.getElementById("video");
+        const video = document.getElementById("cameraVideo");
         if (video.srcObject) video.srcObject = null;
+        document.getElementById("cameraModal").style.display = "none";
     }
-
+    
     async function fetchProductFromAPI(barcode) {
         try {
             const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
@@ -732,11 +745,12 @@
     
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m; }); }
 
-    document.getElementById("searchBtn").onclick = () => openCamera('search');
-    document.getElementById("addBtn").onclick = () => openCamera('add');
+    document.getElementById("searchBtn").onclick = () => openCameraModal('search');
+    document.getElementById("addBtn").onclick = () => openCameraModal('add');
     document.getElementById("inventoryBtn").onclick = () => openInventoryModal();
     document.getElementById("settingsBtn").onclick = () => openSettingsModal();
     document.getElementById("sktButton").onclick = () => openSktModal();
+    document.getElementById("closeCameraModalBtn").onclick = () => closeCameraModal();
 
     loadData();
 </script>
