@@ -39,7 +39,6 @@
         .search-result-name { font-weight: bold; color: #ffaa88; text-transform: uppercase; }
         .search-result-price { color: #ff6666; font-size: 0.9rem; }
         
-        /* Kamera Modal (popup) */
         .camera-modal {
             display: none;
             position: fixed;
@@ -79,37 +78,6 @@
             color: #ffaa88;
             margin-top: 15px;
             text-align: center;
-        }
-        
-        /* Google Arama Modal (iframe) */
-        .google-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 2100;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        .google-modal iframe {
-            width: 95%;
-            height: 80%;
-            border-radius: 32px;
-            background: white;
-        }
-        .google-modal button {
-            background: #c0392b;
-            border: none;
-            border-radius: 60px;
-            padding: 12px 24px;
-            margin-top: 15px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
         }
         
         .skt-button { background: #2a2a2a; border-radius: 28px; padding: 16px 20px; margin-top: 20px; text-align: center; cursor: pointer; border: 1px solid #3a3a3a; }
@@ -175,12 +143,6 @@
     <div id="cameraModalStatus" class="status">📷 KAMERA BAŞLATILIYOR...</div>
 </div>
 
-<!-- GOOGLE ARAMA MODAL (iframe ile) -->
-<div id="googleModal" class="google-modal">
-    <iframe id="googleIframe" src="about:blank"></iframe>
-    <button id="closeGoogleModalBtn">✖ KAPAT</button>
-</div>
-
 <!-- ENVANTER MODAL -->
 <div id="inventoryModal" class="modal">
     <div class="modal-content">
@@ -217,15 +179,12 @@
     let isEditMode = false;
     let quaggaActive = false;
 
-    // Geri tuşu yönetimi (APK için)
+    // Geri tuşu yönetimi
     window.addEventListener('load', function() {
         window.history.pushState({ page: "main" }, "", "");
         window.addEventListener('popstate', function(event) {
             if (document.getElementById("cameraModal").style.display === "flex") {
                 closeCameraModal();
-                event.preventDefault();
-            } else if (document.getElementById("googleModal").style.display === "flex") {
-                closeGoogleModal();
                 event.preventDefault();
             } else if (document.getElementById("inventoryModal").style.display === "flex") {
                 closeInventoryModal();
@@ -246,7 +205,7 @@
     });
 
     function loadData() {
-        const stored = localStorage.getItem("market_pro_final_v23");
+        const stored = localStorage.getItem("market_pro_final_v24");
         if(stored) products = JSON.parse(stored);
         else {
             products = [
@@ -259,7 +218,7 @@
         updateStatsAndDisplay();
     }
     function saveData() { 
-        localStorage.setItem("market_pro_final_v23", JSON.stringify(products));
+        localStorage.setItem("market_pro_final_v24", JSON.stringify(products));
         updateStatsAndDisplay();
     }
 
@@ -380,7 +339,7 @@
                     <button onclick="deleteProductFromModal(${idx})">🗑️ SİL</button>
                     <button onclick="addImageToProduct(${idx}, true, 'gallery')">🖼️ GALERİDEN SEÇ</button>
                     <button onclick="addImageToProduct(${idx}, true, 'camera')">📷 KAMERA İLE FOTOĞRAF ÇEK</button>
-                    <button onclick="openGoogleImageSearchModal('${encodeURIComponent(p.name)}')">🔍 GOOGLE'DA ARA</button>
+                    <button onclick="openGoogleSearch('${encodeURIComponent(p.name)}')">🔍 GOOGLE'DA ARA</button>
                 </div>
             </div>
         `;
@@ -400,7 +359,7 @@
                 <div class="image-buttons">
                     <button onclick="addImageToProduct(${idx}, false, 'gallery')">🖼️ GALERİDEN SEÇ</button>
                     <button onclick="addImageToProduct(${idx}, false, 'camera')">📷 KAMERA İLE FOTOĞRAF ÇEK</button>
-                    <button onclick="openGoogleImageSearchModal('${encodeURIComponent(p.name)}')">🔍 GOOGLE'DA ARA</button>
+                    <button onclick="openGoogleSearch('${encodeURIComponent(p.name)}')">🔍 GOOGLE'DA ARA</button>
                 </div>
                 <button onclick="saveEditedProductFromDetail(${idx})">💾 KAYDET</button>
                 <button onclick="showProductDetail(${idx})">İPTAL</button>
@@ -478,7 +437,7 @@
                 <div class="image-buttons">
                     <button onclick="addImageToCurrentProduct('gallery')">🖼️ GALERİDEN SEÇ</button>
                     <button onclick="addImageToCurrentProduct('camera')">📷 KAMERA İLE FOTOĞRAF ÇEK</button>
-                    <button onclick="openGoogleImageSearchModal('${encodeURIComponent(p.name)}')">🔍 GOOGLE'DA ARA</button>
+                    <button onclick="openGoogleSearch('${encodeURIComponent(p.name)}')">🔍 GOOGLE'DA ARA</button>
                 </div>
                 <button onclick="saveInlineEdit()">💾 KAYDET</button>
                 <button onclick="showResult(lastScannedProduct)">İPTAL</button>
@@ -561,16 +520,11 @@
         if (!searchInput.contains(e.target) && !searchResultsDiv.contains(e.target)) searchResultsDiv.style.display = "none";
     });
 
-    // ----- GOOGLE ARAMA MODAL (iframe ile, APK dostu) -----
-    function openGoogleImageSearchModal(query) {
-        const modal = document.getElementById("googleModal");
-        const iframe = document.getElementById("googleIframe");
-        iframe.src = `https://www.google.com/search?q=${query}&tbm=isch`;
-        modal.style.display = "flex";
-    }
-    function closeGoogleModal() {
-        document.getElementById("googleModal").style.display = "none";
-        document.getElementById("googleIframe").src = "about:blank";
+    // ----- GOOGLE ARAMA (window.open ile ayrı sekmede) -----
+    function openGoogleSearch(query) {
+        const url = `https://www.google.com/search?q=${query}&tbm=isch`;
+        window.open(url, '_blank');
+        alert("Google Görsel araması yeni sekmede açıldı. Resmi indirip, ardından 'RESİM EKLE' butonu ile yükleyin.");
     }
 
     function playBeep() { 
@@ -668,7 +622,7 @@
                 <input type="number" id="addQuantity" placeholder="ADET" value="1">
                 <input type="date" id="addExpiry" placeholder="SKT (YYYY-AA-GG)">
                 <div class="image-buttons">
-                    <button onclick="openGoogleImageSearchModal(document.getElementById('addName').value)">🔍 GOOGLE'DA ARA</button>
+                    <button onclick="openGoogleSearch(document.getElementById('addName').value)">🔍 GOOGLE'DA ARA</button>
                     <button onclick="captureImageForAdd('gallery')">🖼️ GALERİDEN SEÇ</button>
                     <button onclick="captureImageForAdd('camera')">📷 KAMERA İLE FOTOĞRAF ÇEK</button>
                 </div>
@@ -769,7 +723,6 @@
     document.getElementById("settingsBtn").onclick = () => openSettingsModal();
     document.getElementById("sktButton").onclick = () => openSktModal();
     document.getElementById("closeCameraModalBtn").onclick = () => closeCameraModal();
-    document.getElementById("closeGoogleModalBtn").onclick = () => closeGoogleModal();
 
     loadData();
 </script>
