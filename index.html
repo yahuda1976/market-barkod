@@ -39,7 +39,7 @@
         .search-result-name { font-weight: bold; color: #ffaa88; text-transform: uppercase; }
         .search-result-price { color: #ff6666; font-size: 0.9rem; }
         
-        /* KAMERA MODAL (POPUP) */
+        /* Kamera Modal (popup) */
         .camera-modal {
             display: none;
             position: fixed;
@@ -79,6 +79,37 @@
             color: #ffaa88;
             margin-top: 15px;
             text-align: center;
+        }
+        
+        /* Google Arama Modal (iframe) */
+        .google-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 2100;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .google-modal iframe {
+            width: 95%;
+            height: 80%;
+            border-radius: 32px;
+            background: white;
+        }
+        .google-modal button {
+            background: #c0392b;
+            border: none;
+            border-radius: 60px;
+            padding: 12px 24px;
+            margin-top: 15px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
         }
         
         .skt-button { background: #2a2a2a; border-radius: 28px; padding: 16px 20px; margin-top: 20px; text-align: center; cursor: pointer; border: 1px solid #3a3a3a; }
@@ -135,13 +166,19 @@
     </div>
 </div>
 
-<!-- KAMERA MODAL (POPUP) -->
+<!-- KAMERA MODAL -->
 <div id="cameraModal" class="camera-modal">
     <div class="video-container">
         <video id="cameraVideo" autoplay muted playsinline></video>
     </div>
     <button id="closeCameraModalBtn">✖ KAPAT</button>
     <div id="cameraModalStatus" class="status">📷 KAMERA BAŞLATILIYOR...</div>
+</div>
+
+<!-- GOOGLE ARAMA MODAL (iframe ile) -->
+<div id="googleModal" class="google-modal">
+    <iframe id="googleIframe" src="about:blank"></iframe>
+    <button id="closeGoogleModalBtn">✖ KAPAT</button>
 </div>
 
 <!-- ENVANTER MODAL -->
@@ -180,8 +217,36 @@
     let isEditMode = false;
     let quaggaActive = false;
 
+    // Geri tuşu yönetimi (APK için)
+    window.addEventListener('load', function() {
+        window.history.pushState({ page: "main" }, "", "");
+        window.addEventListener('popstate', function(event) {
+            if (document.getElementById("cameraModal").style.display === "flex") {
+                closeCameraModal();
+                event.preventDefault();
+            } else if (document.getElementById("googleModal").style.display === "flex") {
+                closeGoogleModal();
+                event.preventDefault();
+            } else if (document.getElementById("inventoryModal").style.display === "flex") {
+                closeInventoryModal();
+                event.preventDefault();
+            } else if (document.getElementById("sktModal").style.display === "flex") {
+                closeSktModal();
+                event.preventDefault();
+            } else if (document.getElementById("settingsModal").style.display === "flex") {
+                closeSettingsModal();
+                event.preventDefault();
+            } else if (document.getElementById("addFormContainer").style.display !== "none" && document.getElementById("addFormContainer").innerHTML !== "") {
+                closeAddForm();
+                event.preventDefault();
+            } else {
+                window.history.pushState({ page: "main" }, "", "");
+            }
+        });
+    });
+
     function loadData() {
-        const stored = localStorage.getItem("market_pro_final_v21");
+        const stored = localStorage.getItem("market_pro_final_v23");
         if(stored) products = JSON.parse(stored);
         else {
             products = [
@@ -194,7 +259,7 @@
         updateStatsAndDisplay();
     }
     function saveData() { 
-        localStorage.setItem("market_pro_final_v21", JSON.stringify(products));
+        localStorage.setItem("market_pro_final_v23", JSON.stringify(products));
         updateStatsAndDisplay();
     }
 
@@ -315,6 +380,7 @@
                     <button onclick="deleteProductFromModal(${idx})">🗑️ SİL</button>
                     <button onclick="addImageToProduct(${idx}, true, 'gallery')">🖼️ GALERİDEN SEÇ</button>
                     <button onclick="addImageToProduct(${idx}, true, 'camera')">📷 KAMERA İLE FOTOĞRAF ÇEK</button>
+                    <button onclick="openGoogleImageSearchModal('${encodeURIComponent(p.name)}')">🔍 GOOGLE'DA ARA</button>
                 </div>
             </div>
         `;
@@ -332,9 +398,9 @@
                 <input type="number" id="editQuantity" value="${p.quantity}" placeholder="ADET">
                 <input type="date" id="editExpiry" value="${p.expiry || ''}" placeholder="SKT">
                 <div class="image-buttons">
-                    <button onclick="openGoogleImageSearch('${encodeURIComponent(p.name)}')">🔍 GOOGLE'DA ARA</button>
                     <button onclick="addImageToProduct(${idx}, false, 'gallery')">🖼️ GALERİDEN SEÇ</button>
                     <button onclick="addImageToProduct(${idx}, false, 'camera')">📷 KAMERA İLE FOTOĞRAF ÇEK</button>
+                    <button onclick="openGoogleImageSearchModal('${encodeURIComponent(p.name)}')">🔍 GOOGLE'DA ARA</button>
                 </div>
                 <button onclick="saveEditedProductFromDetail(${idx})">💾 KAYDET</button>
                 <button onclick="showProductDetail(${idx})">İPTAL</button>
@@ -410,9 +476,9 @@
                 <input type="number" id="inlineQuantity" value="${p.quantity}" placeholder="ADET">
                 <input type="date" id="inlineExpiry" value="${p.expiry || ''}" placeholder="SKT">
                 <div class="image-buttons">
-                    <button onclick="openGoogleImageSearch('${encodeURIComponent(p.name)}')">🔍 GOOGLE'DA ARA</button>
                     <button onclick="addImageToCurrentProduct('gallery')">🖼️ GALERİDEN SEÇ</button>
                     <button onclick="addImageToCurrentProduct('camera')">📷 KAMERA İLE FOTOĞRAF ÇEK</button>
+                    <button onclick="openGoogleImageSearchModal('${encodeURIComponent(p.name)}')">🔍 GOOGLE'DA ARA</button>
                 </div>
                 <button onclick="saveInlineEdit()">💾 KAYDET</button>
                 <button onclick="showResult(lastScannedProduct)">İPTAL</button>
@@ -495,9 +561,16 @@
         if (!searchInput.contains(e.target) && !searchResultsDiv.contains(e.target)) searchResultsDiv.style.display = "none";
     });
 
-    function openGoogleImageSearch(query) {
-        window.open(`https://www.google.com/search?q=${query}&tbm=isch`, '_blank');
-        alert("Google Görsel araması açıldı. Beğendiğiniz resmi indirip, ardından 'RESİM EKLE' butonu ile yükleyin.");
+    // ----- GOOGLE ARAMA MODAL (iframe ile, APK dostu) -----
+    function openGoogleImageSearchModal(query) {
+        const modal = document.getElementById("googleModal");
+        const iframe = document.getElementById("googleIframe");
+        iframe.src = `https://www.google.com/search?q=${query}&tbm=isch`;
+        modal.style.display = "flex";
+    }
+    function closeGoogleModal() {
+        document.getElementById("googleModal").style.display = "none";
+        document.getElementById("googleIframe").src = "about:blank";
     }
 
     function playBeep() { 
@@ -516,7 +589,7 @@
         } catch(e) { } 
     }
 
-    // ----- KAMERA MODAL (API'siz, sadece envanter sorgulama) -----
+    // ----- KAMERA MODAL -----
     async function openCameraModal(mode) {
         currentCameraMode = mode;
         const modal = document.getElementById("cameraModal");
@@ -557,7 +630,6 @@
                         document.getElementById("resultArea").innerHTML = `<div style="color:#ff6666; text-align:center; padding:20px;">❌ "${code}" BULUNAMADI<br><button onclick="showAddFormForBarcode('${code}')" style="background:#c0392b; border:none; border-radius:40px; padding:8px 16px; margin-top:10px; color:white;">➕ ÜRÜN EKLE</button></div>`;
                     }
                 } else if (mode === 'add') {
-                    // Ürün ekleme modunda: barkodu al, ekleme formunu aç
                     showAddFormForBarcode(code);
                 }
             });
@@ -596,7 +668,7 @@
                 <input type="number" id="addQuantity" placeholder="ADET" value="1">
                 <input type="date" id="addExpiry" placeholder="SKT (YYYY-AA-GG)">
                 <div class="image-buttons">
-                    <button onclick="openGoogleImageSearch(document.getElementById('addName').value)">🔍 GOOGLE'DA ARA</button>
+                    <button onclick="openGoogleImageSearchModal(document.getElementById('addName').value)">🔍 GOOGLE'DA ARA</button>
                     <button onclick="captureImageForAdd('gallery')">🖼️ GALERİDEN SEÇ</button>
                     <button onclick="captureImageForAdd('camera')">📷 KAMERA İLE FOTOĞRAF ÇEK</button>
                 </div>
@@ -697,6 +769,7 @@
     document.getElementById("settingsBtn").onclick = () => openSettingsModal();
     document.getElementById("sktButton").onclick = () => openSktModal();
     document.getElementById("closeCameraModalBtn").onclick = () => closeCameraModal();
+    document.getElementById("closeGoogleModalBtn").onclick = () => closeGoogleModal();
 
     loadData();
 </script>
