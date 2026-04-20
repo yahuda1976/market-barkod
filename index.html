@@ -8,7 +8,35 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif; }
         body { background-color: #1a1a1a; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .app-container { max-width: 450px; width: 100%; background-color: #1a1a1a; border-radius: 48px; padding: 24px 20px; }
+        .app-container { max-width: 450px; width: 100%; background-color: #1a1a1a; border-radius: 48px; padding: 24px 20px; transition: 0.3s; }
+        
+        /* Kamera fullscreen modu için */
+        .camera-fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            border-radius: 0;
+        }
+        .camera-fullscreen .video-wrapper {
+            width: 100%;
+            max-height: 80vh;
+        }
+        .camera-fullscreen .close-camera-btn {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+        }
         
         .stats-area { display: flex; gap: 12px; margin-bottom: 20px; }
         .stat-card { background: #2a2a2a; border-radius: 28px; padding: 12px; flex: 1; text-align: center; }
@@ -39,10 +67,8 @@
         .search-result-name { font-weight: bold; color: #ffaa88; text-transform: uppercase; }
         .search-result-price { color: #ff6666; font-size: 0.9rem; }
         
-        .camera-container { display: none; margin: 15px 0; background: #2a2a2a; border-radius: 32px; padding: 12px; }
-        .video-wrapper { background: #000; border-radius: 24px; overflow: hidden; }
-        video { width: 100%; display: block; }
-        .close-camera-btn { background: #444; color: white; border: none; border-radius: 40px; padding: 12px; margin-top: 10px; width: 100%; font-weight: bold; cursor: pointer; }
+        /* Normal kamera konteyneri (gizli olacak) */
+        .camera-container { display: none; }
         
         .skt-button { background: #2a2a2a; border-radius: 28px; padding: 16px 20px; margin-top: 20px; text-align: center; cursor: pointer; border: 1px solid #3a3a3a; }
         .skt-title { font-size: 0.8rem; font-weight: 700; color: #ff8888; text-transform: uppercase; margin-bottom: 4px; }
@@ -68,7 +94,7 @@
     </style>
 </head>
 <body>
-<div class="app-container">
+<div class="app-container" id="appContainer">
     <div class="stats-area">
         <div class="stat-card"><div class="stat-label">📦 TOPLAM ENVANTER</div><div class="stat-value" id="totalInventory">0 €</div></div>
         <div class="stat-card"><div class="stat-label">💰 POTANSİYEL KÂR</div><div class="stat-value" id="totalProfit">0 €</div></div>
@@ -90,9 +116,12 @@
         <button class="btn" id="settingsBtn">⚙️ AYARLAR</button>
     </div>
 
-    <div id="cameraContainer" class="camera-container">
-        <div class="video-wrapper"><video id="video" autoplay muted playsinline></video></div>
-        <button class="close-camera-btn" onclick="closeCamera()">✖ KAPAT</button>
+    <!-- Kamera fullscreen için ayrı bir alan -->
+    <div id="cameraFullscreen" style="display: none;" class="camera-fullscreen">
+        <div class="video-wrapper" style="width:100%;">
+            <video id="video" autoplay muted playsinline style="width:100%; border-radius:24px;"></video>
+        </div>
+        <button class="close-camera-btn" id="closeCameraFullscreenBtn">✖ KAPAT</button>
         <div id="cameraStatus" style="color:#aaa; text-align:center; margin-top:8px;"></div>
     </div>
 
@@ -140,7 +169,7 @@
     let isEditMode = false;
 
     function loadData() {
-        const stored = localStorage.getItem("market_pro_final_v18");
+        const stored = localStorage.getItem("market_pro_final_v19");
         if(stored) products = JSON.parse(stored);
         else {
             products = [
@@ -153,7 +182,7 @@
         updateStatsAndDisplay();
     }
     function saveData() { 
-        localStorage.setItem("market_pro_final_v18", JSON.stringify(products));
+        localStorage.setItem("market_pro_final_v19", JSON.stringify(products));
         updateStatsAndDisplay();
     }
 
@@ -203,19 +232,16 @@
         }
     }
 
-    // Akıllı fiyat dönüşümü (blur olayında)
     function setupSmartPriceInput(inputElement) {
         if (!inputElement) return;
         inputElement.addEventListener("blur", function() {
             let val = this.value.trim();
             if (val === "") return;
-            // Eğer nokta veya virgül yoksa ve sayı ise
             if (!val.includes('.') && !val.includes(',') && !isNaN(parseFloat(val))) {
                 let num = parseFloat(val);
                 let converted = num / 100;
                 this.value = converted.toFixed(2);
             } else {
-                // zaten ondalıklıysa olduğu gibi bırak, ama virgülü noktaya çevir
                 let normalized = val.replace(',', '.');
                 if (!isNaN(parseFloat(normalized))) {
                     this.value = parseFloat(normalized).toFixed(2);
@@ -319,14 +345,11 @@
         saveData(); updateSktButton(); showProductDetail(idx); playBeep();
     }
 
-    // Resim ekleme: source 'camera' veya 'gallery'
     function addImageToProduct(idx, refreshAfter, source) {
         const input = document.createElement("input");
         input.type = "file";
         input.accept = "image/*";
-        if (source === 'camera') {
-            input.capture = "environment";
-        }
+        if (source === 'camera') input.capture = "environment";
         input.onchange = (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -393,9 +416,7 @@
         const input = document.createElement("input");
         input.type = "file";
         input.accept = "image/*";
-        if (source === 'camera') {
-            input.capture = "environment";
-        }
+        if (source === 'camera') input.capture = "environment";
         input.onchange = (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -483,49 +504,75 @@
         } catch(e) { } 
     }
 
-    // ----- KAMERA (Barkod okuma) -----
+    // ----- KAMERA (FULLSCREEN) -----
     async function openCamera(mode) {
         currentCameraMode = mode;
+        const fullscreenDiv = document.getElementById("cameraFullscreen");
         const videoElem = document.getElementById("video");
-        const container = document.getElementById("cameraContainer");
         const statusDiv = document.getElementById("cameraStatus");
-        container.style.display = "block";
-        statusDiv.innerHTML = "📷 KAMERA BAŞLATILIYOR...";
+        const closeBtn = document.getElementById("closeCameraFullscreenBtn");
         
-        // Sayfayı en üste kaydır (kamerayı en üste getir)
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Ana içeriği gizle
+        document.getElementById("appContainer").style.opacity = "0";
+        document.getElementById("appContainer").style.pointerEvents = "none";
+        fullscreenDiv.style.display = "flex";
+        statusDiv.innerHTML = "📷 KAMERA BAŞLATILIYOR...";
         
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-            videoElem.srcObject = stream; currentStream = stream; videoElem.play();
-            Quagga.init({ inputStream: { name: "LiveStream", type: "LiveStream", target: videoElem }, decoder: { readers: ["ean_reader", "ean_8_reader", "code_128_reader", "upc_reader"] } }, function(err) { if(err) { statusDiv.innerHTML = "❌ HATA"; return; } Quagga.start(); statusDiv.innerHTML = "🎥 BARKODU GÖSTERİN..."; });
+            videoElem.srcObject = stream;
+            currentStream = stream;
+            videoElem.play();
+            
+            Quagga.init({
+                inputStream: { name: "LiveStream", type: "LiveStream", target: videoElem },
+                decoder: { readers: ["ean_reader", "ean_8_reader", "code_128_reader", "upc_reader"] }
+            }, function(err) {
+                if (err) { statusDiv.innerHTML = "❌ HATA"; return; }
+                Quagga.start();
+                statusDiv.innerHTML = "🎥 BARKODU GÖSTERİN...";
+            });
+            
             Quagga.onDetected(async (data) => {
                 const code = data.codeResult.code;
-                playBeep(); closeCamera();
-                if(mode === 'search') {
+                playBeep();
+                closeCameraFullscreen();
+                if (mode === 'search') {
                     const found = products.find(p => p.barcode === code);
-                    if(found) showResult(found);
+                    if (found) showResult(found);
                     else {
-                        // API'den ürün bilgisi almayı dene
-                        statusDiv.innerHTML = "🔍 API'den ürün aranıyor...";
                         const apiResult = await fetchProductFromAPI(code);
                         if (apiResult.success) {
-                            const resultDiv = document.getElementById("resultArea");
-                            resultDiv.innerHTML = `<div style="color:#ffaa88; text-align:center; padding:20px;">✨ API'den bulundu: ${apiResult.name}<br><button onclick="showAddFormWithAPIData('${code}', '${escapeHtml(apiResult.name)}', '${apiResult.image || ''}')" style="background:#c0392b; border:none; border-radius:40px; padding:8px 16px; margin-top:10px; color:white;">➕ ÜRÜN OLARAK EKLE</button></div>`;
+                            document.getElementById("resultArea").innerHTML = `<div style="color:#ffaa88; text-align:center; padding:20px;">✨ API'den bulundu: ${apiResult.name}<br><button onclick="showAddFormWithAPIData('${code}', '${escapeHtml(apiResult.name)}', '${apiResult.image || ''}')" style="background:#c0392b; border:none; border-radius:40px; padding:8px 16px; margin-top:10px; color:white;">➕ ÜRÜN OLARAK EKLE</button></div>`;
                         } else {
                             document.getElementById("resultArea").innerHTML = `<div style="color:#ff6666; text-align:center; padding:20px;">❌ "${code}" BULUNAMADI<br><button onclick="showAddFormForBarcode('${code}')" style="background:#c0392b; border:none; border-radius:40px; padding:8px 16px; margin-top:10px; color:white;">➕ ÜRÜN EKLE</button></div>`;
                         }
                     }
-                } else if(mode === 'add') {
+                } else if (mode === 'add') {
                     const apiResult = await fetchProductFromAPI(code);
-                    if (apiResult.success) {
-                        showAddFormWithAPIData(code, apiResult.name, apiResult.image);
-                    } else {
-                        showAddFormForBarcode(code);
-                    }
+                    if (apiResult.success) showAddFormWithAPIData(code, apiResult.name, apiResult.image);
+                    else showAddFormForBarcode(code);
                 }
             });
-        } catch(e) { statusDiv.innerHTML = "❌ KAMERA İZNİ GEREKLİ!"; }
+            
+            closeBtn.onclick = () => closeCameraFullscreen();
+        } catch(e) {
+            statusDiv.innerHTML = "❌ KAMERA İZNİ GEREKLİ!";
+            setTimeout(() => closeCameraFullscreen(), 2000);
+        }
+    }
+    
+    function closeCameraFullscreen() {
+        if (Quagga) Quagga.stop();
+        if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+            currentStream = null;
+        }
+        document.getElementById("cameraFullscreen").style.display = "none";
+        document.getElementById("appContainer").style.opacity = "1";
+        document.getElementById("appContainer").style.pointerEvents = "auto";
+        const video = document.getElementById("video");
+        if (video.srcObject) video.srcObject = null;
     }
 
     async function fetchProductFromAPI(barcode) {
@@ -539,15 +586,11 @@
                 name = name.trim().toUpperCase();
                 let image = product.image_url || null;
                 return { success: true, name: name, image: image };
-            } else {
-                return { success: false };
-            }
-        } catch (error) {
-            console.error("API hatası:", error);
-            return { success: false };
-        }
+            } else return { success: false };
+        } catch (error) { return { success: false }; }
     }
 
+    let tempImageData = null;
     function showAddFormWithAPIData(barcode, productName, imageUrl) {
         const container = document.getElementById("addFormContainer");
         container.classList.remove("hidden");
@@ -581,7 +624,6 @@
         document.getElementById("resultArea").innerHTML = `<div class="result-placeholder">🎯 BARKOD OKUTUNCA VEYA<br>MANUEL ARAMA YAPINCA<br>FİYAT GÖRÜNÜR</div>`;
     }
 
-    let tempImageData = null;
     function showAddFormForBarcode(barcode) {
         const container = document.getElementById("addFormContainer");
         container.classList.remove("hidden");
@@ -612,13 +654,14 @@
         const input = document.createElement("input");
         input.type = "file";
         input.accept = "image/*";
-        if (source === 'camera') {
-            input.capture = "environment";
-        }
+        if (source === 'camera') input.capture = "environment";
         input.onchange = (e) => {
             const file = e.target.files[0];
-            if (file) { const reader = new FileReader(); reader.onload = (ev) => { tempImageData = ev.target.result; alert("Resim yüklendi. Ürünü kaydettiğinizde eklenecektir."); }; reader.readAsDataURL(file); }
-            else alert("Dosya seçilmedi!");
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => { tempImageData = ev.target.result; alert("Resim yüklendi. Ürünü kaydettiğinizde eklenecektir."); };
+                reader.readAsDataURL(file);
+            } else alert("Dosya seçilmedi!");
         };
         input.click();
     }
@@ -647,7 +690,6 @@
     }
 
     function closeAddForm() { document.getElementById("addFormContainer").classList.add("hidden"); document.getElementById("addFormContainer").innerHTML = ""; tempImageData = null; }
-    function closeCamera() { if(Quagga) Quagga.stop(); if(currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; } document.getElementById("cameraContainer").style.display = "none"; const video = document.getElementById("video"); if(video.srcObject) video.srcObject = null; }
     function openSettingsModal() { document.getElementById("settingsModal").style.display = "flex"; }
     function closeSettingsModal() { document.getElementById("settingsModal").style.display = "none"; }
     
