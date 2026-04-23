@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>MARKET PRO 3.2 - ETİKET ÖNİZLEMELİ</title>
+    <title>MARKET PRO 3.4 - STOK DÜŞME & SATIŞ</title>
     <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
@@ -57,14 +57,14 @@
         table { width: 100%; border-collapse: collapse; color: #eee; font-size: 0.75rem; }
         th, td { padding: 6px; border-bottom: 1px solid #444; text-align: left; vertical-align: top; }
         th { background: #c0392b; color: white; }
-        /* Etiket önizleme stilleri */
-        .preview-label-card { width: 100%; max-width: 6.2cm; border: 1px solid #ddd; padding: 8px; display: inline-flex; margin: 5px; background: white; color: black; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .preview-container { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 10px; max-height: 60vh; overflow-y: auto; padding: 5px; }
+        .barcode-svg { display: block; margin: 0 auto; width: 90%; height: 28px; }
+        .footer-area { text-align: center; margin-top: auto; width: 100%; }
         @media print {
             body * { visibility: hidden; }
             .print-modal, .print-modal * { visibility: visible; }
             .print-modal { position: absolute; top: 0; left: 0; width: 100%; }
         }
+        .sale-btn { background: #e67e22; }
     </style>
 </head>
 <body>
@@ -103,132 +103,55 @@
     let currentEditingProductId = null;
     let printQueue = [];
 
-    // ---- ETİKET LİSTESİNE EKLEME ----
-    function addToPrintQueue(product) {
+    // ---------- STOK DÜŞME (SATIŞ) FONKSİYONU ----------
+    async function sellProduct(product, index) {
         if (!product) return;
-        printQueue.push(product);
-        alert(`${product.name} yazdırma listesine eklendi! (Toplam: ${printQueue.length})`);
-    }
-
-    // ---- ÖNİZLEME MODALI ----
-    function previewLabels() {
-        if (printQueue.length === 0) {
-            alert("Önce envanterden yazdırılacak ürünleri seçmelisiniz!");
-            return;
+        let newQuantity = product.quantity - 1;
+        if (newQuantity < 0) newQuantity = 0;
+        if (newQuantity === 0) {
+            if (confirm(`${product.name} stoğu sıfırlandı. Ürün envanterden silinsin mi?`)) {
+                products.splice(index, 1);
+                await saveProducts();
+                await updateUI();
+                // Açık modal varsa kapat
+                const detailModal = document.getElementById("productDetailModal");
+                if (detailModal.style.display === "flex") closeProductDetailModal();
+                if (document.getElementById("inventoryModal").style.display === "flex") openInventoryModal();
+                alert("Ürün stok sıfır olduğu için silindi.");
+                playBeep();
+                return;
+            } else {
+                // Kullanıcı silmek istemezse stok 0'da kalsın ama ürün dursun
+                product.quantity = 0;
+                await saveProducts();
+                await updateUI();
+                // Detay modalını yenile
+                if (currentEditingProductId !== null && products[currentEditingProductId] && products[currentEditingProductId].id === product.id) {
+                    openProductDetailModal(currentEditingProductId);
+                } else if (lastScannedProduct && lastScannedProduct.id === product.id) {
+                    showResult(product);
+                }
+                playBeep();
+                return;
+            }
+        } else {
+            product.quantity = newQuantity;
+            await saveProducts();
+            await updateUI();
+            if (currentEditingProductId !== null && products[currentEditingProductId] && products[currentEditingProductId].id === product.id) {
+                openProductDetailModal(currentEditingProductId);
+            } else if (lastScannedProduct && lastScannedProduct.id === product.id) {
+                showResult(product);
+            }
+            playBeep();
+            alert(`1 adet ${product.name} satıldı. Kalan stok: ${product.quantity}`);
         }
-        const container = document.getElementById("previewContainer");
-        container.innerHTML = "";
-        printQueue.forEach((p, idx) => {
-            const labelDiv = document.createElement("div");
-            labelDiv.className = "preview-label-card";
-            labelDiv.style.width = "6.2cm";
-            labelDiv.style.height = "4.8cm";
-            labelDiv.style.border = "1px solid #ccc";
-            labelDiv.style.padding = "6px";
-            labelDiv.style.display = "flex";
-            labelDiv.style.gap = "8px";
-            labelDiv.style.alignItems = "center";
-            labelDiv.style.backgroundColor = "white";
-            labelDiv.style.color = "black";
-            labelDiv.innerHTML = `
-                <div style="width:35%;">
-                    ${p.image ? `<img src="${p.image}" style="width:100%; max-height:3.2cm; object-fit:contain;" onerror="this.src='';">` : '<div style="font-size:8pt; color:gray;">📷 RESİM YOK</div>'}
-                </div>
-                <div style="width:65%; display:flex; flex-direction:column; justify-content:space-between; height:100%;">
-                    <div style="font-weight:900; font-size:10pt; text-transform:uppercase;">${escapeHtml(p.name)}</div>
-                    <div style="font-size:7pt; color:#555;">${p.category || 'GENEL'}</div>
-                    <div style="font-size:24pt; font-weight:950; text-align:right;">${p.price.toFixed(2)} €</div>
-                    <div style="text-align:center; margin-top:2px;">
-                        <svg id="preview-barcode-${idx}" style="width:100%; height:28px;"></svg>
-                    </div>
-                </div>
-            `;
-            container.appendChild(labelDiv);
-            JsBarcode(`#preview-barcode-${idx}`, p.barcode, {
-                format: "CODE128",
-                width: 1.5,
-                height: 28,
-                displayValue: true,
-                fontSize: 10,
-                margin: 2
-            });
-        });
-        document.getElementById("previewModal").style.display = "flex";
     }
 
-    function closePreviewModal() {
-        document.getElementById("previewModal").style.display = "none";
-        document.getElementById("previewContainer").innerHTML = "";
-    }
-
-    // ---- YAZDIRMA (ÖNİZLEMEDEN SONRA) ----
-    function printPreviews() {
-        if (printQueue.length === 0) return;
-        const printWindow = window.open('', '_blank');
-        let labelsHtml = "";
-        printQueue.forEach((p, index) => {
-            labelsHtml += `
-                <div class="label-card">
-                    <div class="left-side">
-                        ${p.image ? `<img src="${p.image}" class="label-img" onerror="this.src='';">` : '<div class="no-img">📷 RESİM YOK</div>'}
-                    </div>
-                    <div class="right-side">
-                        <div class="label-title">${escapeHtml(p.name)}</div>
-                        <div class="label-category">${p.category || 'GENEL'}</div>
-                        <div class="label-price">${p.price.toFixed(2)} €</div>
-                        <div class="footer-area">
-                            <svg class="barcode-svg" id="barcode-${index}"></svg>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        printWindow.document.write(`
-            <html>
-            <head>
-                <title>Etiket Baskı</title>
-                <style>
-                    @page { size: A4; margin: 1cm; }
-                    body { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0; margin: 0; background: #fff; }
-                    .label-card { width: 6.2cm; height: 4.8cm; border: 1.5px solid #000; padding: 8px; display: flex; gap: 8px; align-items: center; box-sizing: border-box; page-break-inside: avoid; background: white; color: black; }
-                    .left-side { width: 35%; }
-                    .label-img { width: 100%; height: auto; max-height: 3.2cm; object-fit: contain; background: #f0f0f0; }
-                    .right-side { width: 65%; display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
-                    .label-title { font-size: 10pt; font-weight: 900; text-transform: uppercase; line-height: 1.1; }
-                    .label-category { font-size: 7pt; color: #555; font-weight: bold; }
-                    .label-price { font-size: 24pt; font-weight: 950; margin: 2px 0; font-family: sans-serif; text-align: right; }
-                    .footer-area { text-align: center; margin-top: auto; }
-                    .barcode-svg { width: 100%; height: 28px; }
-                    .no-img { font-size: 8pt; color: #999; text-align: center; }
-                </style>
-            </head>
-            <body>
-                ${labelsHtml}
-                <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
-                <script>
-                    ${printQueue.map((p, i) => `
-                        JsBarcode("#barcode-${i}", "${p.barcode}", {
-                            format: "CODE128",
-                            width: 1.5,
-                            height: 28,
-                            displayValue: true,
-                            fontSize: 10,
-                            margin: 2
-                        });
-                    `).join('')}
-                    setTimeout(() => { window.print(); window.close(); }, 500);
-                <\/script>
-            </body>
-            </html>
-        `);
-        closePreviewModal();
-        printQueue = [];  // Listeyi sıfırla
-    }
-
-    // ----- TÜM DİĞER ORİJİNAL FONKSİYONLAR (IndexedDB, Yedek, Kategori, Kar Marjı vb.) -----
+    // ---------- DİĞER TÜM FONKSİYONLAR (IndexedDB, UI, Kategori, vs) ----------
     function initDB() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open("MarketProIDB", 6);
+            const request = indexedDB.open("MarketProIDB", 7);
             request.onerror = (e) => reject(e);
             request.onsuccess = (e) => {
                 db = e.target.result;
@@ -433,6 +356,7 @@
     function showResult(product) {
         if (!product) return;
         lastScannedProduct = product;
+        const idx = products.findIndex(p => p.id === product.id);
         const area = document.getElementById("resultArea");
         area.innerHTML = `
             ${product.image ? `<img src="${product.image}" class="product-image" onerror="this.src='';">` : '<div>📷 RESİM YOK</div>'}
@@ -440,11 +364,14 @@
             <div class="result-price">${product.price.toFixed(2)} €</div>
             <div>STOK: ${product.quantity} | SKT: ${product.expiry || "YOK"}</div>
             <div class="profit-indicator">${formatProfitDisplay(product.cost, product.price)}</div>
-            <button onclick="enableInlineEdit()" style="margin-top:10px;">📝 DÜZENLE</button>
+            <div style="margin-top:10px; display:flex; gap:8px; justify-content:center;">
+                <button onclick="showInlineEdit()">📝 DÜZENLE</button>
+                <button class="sale-btn" onclick="sellProduct(products[${idx}], ${idx})">🛒 SATILDI (1 AZALT)</button>
+            </div>
         `;
     }
 
-    function enableInlineEdit() {
+    function showInlineEdit() {
         if (!lastScannedProduct) return;
         const p = lastScannedProduct;
         document.getElementById("resultArea").innerHTML = `
@@ -598,10 +525,11 @@
                 <div class="detail-actions">
                     <button onclick="toggleEditMode()">✏️ DÜZENLE</button>
                     <button onclick="deleteCurrentProduct()">🗑️ SİL</button>
+                    <button class="sale-btn" onclick="sellProduct(products[${index}], ${index})">🛒 SATILDI (1 AZALT)</button>
                     <button onclick="addImageToCurrentProduct('gallery')">🖼️ GALERİ</button>
                     <button onclick="addImageToCurrentProduct('camera')">📷 KAMERA</button>
                     <button onclick="openGoogleSearchForCurrent()">🔍 İNTERNET</button>
-                    <button onclick="addToPrintQueue(products[currentEditingProductId])">➕ ETİKET LİSTESİNE EKLE</button>
+                    <button onclick="addToPrintQueue(products[${index}])">➕ ETİKET LİSTESİNE EKLE</button>
                 </div>
                 <div id="editFields" style="display:none; margin-top:10px;"></div>
             </div>
@@ -803,6 +731,109 @@
     }
     function selectProductFromSearch(barcode) { const p = products.find(p => p.barcode === barcode); if (p) showResult(p); document.getElementById("manualSearchInput").value = ""; document.getElementById("searchResults").style.display = "none"; }
 
+    // ---------- ETİKET BASKI FONKSİYONLARI (önizlemeli) ----------
+    function previewLabels() {
+        if (printQueue.length === 0) { alert("Önce envanterden yazdırılacak ürünleri seçmelisiniz!"); return; }
+        const container = document.getElementById("previewContainer");
+        container.innerHTML = "";
+        printQueue.forEach((p, idx) => {
+            const labelDiv = document.createElement("div");
+            labelDiv.className = "preview-label-card";
+            labelDiv.style.width = "6.2cm";
+            labelDiv.style.height = "4.8cm";
+            labelDiv.style.border = "1px solid #ccc";
+            labelDiv.style.padding = "6px";
+            labelDiv.style.display = "flex";
+            labelDiv.style.gap = "8px";
+            labelDiv.style.alignItems = "center";
+            labelDiv.style.backgroundColor = "white";
+            labelDiv.style.color = "black";
+            labelDiv.innerHTML = `
+                <div style="width:35%;">
+                    ${p.image ? `<img src="${p.image}" style="width:100%; max-height:3.2cm; object-fit:contain;" onerror="this.src='';">` : '<div style="font-size:8pt; color:gray;">📷 RESİM YOK</div>'}
+                </div>
+                <div style="width:65%; display:flex; flex-direction:column; justify-content:space-between; height:100%;">
+                    <div style="font-weight:900; font-size:10pt; text-transform:uppercase;">${escapeHtml(p.name)}</div>
+                    <div style="font-size:7pt; color:#555;">${p.category || 'GENEL'}</div>
+                    <div style="font-size:24pt; font-weight:950; text-align:right;">${p.price.toFixed(2)} €</div>
+                    <div style="text-align:center; margin-top:2px;">
+                        <svg id="preview-barcode-${idx}" style="display:block; margin:0 auto; width:90%; height:28px;"></svg>
+                    </div>
+                </div>
+            `;
+            container.appendChild(labelDiv);
+            JsBarcode(`#preview-barcode-${idx}`, p.barcode, { format: "CODE128", width: 1.5, height: 28, displayValue: true, fontSize: 10, margin: 2 });
+        });
+        document.getElementById("previewModal").style.display = "flex";
+    }
+
+    function printPreviews() {
+        if (printQueue.length === 0) return;
+        const printWindow = window.open('', '_blank');
+        let labelsHtml = "";
+        printQueue.forEach((p, index) => {
+            labelsHtml += `
+                <div class="label-card">
+                    <div class="left-side">
+                        ${p.image ? `<img src="${p.image}" class="label-img" onerror="this.src='';">` : '<div class="no-img">📷 RESİM YOK</div>'}
+                    </div>
+                    <div class="right-side">
+                        <div class="label-title">${escapeHtml(p.name)}</div>
+                        <div class="label-category">${p.category || 'GENEL'}</div>
+                        <div class="label-price">${p.price.toFixed(2)} €</div>
+                        <div class="footer-area">
+                            <svg class="barcode-svg" id="barcode-${index}"></svg>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Etiket Baskı</title>
+                <style>
+                    @page { size: A4; margin: 1cm; }
+                    body { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0; margin: 0; background: #fff; }
+                    .label-card { width: 6.2cm; height: 4.8cm; border: 1.5px solid #000; padding: 8px; display: flex; gap: 8px; align-items: center; box-sizing: border-box; page-break-inside: avoid; background: white; color: black; }
+                    .left-side { width: 35%; }
+                    .label-img { width: 100%; height: auto; max-height: 3.2cm; object-fit: contain; background: #f0f0f0; }
+                    .right-side { width: 65%; display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
+                    .label-title { font-size: 10pt; font-weight: 900; text-transform: uppercase; line-height: 1.1; }
+                    .label-category { font-size: 7pt; color: #555; font-weight: bold; }
+                    .label-price { font-size: 24pt; font-weight: 950; margin: 2px 0; font-family: sans-serif; text-align: right; }
+                    .footer-area { text-align: center; margin-top: auto; }
+                    .barcode-svg { display: block; margin: 0 auto; width: 90%; height: 28px; }
+                    .no-img { font-size: 8pt; color: #999; text-align: center; }
+                </style>
+            </head>
+            <body>
+                ${labelsHtml}
+                <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
+                <script>
+                    ${printQueue.map((p, i) => `
+                        JsBarcode("#barcode-${i}", "${p.barcode}", {
+                            format: "CODE128",
+                            width: 1.5,
+                            height: 28,
+                            displayValue: true,
+                            fontSize: 10,
+                            margin: 2
+                        });
+                    `).join('')}
+                    setTimeout(() => { window.print(); window.close(); }, 500);
+                <\/script>
+            </body>
+            </html>
+        `);
+        closePreviewModal();
+        printQueue = [];
+    }
+
+    function closePreviewModal() { document.getElementById("previewModal").style.display = "none"; document.getElementById("previewContainer").innerHTML = ""; }
+    function addToPrintQueue(product) { printQueue.push(product); alert(`${product.name} yazdırma listesine eklendi! (Toplam: ${printQueue.length})`); }
+
+    // Buton bağlantıları
     document.getElementById("searchBtn").onclick = () => openCameraModal('search');
     document.getElementById("addBtn").onclick = () => openCameraModal('add');
     document.getElementById("inventoryBtn").onclick = () => openInventoryModal();
@@ -811,6 +842,7 @@
     document.getElementById("urgentBtn").onclick = () => openUrgentModal();
     document.getElementById("closeCameraModalBtn").onclick = () => closeCameraModal();
 
+    // Başlangıç
     (async function() {
         if (navigator.storage && navigator.storage.persist) {
             const granted = await navigator.storage.persist();
