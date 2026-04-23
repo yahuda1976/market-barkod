@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>MARKET PRO</title>
+    <title>MARKET PRO - SKT Renk Düzeltmeli</title>
     <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif; }
@@ -91,16 +91,19 @@
         .modal-title { color: #ff6666; font-size: 1.3rem; font-weight: 800; text-transform: uppercase; }
         .close-modal-btn { background: #c0392b; border: none; border-radius: 40px; padding: 8px 16px; color: white; font-weight: bold; cursor: pointer; }
         .product-list-simple { display: flex; flex-direction: column; gap: 12px; }
-        .product-name-item { background: #3a3a3a; border-radius: 40px; padding: 14px 20px; cursor: pointer; font-weight: bold; text-transform: uppercase; color: #ffaa88; text-align: center; }
-        .product-detail-card { background: #3a3a3a; border-radius: 32px; padding: 16px; margin-top: 16px; text-align: center; }
+        .product-name-item { border-radius: 40px; padding: 14px 20px; cursor: pointer; font-weight: bold; text-transform: uppercase; text-align: center; }
+        .product-detail-card { border-radius: 32px; padding: 16px; margin-top: 16px; text-align: center; }
         .detail-image { max-width: 100%; max-height: 150px; border-radius: 24px; margin: 10px auto; }
         .detail-actions { display: flex; gap: 10px; margin-top: 12px; justify-content: center; flex-wrap: wrap; }
         .hidden { display: none; }
         
-        .expiry-red { background-color: #ff4444 !important; color: white; }
-        .expiry-yellow { background-color: #ffaa33 !important; color: #1a1a1a; }
-        .expiry-green { background-color: #2ecc71 !important; color: white; }
-        .expiry-default { background: #3a3a3a; }
+        /* YENİ RENK KURALLARI - DÜZELTİLDİ */
+        .expiry-red { background-color: #ff4444 !important; color: white; }      /* 0-7 gün */
+        .expiry-yellow { background-color: #ffaa33 !important; color: #1a1a1a; } /* 8-14 gün */
+        .expiry-green { background-color: #2ecc71 !important; color: white; }    /* 15+ gün */
+        .expiry-no-date { background-color: #5a5a5a !important; color: #cccccc; } /* SKT girilmemiş */
+        
+        .low-stock { border-left: 6px solid #ffaa33; }
     </style>
 </head>
 <body>
@@ -178,6 +181,7 @@
     let lastScannedProduct = null;
     let isEditMode = false;
     let quaggaActive = false;
+    let lowStockThreshold = 5;
 
     // Geri tuşu yönetimi
     window.addEventListener('load', function() {
@@ -236,17 +240,21 @@
         document.getElementById("totalProfit").innerHTML = stats.totalProfit.toFixed(2) + " €";
         updateSktButton();
         if (document.getElementById("inventoryModal").style.display === "flex") openInventoryModal();
+        checkLowStock();
     }
 
+    // ★★★ DÜZELTİLMİŞ RENK FONKSİYONU ★★★
     function getExpiryColorClass(expiryDate) {
-        if (!expiryDate) return "expiry-default";
-        const today = new Date(); today.setHours(0,0,0,0);
+        if (!expiryDate) return "expiry-no-date";  // SKT yoksa gri değil, farklı bir ton
+        
+        const today = new Date(); 
+        today.setHours(0,0,0,0);
         const expiry = new Date(expiryDate);
         const diff = Math.ceil((expiry - today) / 86400000);
-        if (diff <= 7) return "expiry-red";
-        if (diff <= 14) return "expiry-yellow";
-        if (diff >= 22) return "expiry-green";
-        return "expiry-default";
+        
+        if (diff <= 7) return "expiry-red";      // 0-7 gün → KIRMIZI
+        if (diff <= 14) return "expiry-yellow";  // 8-14 gün → SARI
+        return "expiry-green";                   // 15+ gün → YEŞİL
     }
 
     function updateSktButton() {
@@ -255,6 +263,42 @@
         const sktMsg = document.getElementById("sktMessage");
         if(warnings.length === 0) { sktMsg.innerHTML = "YAKIN ÜRÜN YOK"; sktMsg.className = "skt-message normal"; }
         else { sktMsg.innerHTML = `${warnings.length} ÜRÜN YAKIN`; sktMsg.className = "skt-message"; }
+    }
+
+    function checkLowStock() {
+        const lowStockProducts = products.filter(p => p.quantity <= lowStockThreshold && p.quantity > 0);
+        if (lowStockProducts.length > 0) {
+            let message = `⚠️ DÜŞÜK STOK: ${lowStockProducts.length} ürün ${lowStockThreshold} adedin altında!`;
+            const existingAlert = document.getElementById("lowStockAlert");
+            if (!existingAlert) {
+                const alertDiv = document.createElement("div");
+                alertDiv.id = "lowStockAlert";
+                alertDiv.style.cssText = "background:#c0392b; color:white; border-radius:28px; padding:12px; margin-bottom:12px; text-align:center; font-weight:bold; cursor:pointer;";
+                alertDiv.innerHTML = message + " 📋 DETAYLAR İÇİN TIKLAYIN";
+                alertDiv.onclick = () => {
+                    openInventoryModal();
+                    setTimeout(() => {
+                        const lowStockItems = document.querySelectorAll(".product-name-item");
+                        lowStockItems.forEach((item, idx) => {
+                            if (products[idx] && products[idx].quantity <= lowStockThreshold) {
+                                item.style.border = "2px solid #ffaa33";
+                                item.style.backgroundColor = "#5a2a2a";
+                            }
+                        });
+                    }, 100);
+                };
+                const container = document.getElementById("appContainer");
+                const firstChild = container.firstChild;
+                container.insertBefore(alertDiv, firstChild);
+                setTimeout(() => {
+                    const alert = document.getElementById("lowStockAlert");
+                    if (alert) alert.remove();
+                }, 8000);
+            }
+        } else {
+            const existingAlert = document.getElementById("lowStockAlert");
+            if (existingAlert) existingAlert.remove();
+        }
     }
 
     function autoCalculatePrice(costInputId, priceInputId) {
@@ -286,7 +330,6 @@
         });
     }
 
-    // ----- SKT MODAL -----
     function openSktModal() {
         const modal = document.getElementById("sktModal");
         const container = document.getElementById("sktProductList");
@@ -307,7 +350,6 @@
     }
     function closeSktModal() { document.getElementById("sktModal").style.display = "none"; }
 
-    // ----- ENVANTER MODAL -----
     function openInventoryModal() {
         const modal = document.getElementById("inventoryModal");
         const container = document.getElementById("modalProductList");
@@ -315,7 +357,8 @@
         else {
             let html = "";
             products.forEach((p, idx) => {
-                html += `<div class="product-name-item ${getExpiryColorClass(p.expiry)}" onclick="showProductDetail(${idx})">${escapeHtml(p.name)}</div>`;
+                let lowStockClass = (p.quantity <= lowStockThreshold) ? "low-stock" : "";
+                html += `<div class="product-name-item ${getExpiryColorClass(p.expiry)} ${lowStockClass}" onclick="showProductDetail(${idx})">${escapeHtml(p.name)} (${p.quantity} adet)</div>`;
             });
             container.innerHTML = html;
         }
@@ -408,7 +451,6 @@
         if(confirm(`${products[idx].name} SİLİNSİN Mİ?`)) { products.splice(idx,1); saveData(); updateSktButton(); openInventoryModal(); playBeep(); }
     }
 
-    // ----- ANA EKRAN -----
     function showResult(product) {
         lastScannedProduct = product;
         const resultDiv = document.getElementById("resultArea");
@@ -493,238 +535,8 @@
         } else alert("Ürün bulunamadı!");
     }
 
-    // ----- MANUEL ARAMA -----
     const searchInput = document.getElementById("manualSearchInput");
     const searchResultsDiv = document.getElementById("searchResults");
     searchInput.addEventListener("input", function() {
         const term = this.value.trim().toLowerCase();
-        if (term === "") { searchResultsDiv.style.display = "none"; return; }
-        const filtered = products.filter(p => p.name.toLowerCase().includes(term) || p.barcode.includes(term));
-        if (filtered.length === 0) { searchResultsDiv.style.display = "none"; return; }
-        let html = "";
-        filtered.forEach(p => {
-            html += `<div class="search-result-item" onclick="selectProductFromSearch('${p.barcode}')">
-                        <div class="search-result-name">${escapeHtml(p.name)}</div>
-                        <div class="search-result-price">${p.price.toFixed(2)} € | Stok: ${p.quantity}</div>
-                        <div style="font-size:0.7rem;">${p.barcode}</div>
-                    </div>`;
-        });
-        searchResultsDiv.innerHTML = html;
-        searchResultsDiv.style.display = "block";
-    });
-    function selectProductFromSearch(barcode) {
-        const product = products.find(p => p.barcode === barcode);
-        if (product) { showResult(product); searchInput.value = ""; searchResultsDiv.style.display = "none"; }
-    }
-    document.addEventListener("click", function(e) {
-        if (!searchInput.contains(e.target) && !searchResultsDiv.contains(e.target)) searchResultsDiv.style.display = "none";
-    });
-
-    // ----- GOOGLE ARAMA (window.open ile ayrı sekmede) -----
-    function openGoogleSearch(query) {
-        const url = `https://www.google.com/search?q=${query}&tbm=isch`;
-        window.open(url, '_blank');
-        alert("Google Görsel araması yeni sekmede açıldı. Resmi indirip, ardından 'RESİM EKLE' butonu ile yükleyin.");
-    }
-
-    function playBeep() { 
-        try { 
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
-            const osc = audioCtx.createOscillator(); 
-            osc.type = "sine"; 
-            osc.frequency.value = 880; 
-            const gain = audioCtx.createGain();
-            gain.gain.value = 0.15;
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(); 
-            osc.stop(audioCtx.currentTime + 0.15); 
-            audioCtx.resume(); 
-        } catch(e) { } 
-    }
-
-    // ----- KAMERA MODAL -----
-    async function openCameraModal(mode) {
-        currentCameraMode = mode;
-        const modal = document.getElementById("cameraModal");
-        const video = document.getElementById("cameraVideo");
-        const statusDiv = document.getElementById("cameraModalStatus");
-        modal.style.display = "flex";
-        statusDiv.innerHTML = "📷 KAMERA BAŞLATILIYOR...";
-        
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-            video.srcObject = stream;
-            currentStream = stream;
-            video.play();
-            
-            if (quaggaActive) Quagga.stop();
-            Quagga.init({
-                inputStream: { name: "LiveStream", type: "LiveStream", target: video },
-                decoder: { readers: ["ean_reader", "ean_8_reader", "code_128_reader", "upc_reader"] }
-            }, function(err) {
-                if (err) {
-                    statusDiv.innerHTML = "❌ HATA: " + err;
-                    return;
-                }
-                Quagga.start();
-                quaggaActive = true;
-                statusDiv.innerHTML = "🎥 BARKODU GÖSTERİN...";
-            });
-            
-            Quagga.onDetected((data) => {
-                const code = data.codeResult.code;
-                playBeep();
-                closeCameraModal();
-                if (mode === 'search') {
-                    const found = products.find(p => p.barcode === code);
-                    if (found) {
-                        showResult(found);
-                    } else {
-                        document.getElementById("resultArea").innerHTML = `<div style="color:#ff6666; text-align:center; padding:20px;">❌ "${code}" BULUNAMADI<br><button onclick="showAddFormForBarcode('${code}')" style="background:#c0392b; border:none; border-radius:40px; padding:8px 16px; margin-top:10px; color:white;">➕ ÜRÜN EKLE</button></div>`;
-                    }
-                } else if (mode === 'add') {
-                    showAddFormForBarcode(code);
-                }
-            });
-            
-        } catch(e) {
-            statusDiv.innerHTML = "❌ KAMERA İZNİ GEREKLİ!";
-            setTimeout(() => closeCameraModal(), 2000);
-        }
-    }
-    
-    function closeCameraModal() {
-        if (quaggaActive) {
-            Quagga.stop();
-            quaggaActive = false;
-        }
-        if (currentStream) {
-            currentStream.getTracks().forEach(track => track.stop());
-            currentStream = null;
-        }
-        const video = document.getElementById("cameraVideo");
-        if (video.srcObject) video.srcObject = null;
-        document.getElementById("cameraModal").style.display = "none";
-    }
-
-    let tempImageData = null;
-    function showAddFormForBarcode(barcode) {
-        const container = document.getElementById("addFormContainer");
-        container.classList.remove("hidden");
-        container.innerHTML = `
-            <div class="add-product-form">
-                <strong style="color:#ffaa88;">YENİ ÜRÜN EKLE</strong>
-                <input type="text" id="addBarcode" value="${barcode}" placeholder="BARKOD (MANUEL)">
-                <input type="text" id="addName" placeholder="ÜRÜN ADI">
-                <input type="number" step="0.01" id="addCost" placeholder="MALİYET (€) (%47 kar otomatik)">
-                <input type="text" id="addPrice" placeholder="SATIŞ FİYATI (€)">
-                <input type="number" id="addQuantity" placeholder="ADET" value="1">
-                <input type="date" id="addExpiry" placeholder="SKT (YYYY-AA-GG)">
-                <div class="image-buttons">
-                    <button onclick="openGoogleSearch(document.getElementById('addName').value)">🔍 GOOGLE'DA ARA</button>
-                    <button onclick="captureImageForAdd('gallery')">🖼️ GALERİDEN SEÇ</button>
-                    <button onclick="captureImageForAdd('camera')">📷 KAMERA İLE FOTOĞRAF ÇEK</button>
-                </div>
-                <button onclick="saveNewProduct()">💾 KAYDET</button>
-                <button onclick="closeAddForm()" style="background:#555;">İPTAL</button>
-            </div>
-        `;
-        autoCalculatePrice("addCost", "addPrice");
-        setupSmartPriceInput(document.getElementById("addPrice"));
-        document.getElementById("resultArea").innerHTML = `<div class="result-placeholder">🎯 BARKOD OKUTUNCA VEYA<br>MANUEL ARAMA YAPINCA<br>FİYAT GÖRÜNÜR</div>`;
-    }
-
-    function captureImageForAdd(source) {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = "image/*";
-        if (source === 'camera') input.capture = "environment";
-        input.onchange = (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => { tempImageData = ev.target.result; alert("Resim yüklendi. Ürünü kaydettiğinizde eklenecektir."); };
-                reader.readAsDataURL(file);
-            } else alert("Dosya seçilmedi!");
-        };
-        input.click();
-    }
-
-    function saveNewProduct() {
-        let barcode = document.getElementById("addBarcode").value.trim();
-        const name = document.getElementById("addName").value.trim().toUpperCase();
-        const cost = parseFloat(document.getElementById("addCost").value);
-        let price = parseFloat(document.getElementById("addPrice").value);
-        const quantity = parseInt(document.getElementById("addQuantity").value) || 1;
-        const expiry = document.getElementById("addExpiry").value;
-        if(!name || !barcode) { alert("Ürün adı ve barkod gerekli!"); return; }
-        if (!isNaN(cost) && cost > 0 && (isNaN(price) || price === 0)) price = cost * 1.47;
-        if (isNaN(price) || price <= 0) { alert("Geçerli bir fiyat girin veya maliyet girin!"); return; }
-        const existing = products.findIndex(p => p.barcode === barcode);
-        if(existing !== -1) {
-            if(confirm("Barkod zaten var! Üzerine yazılsın mı?")) {
-                products[existing] = { ...products[existing], name, price, cost: isNaN(cost) ? products[existing].cost : cost, quantity, expiry, image: tempImageData || products[existing].image };
-                saveData(); alert("Güncellendi"); playBeep();
-            }
-        } else {
-            products.push({ barcode, name, price, cost: isNaN(cost) ? null : cost, quantity, expiry, image: tempImageData });
-            saveData(); alert("Ürün eklendi"); playBeep();
-        }
-        tempImageData = null; updateSktButton(); closeAddForm();
-    }
-
-    function closeAddForm() { document.getElementById("addFormContainer").classList.add("hidden"); document.getElementById("addFormContainer").innerHTML = ""; tempImageData = null; }
-    function openSettingsModal() { document.getElementById("settingsModal").style.display = "flex"; }
-    function closeSettingsModal() { document.getElementById("settingsModal").style.display = "none"; }
-    
-    function backupData() {
-        const dataStr = JSON.stringify(products, null, 2);
-        const blob = new Blob([dataStr], {type: "application/json"});
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `market_backup_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.json`;
-        a.click();
-        alert("YEDEK ALINDI"); playBeep();
-    }
-    
-    function restoreData() {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = "application/json";
-        input.onchange = e => {
-            const file = e.target.files[0];
-            if (!file) { alert("Dosya seçilmedi!"); return; }
-            const reader = new FileReader();
-            reader.onload = ev => {
-                try {
-                    const imported = JSON.parse(ev.target.result);
-                    if (!Array.isArray(imported)) throw new Error("Geçersiz format");
-                    for (let item of imported) if (!item.barcode || !item.name || typeof item.price !== 'number') throw new Error("Eksik veri");
-                    products = imported;
-                    saveData();
-                    updateSktButton();
-                    alert(`YEDEK BAŞARIYLA YÜKLENDİ (${products.length} ürün)`);
-                    playBeep();
-                    if (document.getElementById("inventoryModal").style.display === "flex") { closeInventoryModal(); openInventoryModal(); }
-                    document.getElementById("resultArea").innerHTML = `<div class="result-placeholder">🎯 BARKOD OKUTUNCA VEYA<br>MANUEL ARAMA YAPINCA<br>FİYAT GÖRÜNÜR</div>`;
-                } catch(err) { alert("HATALI DOSYA! " + err.message); }
-            };
-            reader.readAsText(file);
-        };
-        input.click();
-    }
-    
-    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m; }); }
-
-    document.getElementById("searchBtn").onclick = () => openCameraModal('search');
-    document.getElementById("addBtn").onclick = () => openCameraModal('add');
-    document.getElementById("inventoryBtn").onclick = () => openInventoryModal();
-    document.getElementById("settingsBtn").onclick = () => openSettingsModal();
-    document.getElementById("sktButton").onclick = () => openSktModal();
-    document.getElementById("closeCameraModalBtn").onclick = () => closeCameraModal();
-
-    loadData();
-</script>
-</body>
-</html>
+        if (term ===
