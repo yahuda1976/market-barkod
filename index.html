@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>MARKET PRO 3.1 - ETİKET BASKILI</title>
+    <title>MARKET PRO 3.2 - ETİKET ÖNİZLEMELİ</title>
     <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
@@ -53,24 +53,18 @@
         .image-buttons-group { display: flex; gap: 8px; justify-content: center; margin: 10px 0; flex-wrap: wrap; }
         .image-buttons-group button { flex: 1; background: #c0392b; margin: 0; }
         .profit-indicator { font-size: 0.8rem; background: #2c6e2f; display: inline-block; padding: 2px 8px; border-radius: 20px; margin-top: 4px; color: white; }
-        .category-badge { font-size: 0.7rem; background: #c0392b; padding: 2px 8px; border-radius: 20px; margin-left: 6px; display: inline-block; }
         .backup-item { background: #3a3a3a; border-radius: 28px; padding: 10px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         table { width: 100%; border-collapse: collapse; color: #eee; font-size: 0.75rem; }
         th, td { padding: 6px; border-bottom: 1px solid #444; text-align: left; vertical-align: top; }
         th { background: #c0392b; color: white; }
-        @media print { body * { visibility: hidden; } .print-modal, .print-modal * { visibility: visible; } .print-modal { position: absolute; top: 0; left: 0; width: 100%; } }
-        
-        /* Etiket baskı stilleri (yalnızca yazdırma penceresinde) */
-        .label-card { width: 6.2cm; height: 4.8cm; border: 1.5px solid #000; padding: 8px; display: flex; gap: 8px; align-items: center; box-sizing: border-box; page-break-inside: avoid; background: white; color: black; }
-        .left-side { width: 35%; }
-        .label-img { width: 100%; height: auto; max-height: 3.2cm; object-fit: contain; background: #f0f0f0; }
-        .right-side { width: 65%; display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
-        .label-title { font-size: 10pt; font-weight: 900; text-transform: uppercase; line-height: 1.1; }
-        .label-category { font-size: 7pt; color: #555; font-weight: bold; }
-        .label-price { font-size: 24pt; font-weight: 950; margin: 2px 0; font-family: sans-serif; text-align: right; }
-        .footer-area { text-align: center; margin-top: auto; }
-        .barcode-svg { width: 100%; height: 28px; }
-        .no-img { font-size: 8pt; color: #999; text-align: center; }
+        /* Etiket önizleme stilleri */
+        .preview-label-card { width: 100%; max-width: 6.2cm; border: 1px solid #ddd; padding: 8px; display: inline-flex; margin: 5px; background: white; color: black; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .preview-container { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 10px; max-height: 60vh; overflow-y: auto; padding: 5px; }
+        @media print {
+            body * { visibility: hidden; }
+            .print-modal, .print-modal * { visibility: visible; }
+            .print-modal { position: absolute; top: 0; left: 0; width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -79,11 +73,9 @@
         <div class="stat-card"><div class="stat-label">📦 TOPLAM ENVANTER</div><div class="stat-value" id="totalInventory">0 €</div></div>
         <div class="stat-card"><div class="stat-label">💰 POTANSİYEL KÂR</div><div class="stat-value" id="totalProfit">0 €</div></div>
     </div>
-    
     <div class="alert-bar">
         <div class="alert-btn" id="urgentBtn">⚠️ 7 GÜN KALAN (<span id="urgentCount">0</span>)</div>
     </div>
-
     <div class="result-area" id="resultArea"><div class="result-placeholder">🎯 BARKOD OKUTUNCA VEYA<br>MANUEL ARAMA YAPINCA<br>FİYAT GÖRÜNÜR</div></div>
     <div class="search-box"><input type="text" id="manualSearchInput" placeholder="🔍 Ürün adı veya barkod ile ara..."><div id="searchResults" class="search-results" style="display: none;"></div></div>
     <div class="button-grid"><button class="btn" id="searchBtn">📷 FİYAT SORGULA</button><button class="btn" id="addBtn">➕ ÜRÜN EKLE</button><button class="btn" id="inventoryBtn">📋 ENVANTER</button><button class="btn" id="settingsBtn">⚙️ AYARLAR</button></div>
@@ -96,8 +88,9 @@
 <div id="productDetailModal" class="modal"><div class="modal-content" id="productDetailContent" style="max-width: 450px;"></div></div>
 <div id="sktModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">⚠️ SKT YAKIN ÜRÜNLER</span><button class="close-modal-btn" onclick="closeSktModal()">✖ KAPAT</button></div><div id="sktProductList"></div></div></div>
 <div id="urgentModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">⚠️ SON 7 GÜNDE SKT'Sİ GELENLER</span><button class="close-modal-btn" onclick="closeUrgentModal()">✖ KAPAT</button></div><div id="urgentProductList"></div></div></div>
-<div id="settingsModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">⚙️ AYARLAR</span><button class="close-modal-btn" onclick="closeSettingsModal()">✖ KAPAT</button></div><button onclick="backupData()">💾 MANUEL YEDEK AL</button><button onclick="restoreData()" style="margin-top:10px;">📂 MANUEL GERİ YÜKLE</button><button onclick="showBackupsModal()" style="margin-top:10px; background:#f39c12;">📦 OTOMATİK YEDEKLER</button><button onclick="exportToCSV()" style="margin-top:10px; background:#2c6e2f;">📑 CSV RAPORU AL</button><button onclick="printReport()" style="margin-top:10px; background:#2980b9;">🖨️ YAZDIR</button><button onclick="printLabelsNow()" style="margin-top:10px; background:#e67e22;">🖨️ SEÇİLEN ETİKETLERİ BAS</button><button onclick="clearAllData()" style="margin-top:10px; background:#c0392b;">🗑️ TÜM VERİLERİ SİL</button><button onclick="compressAllImages()" style="margin-top:10px; background:#f39c12;">🖼️ TÜM RESİMLERİ SIKIŞTIR</button></div></div>
-<div id="printModal" class="modal print-modal"><div class="modal-content" style="max-width: 95%;"><div class="modal-header"><span class="modal-title">🖨️ ENVANTER RAPORU</span><button class="close-modal-btn" onclick="closePrintModal()">✖ KAPAT</button></div><div id="printTableContainer" style="overflow-x:auto;"></div><button onclick="window.print();" style="margin-top:15px;">🖨️ YAZICIYI AÇ</button></div></div>
+<div id="settingsModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">⚙️ AYARLAR</span><button class="close-modal-btn" onclick="closeSettingsModal()">✖ KAPAT</button></div><button onclick="backupData()">💾 MANUEL YEDEK AL</button><button onclick="restoreData()">📂 MANUEL GERİ YÜKLE</button><button onclick="showBackupsModal()">📦 OTOMATİK YEDEKLER</button><button onclick="exportToCSV()">📑 CSV RAPORU AL</button><button onclick="printReport()">🖨️ ENVANTER YAZDIR</button><button onclick="previewLabels()">🏷️ ETİKETLERİ ÖNİZLE & YAZDIR</button><button onclick="clearAllData()">🗑️ TÜM VERİLERİ SİL</button><button onclick="compressAllImages()">🖼️ TÜM RESİMLERİ SIKIŞTIR</button></div></div>
+<div id="printModal" class="modal print-modal"><div class="modal-content" style="max-width: 95%;"><div class="modal-header"><span class="modal-title">🖨️ ENVANTER RAPORU</span><button class="close-modal-btn" onclick="closePrintModal()">✖ KAPAT</button></div><div id="printTableContainer"></div><button onclick="window.print();">🖨️ YAZICIYI AÇ</button></div></div>
+<div id="previewModal" class="modal"><div class="modal-content" style="max-width: 800px;"><div class="modal-header"><span class="modal-title">🏷️ ETİKET ÖNİZLEME</span><button class="close-modal-btn" onclick="closePreviewModal()">✖ KAPAT</button></div><div id="previewContainer" class="preview-container"></div><div style="margin-top: 15px; text-align: center;"><button onclick="printPreviews()" style="background:#e67e22;">🖨️ YAZDIR</button></div></div></div>
 <div id="backupsModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">📦 OTOMATİK YEDEKLER (SON 5)</span><button class="close-modal-btn" onclick="closeBackupsModal()">✖ KAPAT</button></div><div id="backupsList"></div></div></div>
 
 <script>
@@ -108,21 +101,69 @@
     let quaggaActive = false;
     let tempImageData = null;
     let currentEditingProductId = null;
-    
-    // ---- YENİ: ETİKET BASKI SIRASI ----
     let printQueue = [];
 
+    // ---- ETİKET LİSTESİNE EKLEME ----
     function addToPrintQueue(product) {
         if (!product) return;
         printQueue.push(product);
         alert(`${product.name} yazdırma listesine eklendi! (Toplam: ${printQueue.length})`);
     }
 
-    function printLabelsNow() {
+    // ---- ÖNİZLEME MODALI ----
+    function previewLabels() {
         if (printQueue.length === 0) {
             alert("Önce envanterden yazdırılacak ürünleri seçmelisiniz!");
             return;
         }
+        const container = document.getElementById("previewContainer");
+        container.innerHTML = "";
+        printQueue.forEach((p, idx) => {
+            const labelDiv = document.createElement("div");
+            labelDiv.className = "preview-label-card";
+            labelDiv.style.width = "6.2cm";
+            labelDiv.style.height = "4.8cm";
+            labelDiv.style.border = "1px solid #ccc";
+            labelDiv.style.padding = "6px";
+            labelDiv.style.display = "flex";
+            labelDiv.style.gap = "8px";
+            labelDiv.style.alignItems = "center";
+            labelDiv.style.backgroundColor = "white";
+            labelDiv.style.color = "black";
+            labelDiv.innerHTML = `
+                <div style="width:35%;">
+                    ${p.image ? `<img src="${p.image}" style="width:100%; max-height:3.2cm; object-fit:contain;" onerror="this.src='';">` : '<div style="font-size:8pt; color:gray;">📷 RESİM YOK</div>'}
+                </div>
+                <div style="width:65%; display:flex; flex-direction:column; justify-content:space-between; height:100%;">
+                    <div style="font-weight:900; font-size:10pt; text-transform:uppercase;">${escapeHtml(p.name)}</div>
+                    <div style="font-size:7pt; color:#555;">${p.category || 'GENEL'}</div>
+                    <div style="font-size:24pt; font-weight:950; text-align:right;">${p.price.toFixed(2)} €</div>
+                    <div style="text-align:center; margin-top:2px;">
+                        <svg id="preview-barcode-${idx}" style="width:100%; height:28px;"></svg>
+                    </div>
+                </div>
+            `;
+            container.appendChild(labelDiv);
+            JsBarcode(`#preview-barcode-${idx}`, p.barcode, {
+                format: "CODE128",
+                width: 1.5,
+                height: 28,
+                displayValue: true,
+                fontSize: 10,
+                margin: 2
+            });
+        });
+        document.getElementById("previewModal").style.display = "flex";
+    }
+
+    function closePreviewModal() {
+        document.getElementById("previewModal").style.display = "none";
+        document.getElementById("previewContainer").innerHTML = "";
+    }
+
+    // ---- YAZDIRMA (ÖNİZLEMEDEN SONRA) ----
+    function printPreviews() {
+        if (printQueue.length === 0) return;
         const printWindow = window.open('', '_blank');
         let labelsHtml = "";
         printQueue.forEach((p, index) => {
@@ -175,19 +216,19 @@
                             margin: 2
                         });
                     `).join('')}
-                    setTimeout(() => { window.print(); window.close(); }, 800);
+                    setTimeout(() => { window.print(); window.close(); }, 500);
                 <\/script>
             </body>
             </html>
         `);
-        printQueue = [];
+        closePreviewModal();
+        printQueue = [];  // Listeyi sıfırla
     }
-    // ---- ETİKET BASKI SONU ----
 
-    // IndexedDB Başlat
+    // ----- TÜM DİĞER ORİJİNAL FONKSİYONLAR (IndexedDB, Yedek, Kategori, Kar Marjı vb.) -----
     function initDB() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open("MarketProIDB", 5);
+            const request = indexedDB.open("MarketProIDB", 6);
             request.onerror = (e) => reject(e);
             request.onsuccess = (e) => {
                 db = e.target.result;
@@ -385,8 +426,8 @@
         const msg = document.getElementById("sktMessage");
         if (warnings.length === 0) { msg.innerHTML = "YAKIN ÜRÜN YOK"; msg.className = "skt-message normal"; }
         else { msg.innerHTML = `${warnings.length} ÜRÜN YAKIN`; msg.className = "skt-message"; }
-        const urgentProducts = products.filter(p => p.expiry && Math.ceil((new Date(p.expiry) - today) / 86400000) <= 7 && Math.ceil((new Date(p.expiry) - today) / 86400000) >= 0);
-        document.getElementById("urgentCount").innerText = urgentProducts.length;
+        const urgent = products.filter(p => p.expiry && Math.ceil((new Date(p.expiry) - today) / 86400000) <= 7 && Math.ceil((new Date(p.expiry) - today) / 86400000) >= 0);
+        document.getElementById("urgentCount").innerText = urgent.length;
     }
 
     function showResult(product) {
@@ -407,18 +448,7 @@
         if (!lastScannedProduct) return;
         const p = lastScannedProduct;
         document.getElementById("resultArea").innerHTML = `
-            <div>
-                <input id="editName" value="${escapeHtml(p.name)}" placeholder="Ad">
-                <input id="editBarcode" value="${p.barcode}" placeholder="Barkod">
-                <input id="editPrice" value="${p.price}" placeholder="Fiyat (€)">
-                <input id="editCost" value="${p.cost || ''}" placeholder="Maliyet (€)">
-                <div id="inlineProfitSpan" class="profit-indicator" style="margin:5px 0;">${formatProfitDisplay(p.cost, p.price)}</div>
-                <select id="editCategory"><option ${p.category=="Dolap Ürünleri"?"selected":""}>Dolap Ürünleri</option><option ${p.category=="Kuru Gıda"?"selected":""}>Kuru Gıda</option><option ${p.category=="Genel"?"selected":""}>Genel</option></select>
-                <input id="editQuantity" value="${p.quantity}" placeholder="Stok">
-                <input id="editExpiry" value="${p.expiry || ''}" placeholder="SKT">
-                <button onclick="saveInlineEdit()">💾 KAYDET</button>
-                <button onclick="showResult(lastScannedProduct)">İPTAL</button>
-            </div>
+            <div><input id="editName" value="${escapeHtml(p.name)}" placeholder="Ad"><input id="editBarcode" value="${p.barcode}" placeholder="Barkod"><input id="editPrice" value="${p.price}" placeholder="Fiyat (€)"><input id="editCost" value="${p.cost || ''}" placeholder="Maliyet (€)"><div id="inlineProfitSpan" class="profit-indicator" style="margin:5px 0;">${formatProfitDisplay(p.cost, p.price)}</div><select id="editCategory"><option ${p.category=="Dolap Ürünleri"?"selected":""}>Dolap Ürünleri</option><option ${p.category=="Kuru Gıda"?"selected":""}>Kuru Gıda</option><option ${p.category=="Genel"?"selected":""}>Genel</option></select><input id="editQuantity" value="${p.quantity}" placeholder="Stok"><input id="editExpiry" value="${p.expiry || ''}" placeholder="SKT"><button onclick="saveInlineEdit()">💾 KAYDET</button><button onclick="showResult(lastScannedProduct)">İPTAL</button></div>
         `;
         attachProfitWatcher("editCost", "editPrice", "inlineProfitSpan");
     }
@@ -481,10 +511,7 @@
     function showAddFormForBarcode(barcode) {
         const container = document.getElementById("addFormContainer");
         container.classList.remove("hidden");
-        container.innerHTML = `<div><strong>YENİ ÜRÜN</strong>
-            <input id="addBarcode" value="${barcode}"><input id="addName" placeholder="Ürün adı"><input id="addPrice" placeholder="Fiyat (€)"><input id="addCost" placeholder="Maliyet (€)"><div id="addProfitSpan" class="profit-indicator"></div>
-            <select id="addCategory"><option>Genel</option><option>Dolap Ürünleri</option><option>Kuru Gıda</option></select>
-            <input id="addQuantity" placeholder="Stok" value="1"><input id="addExpiry" placeholder="SKT"><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')">🖼️ GALERİ</button><button onclick="captureImageForAdd('camera')">📷 KAMERA</button><button onclick="openGoogleSearchForAdd()">🔍 İNTERNET</button></div><button onclick="saveNewProduct()">💾 KAYDET</button><button onclick="closeAddForm()">İPTAL</button></div>`;
+        container.innerHTML = `<div><strong>YENİ ÜRÜN</strong><input id="addBarcode" value="${barcode}"><input id="addName" placeholder="Ürün adı"><input id="addPrice" placeholder="Fiyat (€)"><input id="addCost" placeholder="Maliyet (€)"><div id="addProfitSpan" class="profit-indicator"></div><select id="addCategory"><option>Genel</option><option>Dolap Ürünleri</option><option>Kuru Gıda</option></select><input id="addQuantity" placeholder="Stok" value="1"><input id="addExpiry" placeholder="SKT"><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')">🖼️ GALERİ</button><button onclick="captureImageForAdd('camera')">📷 KAMERA</button><button onclick="openGoogleSearchForAdd()">🔍 İNTERNET</button></div><button onclick="saveNewProduct()">💾 KAYDET</button><button onclick="closeAddForm()">İPTAL</button></div>`;
         attachProfitWatcher("addCost", "addPrice", "addProfitSpan");
     }
 
@@ -595,18 +622,7 @@
         if (editDiv.style.display === "none") {
             detailText.style.display = "none";
             editDiv.style.display = "block";
-            editDiv.innerHTML = `
-                <input id="editName" value="${escapeHtml(p.name)}" placeholder="Ad">
-                <input id="editBarcode" value="${p.barcode}" placeholder="Barkod">
-                <input id="editPrice" value="${p.price}" placeholder="Fiyat (€)">
-                <input id="editCost" value="${p.cost || ''}" placeholder="Maliyet (€)">
-                <div id="editProfitSpan" class="profit-indicator"></div>
-                <select id="editCategory"><option ${p.category=="Dolap Ürünleri"?"selected":""}>Dolap Ürünleri</option><option ${p.category=="Kuru Gıda"?"selected":""}>Kuru Gıda</option><option ${p.category=="Genel"?"selected":""}>Genel</option></select>
-                <input id="editQuantity" value="${p.quantity}" placeholder="Stok">
-                <input id="editExpiry" value="${p.expiry || ''}" placeholder="SKT">
-                <button onclick="saveProductEdit()">💾 KAYDET</button>
-                <button onclick="toggleEditMode()">İPTAL</button>
-            `;
+            editDiv.innerHTML = `<input id="editName" value="${escapeHtml(p.name)}" placeholder="Ad"><input id="editBarcode" value="${p.barcode}" placeholder="Barkod"><input id="editPrice" value="${p.price}" placeholder="Fiyat (€)"><input id="editCost" value="${p.cost || ''}" placeholder="Maliyet (€)"><div id="editProfitSpan" class="profit-indicator"></div><select id="editCategory"><option ${p.category=="Dolap Ürünleri"?"selected":""}>Dolap Ürünleri</option><option ${p.category=="Kuru Gıda"?"selected":""}>Kuru Gıda</option><option ${p.category=="Genel"?"selected":""}>Genel</option></select><input id="editQuantity" value="${p.quantity}" placeholder="Stok"><input id="editExpiry" value="${p.expiry || ''}" placeholder="SKT"><button onclick="saveProductEdit()">💾 KAYDET</button><button onclick="toggleEditMode()">İPTAL</button>`;
             attachProfitWatcher("editCost", "editPrice", "editProfitSpan");
         } else {
             detailText.style.display = "block";
@@ -767,7 +783,6 @@
     async function backupData() { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(products)])); a.download = `backup_${Date.now()}.json`; a.click(); alert("Manuel yedek alındı"); }
     async function restoreData() { const input = document.createElement("input"); input.type = "file"; input.accept = "application/json"; input.onchange = async e => { const file = e.target.files[0]; const reader = new FileReader(); reader.onload = async ev => { try { const data = JSON.parse(ev.target.result); if (Array.isArray(data)) { products = data; await saveProducts(false); alert("Manuel yedek yüklendi!"); location.reload(); } } catch(e) { alert("Hatalı dosya"); } }; reader.readAsText(file); }; input.click(); }
     async function clearAllData() { if (confirm("TÜM VERİLER SİLİNECEK! (Yedekler hariç)")) { products = []; await saveProducts(false); alert("Veriler silindi, sayfa yenilenecek."); location.reload(); } }
-    
     function playBeep() { try { const ctx = new (window.AudioContext || window.webkitAudioContext)(); const o = ctx.createOscillator(); o.frequency.value = 880; const g = ctx.createGain(); g.gain.value = 0.1; o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.1); ctx.resume(); } catch(e) {} }
     function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
     
