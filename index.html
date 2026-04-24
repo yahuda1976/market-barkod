@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>MARKET PRO - BASIK YATAY ETİKET</title>
+    <title>MARKET PRO 6.0 - SADE & FERAŞ</title>
     <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
-        /* ---- diğer stiller aynen kalır (ana ekran, butonlar, modal) - sadece etiket kısmı değişti ---- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
         body { background: #1a1a1a; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; }
         .app-container { max-width: 550px; width: 100%; background: #1a1a1a; border-radius: 48px; padding: 24px 20px; }
+        
+        /* KAMERA MODÜLÜ (sonuç alanı) */
         .result-area { background: #2a2a2a; border-radius: 40px; padding: 28px 20px; text-align: center; margin-bottom: 28px; min-height: 200px; border: 1px solid #444; }
         .result-placeholder { color: #aaa; font-size: 1.1rem; font-weight: 600; line-height: 1.4; }
         .result-price { font-size: 2.4rem; font-weight: 900; color: #ff5555; margin: 12px 0; }
         .result-name { font-size: 1.4rem; font-weight: 800; color: #ffaa88; text-transform: uppercase; margin-bottom: 8px; }
         .product-image { max-width: 100%; max-height: 150px; border-radius: 25px; margin: 12px auto; display: block; object-fit: contain; }
+        
+        /* BÜYÜK BUTONLAR (ana ekran) */
         .btn { border: none; border-radius: 60px; padding: 18px 12px; color: white; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 1rem; letter-spacing: 0.5px; margin-top: 6px; transition: 0.1s ease; }
         .btn:active { transform: scale(0.97); }
         .btn-primary { background: #3498db; box-shadow: 0 5px 0 #21618c; }
@@ -24,28 +27,77 @@
         .btn-secondary { background: #95a5a6; box-shadow: 0 5px 0 #7f8c8d; }
         .btn-inventory { background: #5d4037; box-shadow: 0 5px 0 #3e2723; width: 100%; margin-top: 16px; }
         .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+        
+        /* MODAL ve DİĞER */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #2a2a2a; width: 90%; max-width: 550px; border-radius: 48px; padding: 24px; max-height: 85%; overflow-y: auto; color: white; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .modal-title { color: #ff6666; font-weight: 800; font-size: 1.4rem; }
         .close-modal-btn { background: #c0392b; padding: 8px 18px; border-radius: 40px; font-size: 1rem; cursor: pointer; }
-        .product-list-simple { display: flex; flex-direction: column; gap: 12px; }
-        .product-name-item { background: #3a3a3a; border-radius: 60px; padding: 16px; cursor: pointer; text-align: center; font-weight: bold; font-size: 1rem; }
+        
+        /* ENVANTER LİSTESİ (küçültülmüş) */
+        .product-list-simple { display: flex; flex-direction: column; gap: 8px; }
+        .product-name-item { background: #3a3a3a; border-radius: 40px; padding: 8px 12px; cursor: pointer; text-align: center; font-weight: 600; font-size: 0.85rem; }
+        
         .product-detail-card { border-radius: 40px; padding: 20px; text-align: center; font-size: 1rem; }
         .detail-image { max-width: 100%; max-height: 180px; border-radius: 25px; margin: 12px auto; display: block; }
         input, select { width: 100%; padding: 16px; border-radius: 60px; border: none; background: #555; color: white; font-size: 1rem; margin: 8px 0; }
-        .detail-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+        
+        /* ŞIK BUTON TASARIMI (ürün detayında) */
+        .detail-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .button-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .button-row button {
+            flex: 1;
+            background: #2c6e2f;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 8px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .button-row button:active { transform: scale(0.97); }
+        .full-width-btn {
+            width: 100%;
+            background: #e67e22 !important;
+            margin-top: 4px;
+        }
+        
         .image-buttons-group { display: flex; gap: 12px; justify-content: center; margin: 12px 0; flex-wrap: wrap; }
-        .image-buttons-group button { flex: 1; background: #c0392b; margin: 0; padding: 14px; }
+        .image-buttons-group button { flex: 1; background: #c0392b; margin: 0; padding: 14px; border-radius: 50px; }
         .profit-indicator { font-size: 0.9rem; background: #2c6e2f; display: inline-block; padding: 4px 12px; border-radius: 30px; margin-top: 6px; color: white; }
         .backup-item { background: #3a3a3a; border-radius: 40px; padding: 14px; margin-bottom: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 1rem; }
-        .stats-bar { background: #2a2a2a; border-radius: 40px; padding: 14px 18px; margin-top: 20px; display: flex; justify-content: space-between; font-size: 0.9rem; color: #ffaa88; font-weight: bold; }
-        .stats-bar span { color: #ff6666; font-size: 1.1rem; margin-left: 8px; }
-        .alert-btn { background: #c0392b; border-radius: 60px; padding: 14px 20px; text-align: center; color: white; font-weight: bold; font-size: 1rem; margin-bottom: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
-        .skt-button { background: #2a2a2a; border-radius: 40px; padding: 16px; margin-top: 12px; text-align: center; cursor: pointer; border: 1px solid #444; }
-        .skt-title { font-size: 0.9rem; font-weight: 700; color: #ff8888; text-transform: uppercase; margin-bottom: 6px; }
-        .skt-message { font-size: 1.2rem; font-weight: 800; color: #ff4444; text-transform: uppercase; }
-        .skt-message.normal { color: #ffaa88; }
+        
+        /* 7 GÜN BAR (en altta, küçük yatay) */
+        .alert-bar-bottom { margin-top: 20px; }
+        .alert-btn-bottom {
+            background: #c0392b;
+            border-radius: 60px;
+            padding: 10px 16px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
         .expiry-red { background: #ff4444 !important; color: white; }
         .expiry-yellow { background: #ffaa33 !important; color: #1a1a1a; }
         .expiry-green { background: #2ecc71 !important; color: white; }
@@ -53,11 +105,11 @@
         .expiry-no-date { background: #5a5a5a !important; color: #ccc; }
         .hidden { display: none; }
         
-        /* =========== ÇOK YATAY (BASIK) ETİKET - GENİŞLİK 8.5cm, YÜKSEKLİK 4cm =========== */
+        /* =========== YATAY ETİKET (8.5cm x 4.0cm) =========== */
         .preview-container { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-height: 65vh; overflow-y: auto; padding: 8px; }
         .label-card {
-            width: 8.5cm;          /* Genişlik iyice artırıldı */
-            height: 4.0cm;         /* Yükseklik kısaldı, basık görünüm */
+            width: 8.5cm;
+            height: 4.0cm;
             background: white;
             color: black;
             padding: 4px 6px;
@@ -69,96 +121,18 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             page-break-inside: avoid;
         }
-        /* Row: fotoğraf + metin alanı */
-        .label-row {
-            display: flex;
-            gap: 8px;
-            flex: 1;
-            min-height: 0;
-        }
-        .label-image {
-            width: 32%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f8f8f8;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        .label-image img {
-            max-width: 100%;
-            max-height: 2.8cm;
-            object-fit: contain;
-        }
-        .label-image .no-img {
-            font-size: 8px;
-            color: #999;
-            text-align: center;
-        }
-        .label-info {
-            width: 68%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        /* Ürün adı - ultra kalın ve büyük */
-        .label-title {
-            font-family: 'Arial Black', 'Impact', 'Segoe UI Black', sans-serif;
-            font-size: 13pt;
-            font-weight: 900;
-            text-transform: uppercase;
-            line-height: 1.2;
-            -webkit-text-stroke: 0.8px #000;
-            text-shadow: 0.5px 0.5px 0px #000, -0.5px -0.5px 0px #000;
-            color: #000;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .label-category {
-            font-family: 'Arial Black', sans-serif;
-            font-size: 8pt;
-            font-weight: 800;
-            -webkit-text-stroke: 0.4px #000;
-            color: #111;
-            margin: 2px 0;
-        }
-        /* Fiyat - ultra kalın ve geniş */
-        .label-price {
-            font-family: 'Arial Black', Impact, sans-serif;
-            font-size: 30pt;
-            font-weight: 1000;
-            letter-spacing: -1.5px;
-            transform: scaleX(1.12);
-            transform-origin: right;
-            -webkit-text-stroke: 1.2px #000;
-            text-align: right;
-            line-height: 1;
-            margin: 2px 0;
-        }
-        .label-price small {
-            font-size: 14pt;
-            vertical-align: super;
-            margin-left: 1mm;
-            -webkit-text-stroke: 0.6px #000;
-        }
-        /* Barkod bölümü */
-        .barcode-section {
-            text-align: center;
-            margin-top: 2px;
-            border-top: 1px dashed #ccc;
-            padding-top: 2px;
-        }
-        .barcode-svg {
-            width: 100%;
-            height: 26px;
-        }
-        .barcode-svg text {
-            font-weight: 900 !important;
-            font-size: 10px !important;
-            -webkit-text-stroke: 0.2px black;
-        }
+        .label-row { display: flex; gap: 8px; flex: 1; min-height: 0; }
+        .label-image { width: 32%; display: flex; align-items: center; justify-content: center; background: #f8f8f8; border-radius: 4px; overflow: hidden; }
+        .label-image img { max-width: 100%; max-height: 2.8cm; object-fit: contain; }
+        .label-image .no-img { font-size: 8px; color: #999; text-align: center; }
+        .label-info { width: 68%; display: flex; flex-direction: column; justify-content: space-between; }
+        .label-title { font-family: 'Arial Black', 'Impact', sans-serif; font-size: 13pt; font-weight: 900; text-transform: uppercase; -webkit-text-stroke: 0.8px #000; text-shadow: 0.5px 0.5px 0px #000, -0.5px -0.5px 0px #000; line-height: 1.2; color: #000; }
+        .label-category { font-family: 'Arial Black', sans-serif; font-size: 8pt; font-weight: 800; -webkit-text-stroke: 0.4px #000; color: #111; margin: 2px 0; }
+        .label-price { font-family: 'Arial Black', Impact, sans-serif; font-size: 30pt; font-weight: 1000; letter-spacing: -1.5px; transform: scaleX(1.12); transform-origin: right; -webkit-text-stroke: 1.2px #000; text-align: right; line-height: 1; margin: 2px 0; }
+        .label-price small { font-size: 14pt; vertical-align: super; margin-left: 1mm; -webkit-text-stroke: 0.6px #000; }
+        .barcode-section { text-align: center; margin-top: 2px; border-top: 1px dashed #ccc; padding-top: 2px; }
+        .barcode-svg { width: 100%; height: 26px; }
+        .barcode-svg text { font-weight: 900 !important; font-size: 10px !important; -webkit-text-stroke: 0.2px black; }
         
         @media print {
             body * { visibility: hidden; }
@@ -169,9 +143,11 @@
 </head>
 <body>
 <div class="app-container">
-    <div class="alert-btn" id="urgentBtn">⚠️ 7 GÜN KALAN (<span id="urgentCount">0</span>)</div>
+    <!-- 7 GÜN BARI EN ÜSTTEN KALKTI, EN ALTA EKLENECEK -->
+    
     <div class="result-area" id="resultArea"><div class="result-placeholder">🎯 BARKOD OKUTUNCA VEYA<br>MANUEL ARAMA YAPINCA<br>FİYAT GÖRÜNÜR</div></div>
     
+    <!-- BUTON GRUPLARI -->
     <div class="button-grid">
         <button class="btn btn-primary" id="searchBtn">📷 FİYAT SORGULA</button>
         <button class="btn btn-success" id="addBtn">➕ KAMERA İLE EKLE</button>
@@ -182,18 +158,16 @@
     </div>
     <button class="btn btn-inventory" id="inventoryBtn">📋 ENVANTER</button>
     <button class="btn btn-inventory" id="settingsBtn" style="background:#34495e; box-shadow:0 5px 0 #2c3e50;">⚙️ AYARLAR</button>
-    <div class="skt-button" id="sktButton">
-        <div class="skt-title">⚠️ SKT YAKIN ÜRÜNLER</div>
-        <div class="skt-message" id="sktMessage">YÜKLENİYOR...</div>
+    
+    <!-- 7 GÜN BARI EN ALTA EKLENDİ (Küçük yatay) -->
+    <div class="alert-bar-bottom">
+        <div class="alert-btn-bottom" id="urgentBtn">⚠️ 7 GÜN KALAN (<span id="urgentCount">0</span>)</div>
     </div>
-    <div class="stats-bar">
-        <div>📦 TOPLAM ENVANTER: <span id="totalInventory">0 €</span></div>
-        <div>💰 POTANSİYEL KÂR: <span id="totalProfit">0 €</span></div>
-    </div>
+    
     <div id="addFormContainer" class="hidden"></div>
 </div>
 
-<!-- Modaller (kısa tutuldu) -->
+<!-- Modaller (kısa tutuldu, işlevsellik aynı) -->
 <div id="cameraModal" class="modal" style="justify-content:center; align-items:center; flex-direction:column;"><div style="width:90%; max-width:500px; background:#000; border-radius:40px; overflow:hidden;"><video id="cameraVideo" autoplay muted playsinline style="width:100%;"></video></div><button id="closeCameraModalBtn" style="background:#c0392b; margin-top:20px; padding:12px 25px; border-radius:40px;">✖ KAPAT</button><div id="cameraModalStatus" style="color:#ffaa88; margin-top:12px;">📷 KAMERA BAŞLATILIYOR...</div></div>
 <div id="inventoryModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">📦 ENVANTER</span><button class="close-modal-btn" onclick="closeInventoryModal()">✖ KAPAT</button></div><div id="modalProductList" class="product-list-simple"></div></div></div>
 <div id="productDetailModal" class="modal"><div class="modal-content" id="productDetailContent"></div></div>
@@ -205,16 +179,6 @@
 <div id="backupsModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">📦 OTOMATİK YEDEKLER (SON 5)</span><button class="close-modal-btn" onclick="closeBackupsModal()">✖ KAPAT</button></div><div id="backupsList"></div></div></div>
 
 <script>
-    // Buraya önceki tam JavaScript kodu gelecek (satış, IndexedDB, yedek, arama, etiket fonksiyonları)
-    // Uzunluk nedeniyle burada tekrar yazılmamıştır. Ancak kullanıcı daha önce çalışan koda sahip.
-    // Aşağıya kısaca önceki sürümdeki tüm JS'i kopyalayın.
-    // Not: Eksiksiz kod önceki mesajlarda mevcuttur. Şimdilik burada boş bırakılmıştır.
-    console.log("CSS güncellendi, etiket çok yatay. JS kısmını önceki çalışan sürümden alınız.");
-</script>
-<script>
-    // ÖNEMLİ: Buraya önceki mesajdaki tüm JavaScript kodunu (let db=null; ile başlayıp kapanan) kopyalamanız gerekiyor.
-    // Ancak kullanıcıya tam kodu verebilmek için ben buraya önceki sürümdeki tüm JS'i ekliyorum (kısaltmadan).
-    // Kullanıcı rahatça kopyalasın diye aşağıda eksiksiz JS var.
     let db = null;
     let products = [];
     let currentStream = null;
@@ -224,6 +188,63 @@
     let currentEditingProductId = null;
     let printQueue = [];
 
+    // ----- AKILLI FİYAT GİRİŞİ (GERİ GETİRİLDİ) -----
+    function setupSmartPriceInput(inputElement) {
+        if (!inputElement) return;
+        inputElement.addEventListener("blur", function() {
+            let val = this.value.trim();
+            if (val === "") return;
+            let normalized = val.replace(',', '.');
+            if (!normalized.includes('.') && !isNaN(parseFloat(normalized))) {
+                let num = parseFloat(normalized);
+                let converted = num / 100;
+                this.value = converted.toFixed(2);
+            } else {
+                if (!isNaN(parseFloat(normalized))) {
+                    this.value = parseFloat(normalized).toFixed(2);
+                }
+            }
+        });
+    }
+
+    // ----- MANUEL EKLEME (PROMPT İLE) -----
+    async function showManualAddForm() {
+        let barcode = prompt("Barkod girin (manuel):", "");
+        if (barcode === null) return;
+        barcode = barcode.trim();
+        let name = prompt("Ürün adı:", "");
+        if (name === null) return;
+        name = name.trim().toUpperCase();
+        let priceInput = prompt("Fiyat (€) (Örn: 149 yazınca 1.49 olur):", "");
+        if (priceInput === null) return;
+        let price = parseFloat(priceInput.replace(',', '.'));
+        if (isNaN(price)) { alert("Geçersiz fiyat!"); return; }
+        let costInput = prompt("Maliyet (€) (boş bırakabilirsiniz):", "");
+        let cost = null;
+        if (costInput !== null && costInput.trim() !== "") {
+            cost = parseFloat(costInput.replace(',', '.'));
+            if (isNaN(cost)) cost = null;
+        }
+        let category = prompt("Kategori (Genel / Dolap Ürünleri / Kuru Gıda):", "Genel");
+        if (category === null) category = "Genel";
+        if (!["Genel", "Dolap Ürünleri", "Kuru Gıda"].includes(category)) category = "Genel";
+        let quantity = parseInt(prompt("Stok adedi:", "1"));
+        if (isNaN(quantity)) quantity = 1;
+        let expiry = prompt("SKT (YYYY-AA-GG) (boş bırakabilirsiniz):", "");
+        if (expiry === null) expiry = "";
+        
+        const existing = products.findIndex(p => p.barcode === barcode);
+        if (existing !== -1 && confirm("Barkod zaten var! Üzerine yazılsın mı?")) {
+            products[existing] = { ...products[existing], name, price, cost, category, quantity, expiry, image: null };
+        } else {
+            products.push({ barcode, name, price, cost, category, quantity, expiry, image: null, id: Date.now() });
+        }
+        await saveProducts();
+        alert("Ürün eklendi!");
+        await updateUI();
+    }
+
+    // ----- STOK DÜŞME -----
     async function sellProduct(product, index) {
         if (!product) return;
         let newQuantity = product.quantity - 1;
@@ -269,7 +290,7 @@
 
     function initDB() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open("MarketProIDB", 19);
+            const request = indexedDB.open("MarketProIDB", 20);
             request.onerror = (e) => reject(e);
             request.onsuccess = (e) => {
                 db = e.target.result;
@@ -436,13 +457,8 @@
 
     async function updateUI() {
         const stats = await calculateStats();
-        document.getElementById("totalInventory").innerHTML = stats.totalInv.toFixed(2) + " €";
-        document.getElementById("totalProfit").innerHTML = stats.totalProfit.toFixed(2) + " €";
+        // Toplam envanter ve kâr göstergeleri kaldırıldı - sadece 7 gün sayısı
         const today = new Date();
-        const warnings = products.filter(p => p.expiry && Math.ceil((new Date(p.expiry) - today) / 86400000) <= 5);
-        const msg = document.getElementById("sktMessage");
-        if (warnings.length === 0) { msg.innerHTML = "YAKIN ÜRÜN YOK"; msg.className = "skt-message normal"; }
-        else { msg.innerHTML = `${warnings.length} ÜRÜN YAKIN`; msg.className = "skt-message"; }
         const urgent = products.filter(p => p.expiry && Math.ceil((new Date(p.expiry) - today) / 86400000) <= 7 && Math.ceil((new Date(p.expiry) - today) / 86400000) >= 0);
         document.getElementById("urgentCount").innerText = urgent.length;
     }
@@ -472,6 +488,7 @@
             <div><input id="editName" value="${escapeHtml(p.name)}" placeholder="Ad"><input id="editBarcode" value="${p.barcode}" placeholder="Barkod"><input id="editPrice" value="${p.price}" placeholder="Fiyat (€)"><input id="editCost" value="${p.cost || ''}" placeholder="Maliyet (€)"><div id="inlineProfitSpan" class="profit-indicator" style="margin:5px 0;">${formatProfitDisplay(p.cost, p.price)}</div><select id="editCategory"><option ${p.category=="Dolap Ürünleri"?"selected":""}>Dolap Ürünleri</option><option ${p.category=="Kuru Gıda"?"selected":""}>Kuru Gıda</option><option ${p.category=="Genel"?"selected":""}>Genel</option></select><input id="editQuantity" value="${p.quantity}" placeholder="Stok"><input id="editExpiry" value="${p.expiry || ''}" placeholder="SKT"><button class="btn-primary" onclick="saveInlineEdit()">💾 KAYDET</button><button class="btn-primary" onclick="showResult(lastScannedProduct)" style="background:#555;">İPTAL</button></div>
         `;
         attachProfitWatcher("editCost", "editPrice", "inlineProfitSpan");
+        setupSmartPriceInput(document.getElementById("editPrice"));
     }
 
     async function saveInlineEdit() {
@@ -529,12 +546,13 @@
         document.getElementById("cameraModal").style.display = "none";
     }
 
-    function showManualAddForm() { showAddFormForBarcode(""); }
+    // Eski showAddFormForBarcode (kamera ile ekleme için) - prompt kullanmıyor, normal form açar
     function showAddFormForBarcode(barcode) {
         const container = document.getElementById("addFormContainer");
         container.classList.remove("hidden");
         container.innerHTML = `<div style="background:#2a2a2a; padding:15px; border-radius:30px; margin-top:10px;"><strong style="color:#ffaa88;">YENİ ÜRÜN</strong><input id="addBarcode" value="${barcode}" placeholder="Barkod (manuel gir)"><input id="addName" placeholder="Ürün adı"><input id="addPrice" placeholder="Fiyat (€)"><input id="addCost" placeholder="Maliyet (€)"><div id="addProfitSpan" class="profit-indicator"></div><select id="addCategory"><option>Genel</option><option>Dolap Ürünleri</option><option>Kuru Gıda</option></select><input id="addQuantity" placeholder="Stok" value="1"><input id="addExpiry" placeholder="SKT"><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')">🖼️ GALERİ</button><button onclick="captureImageForAdd('camera')">📷 KAMERA</button><button onclick="openGoogleSearchForAdd()">🔍 İNTERNET</button></div><button class="btn-primary" onclick="saveNewProduct()">💾 KAYDET</button><button class="btn-primary" onclick="closeAddForm()" style="background:#555;">İPTAL</button></div>`;
         attachProfitWatcher("addCost", "addPrice", "addProfitSpan");
+        setupSmartPriceInput(document.getElementById("addPrice"));
     }
 
     async function captureImageForAdd(source) {
@@ -613,13 +631,19 @@
                 ${p.image ? `<img src="${p.image}" class="detail-image" onerror="this.src='';">` : '<div>📷 RESİM YOK</div>'}
                 <div><strong>${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<br>Barkod: ${p.barcode}<br>Fiyat: ${p.price.toFixed(2)} €<br>Stok: ${p.quantity}<br>SKT: ${p.expiry || "YOK"}<br><span class="profit-indicator">${formatProfitDisplay(p.cost, p.price)}</span></div>
                 <div class="detail-actions">
-                    <button class="btn-primary" onclick="toggleEditMode()">✏️ DÜZENLE</button>
-                    <button class="btn-primary" onclick="deleteCurrentProduct()" style="background:#c0392b;">🗑️ SİL</button>
-                    <button class="btn-primary" onclick="sellProduct(products[${index}], ${index})" style="background:#e67e22;">🛒 SATILDI (1 AZALT)</button>
-                    <button class="btn-primary" onclick="addImageToCurrentProduct('gallery')">🖼️ GALERİ</button>
-                    <button class="btn-primary" onclick="addImageToCurrentProduct('camera')">📷 KAMERA</button>
-                    <button class="btn-primary" onclick="openGoogleSearchForCurrent()">🔍 İNTERNET</button>
-                    <button class="btn-primary" onclick="addToPrintQueue(products[${index}])">➕ ETİKET LİSTESİNE EKLE</button>
+                    <div class="button-row">
+                        <button onclick="toggleEditMode()" style="background:#f39c12;">✏️ DÜZENLE</button>
+                        <button onclick="deleteCurrentProduct()" style="background:#c0392b;">🗑️ SİL</button>
+                    </div>
+                    <div class="button-row">
+                        <button onclick="sellProduct(products[${index}], ${index})" style="background:#e67e22;">🛒 SATILDI (1 AZALT)</button>
+                        <button onclick="addImageToCurrentProduct('gallery')">🖼️ GALERİ</button>
+                    </div>
+                    <div class="button-row">
+                        <button onclick="addImageToCurrentProduct('camera')">📷 KAMERA</button>
+                        <button onclick="openGoogleSearchForCurrent()">🔍 İNTERNET</button>
+                    </div>
+                    <button class="full-width-btn" onclick="addToPrintQueue(products[${index}])">➕ ETİKET LİSTESİNE EKLE</button>
                 </div>
                 <div id="editFields" style="display:none; margin-top:10px;"></div>
             </div>
@@ -642,6 +666,7 @@
             editDiv.style.display = "block";
             editDiv.innerHTML = `<input id="editName" value="${escapeHtml(p.name)}" placeholder="Ad"><input id="editBarcode" value="${p.barcode}" placeholder="Barkod"><input id="editPrice" value="${p.price}" placeholder="Fiyat (€)"><input id="editCost" value="${p.cost || ''}" placeholder="Maliyet (€)"><div id="editProfitSpan" class="profit-indicator"></div><select id="editCategory"><option ${p.category=="Dolap Ürünleri"?"selected":""}>Dolap Ürünleri</option><option ${p.category=="Kuru Gıda"?"selected":""}>Kuru Gıda</option><option ${p.category=="Genel"?"selected":""}>Genel</option></select><input id="editQuantity" value="${p.quantity}" placeholder="Stok"><input id="editExpiry" value="${p.expiry || ''}" placeholder="SKT"><button class="btn-primary" onclick="saveProductEdit()">💾 KAYDET</button><button class="btn-primary" onclick="toggleEditMode()" style="background:#555;">İPTAL</button>`;
             attachProfitWatcher("editCost", "editPrice", "editProfitSpan");
+            setupSmartPriceInput(document.getElementById("editPrice"));
         } else {
             if (detailText) detailText.style.display = "block";
             editDiv.style.display = "none";
@@ -763,13 +788,13 @@
     }
 
     function printReport() {
-        let html = `<table border="1" style="border-collapse:collapse; width:100%;"><thead><tr><th>Ad</th><th>Barkod</th><th>Fiyat (€)</th><th>Stok</th><th>Maliyet (€)</th><th>Kar (€)</th><th>Kar %</th><th>SKT</th><th>Kategori</th></tr></thead><tbody>`;
+        let html = `<table border="1" style="border-collapse:collapse; width:100%;"><thead><tr><th>Ad</th><th>Barkod</th><th>Fiyat (€)</th><th>Stok</th><th>Maliyet (€)</th><th>Kar (€)</th><th>Kar %</th><th>SKT</th><th>Kategori</th></table></thead><tbody>`;
         for (let p of products) {
             const profit = (p.cost && p.cost>0) ? (p.price - p.cost) : 0;
             const margin = (p.cost && p.cost>0 && p.price>0) ? ((p.price - p.cost)/p.price*100).toFixed(1) : "0";
-            html += `<tr><td style="border:1px solid #ddd; padding:4px;">${escapeHtml(p.name)}</td><td style="border:1px solid #ddd; padding:4px;">${p.barcode}</td><td style="border:1px solid #ddd; padding:4px;">${p.price.toFixed(2)}</td><td style="border:1px solid #ddd; padding:4px;">${p.quantity}</td><td style="border:1px solid #ddd; padding:4px;">${p.cost?p.cost.toFixed(2):'0'}</td><td style="border:1px solid #ddd; padding:4px;">${profit.toFixed(2)}</td><td style="border:1px solid #ddd; padding:4px;">${margin}%</td><td style="border:1px solid #ddd; padding:4px;">${p.expiry||''}</td><td style="border:1px solid #ddd; padding:4px;">${p.category}</td></tr>`;
+            html += `<tr><td style="border:1px solid #ddd; padding:4px;">${escapeHtml(p.name)}</td><td>${p.barcode}</td><td>${p.price.toFixed(2)}</td><td>${p.quantity}</td><td>${p.cost?p.cost.toFixed(2):'0'}</td><td>${profit.toFixed(2)}</td><td>${margin}%</td><td>${p.expiry||''}</td><td>${p.category}</td></tr>`;
         }
-        html += `</tbody>}</div>`;
+        html += `</tbody></table>`;
         document.getElementById("printTableContainer").innerHTML = html;
         document.getElementById("printModal").style.display = "flex";
     }
@@ -881,7 +906,7 @@
         modalDiv.innerHTML = `
             <div class="modal-content" style="max-width: 400px;">
                 <div class="modal-header"><span class="modal-title">🔍 ÜRÜN ARA</span><button class="close-modal-btn" onclick="closeSearchModal()">✖ KAPAT</button></div>
-                <input type="text" id="searchInputModal" placeholder="Ürün adı veya barkod..." autocomplete="off">
+                <input type="text" id="searchInputModal" placeholder="Ürün adı veya barkod..." autocomplete="off" autofocus>
                 <div id="searchResultsModal" style="margin-top:12px; max-height:300px; overflow-y:auto;"></div>
             </div>
         `;
@@ -920,7 +945,7 @@
         closeSearchModal();
     }
 
-    // ETİKET BASKI FONKSİYONLARI (yatay, basık)
+    // ETİKET BASKI FONKSİYONLARI
     function addToPrintQueue(product) {
         printQueue.push(product);
         alert(`${product.name} yazdırma listesine eklendi! (Toplam: ${printQueue.length})`);
@@ -1048,11 +1073,10 @@
     // EVENT LISTENERS
     document.getElementById("searchBtn").onclick = () => openCameraModal('search');
     document.getElementById("addBtn").onclick = () => openCameraModal('add');
-    document.getElementById("manualAddBtn").onclick = () => showManualAddForm();
+    document.getElementById("manualAddBtn").onclick = () => showManualAddForm();  // PROMPT İLE MANUEL EKLE
     document.getElementById("productSearchBtn").onclick = () => openSearchModal();
     document.getElementById("inventoryBtn").onclick = () => openInventoryModal();
     document.getElementById("settingsBtn").onclick = () => openSettingsModal();
-    document.getElementById("sktButton").onclick = () => openSktModal();
     document.getElementById("urgentBtn").onclick = () => openUrgentModal();
     document.getElementById("closeCameraModalBtn").onclick = () => closeCameraModal();
 
