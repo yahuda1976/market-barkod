@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>MARKET PRO 10.1 - OTOMATİK YEDEK & DÜZELTMELER</title>
+    <title>MARKET PRO 10.2 - SABİT ETİKET & ÇALIŞAN BUTON</title>
     <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
@@ -61,18 +61,77 @@
         .toast { background: #333; color: white; padding: 12px 20px; border-radius: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 0.9rem; animation: slideIn 0.3s ease, fadeOut 0.5s ease 2s forwards; pointer-events: none; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+        
+        /* SABİT ETİKET BOYUTU ve KESİN ÇÖZÜM */
         .preview-container { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-height: 65vh; overflow-y: auto; padding: 8px; }
-        .label-card { width: 8.5cm; height: 4.0cm; background: white; color: black; padding: 4px 6px; display: flex; flex-direction: column; justify-content: space-between; border: 2px solid #000; border-radius: 6px; page-break-inside: avoid; }
-        .label-row { display: flex; gap: 8px; flex: 1; }
-        .label-image { width: 32%; display: flex; align-items: center; justify-content: center; background: #f8f8f8; border-radius: 4px; }
+        .label-card {
+            width: 8.5cm;
+            height: 4.0cm;
+            background: white;
+            color: black;
+            padding: 4px 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 2px solid #000;
+            border-radius: 6px;
+            page-break-inside: avoid;
+            overflow: hidden; /* taşmayı engeller */
+        }
+        .label-row {
+            display: flex;
+            gap: 6px;
+            flex: 1;
+            min-height: 0; /* flex çocuklarının taşmasını engeller */
+        }
+        .label-image {
+            width: 32%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f8f8;
+            border-radius: 4px;
+        }
         .label-image img { max-width: 100%; max-height: 2.8cm; object-fit: contain; }
-        .label-info { width: 68%; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
-        .label-title { font-family: 'Arial Black', Impact, sans-serif; font-size: 11pt; font-weight: 900; text-transform: uppercase; -webkit-text-stroke: 0.7px #000; text-shadow: 0.4px 0.4px 0px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .label-price { font-family: 'Arial Black', Impact, sans-serif; font-size: 28pt; font-weight: 1000; letter-spacing: -1px; transform: scaleX(1.05); text-align: right; white-space: nowrap; margin-top: 4px; }
-        .label-price small { font-size: 12pt; vertical-align: super; }
+        .label-info {
+            width: 68%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-width: 0; /* taşmayı engeller */
+        }
+        /* Ürün adı: 2 satıra kadar, taşarsa ellipsis */
+        .label-title {
+            font-family: 'Arial Black', Impact, sans-serif;
+            font-size: 10pt;
+            font-weight: 900;
+            text-transform: uppercase;
+            -webkit-text-stroke: 0.5px #000;
+            text-shadow: 0.3px 0.3px 0px #000;
+            color: #000;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+            max-height: 2.4em;
+        }
+        .label-price {
+            font-family: 'Arial Black', Impact, sans-serif;
+            font-size: 24pt;
+            font-weight: 1000;
+            letter-spacing: -1px;
+            transform: scaleX(1.03);
+            text-align: right;
+            white-space: nowrap;
+            margin-top: 2px;
+            color: #000;
+        }
+        .label-price small { font-size: 11pt; vertical-align: super; }
         .barcode-section { text-align: center; margin-top: 2px; border-top: 1px dashed #ccc; padding-top: 2px; }
-        .barcode-svg { width: 100%; height: 24px; }
-        .barcode-svg text { font-weight: 900 !important; font-size: 9px !important; }
+        .barcode-svg { width: 100%; height: 22px; }
+        .barcode-svg text { font-weight: 900 !important; font-size: 8px !important; }
         @media print { body * { visibility: hidden; } .print-modal, .print-modal * { visibility: visible; } .print-modal { position: absolute; top: 0; left: 0; width: 100%; } }
     </style>
 </head>
@@ -117,213 +176,126 @@
     let currentEditingProductId = null;
     let printQueue = [];
 
-    // Toast
-    function showToast(message) {
-        const container = document.getElementById("toast-container");
-        const toast = document.createElement("div");
-        toast.className = "toast";
-        toast.innerText = message;
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 2500);
+    function showToast(msg) {
+        let c = document.getElementById("toast-container");
+        let t = document.createElement("div");
+        t.className = "toast";
+        t.innerText = msg;
+        c.appendChild(t);
+        setTimeout(() => t.remove(), 2500);
     }
 
-    // Akıllı fiyat
-    function setupSmartPriceInput(inputEl) {
-        if (!inputEl) return;
-        inputEl.addEventListener("blur", function() {
+    function setupSmartPriceInput(el) {
+        if(!el) return;
+        el.addEventListener("blur", function() {
             let v = this.value.trim();
-            if (!v) return;
+            if(!v) return;
             v = v.replace(',', '.');
-            if (!v.includes('.') && !isNaN(parseFloat(v))) {
-                this.value = (parseFloat(v) / 100).toFixed(2);
-            } else {
-                let n = parseFloat(v);
-                if (!isNaN(n)) this.value = n.toFixed(2);
-            }
+            if(!v.includes('.') && !isNaN(parseFloat(v))) this.value = (parseFloat(v)/100).toFixed(2);
+            else { let n=parseFloat(v); if(!isNaN(n)) this.value=n.toFixed(2); }
         });
     }
 
-    // PrintQueue kalıcı
-    async function savePrintQueue() {
-        if (!db) return;
-        const tx = db.transaction(["printQueue"], "readwrite");
-        const store = tx.objectStore("printQueue");
-        store.clear();
-        store.add({ id: "current", data: printQueue });
-    }
-    async function loadPrintQueue() {
-        if (!db) return;
-        const tx = db.transaction(["printQueue"], "readonly");
-        const store = tx.objectStore("printQueue");
-        const req = store.get("current");
-        req.onsuccess = () => {
-            if (req.result) printQueue = req.result.data || [];
-        };
-    }
+    async function savePrintQueue() { if(!db) return; let tx=db.transaction("printQueue","readwrite"); let store=tx.objectStore("printQueue"); store.clear(); store.add({id:"current", data:printQueue}); }
+    async function loadPrintQueue() { if(!db) return; let tx=db.transaction("printQueue","readonly"); let req=tx.objectStore("printQueue").get("current"); req.onsuccess=()=>{ if(req.result) printQueue=req.result.data; }; }
 
-    // Manuel ekleme modal
+    // MANUEL EKLEME MODAL
     function openManualAddModal() {
-        const modal = document.getElementById("manualAddModal");
-        const container = document.getElementById("manualAddFormContainer");
-        container.innerHTML = `
-            <div><input id="addBarcode" placeholder="Barkod (manuel gir)"><input id="addName" placeholder="Ürün adı (max 35)" maxlength="35"><input id="addPrice" placeholder="Fiyat (€) (149→1.49)"><input id="addCost" placeholder="Maliyet (€)"><div id="addProfitSpan" class="profit-indicator"></div><select id="addCategory"><option>Genel</option><option>Dolap Ürünleri</option><option>Kuru Gıda</option></select><input id="addQuantity" placeholder="Stok" value="1"><input id="addExpiry" type="date"><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')">🖼️ GALERİ</button><button onclick="captureImageForAdd('camera')">📷 KAMERA</button><button onclick="openGoogleSearchForAdd()">🔍 İNTERNET</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProductFromModal()">💾 KAYDET</button><button class="btn-cancel" onclick="closeManualAddModal()">İPTAL</button></div></div>
-        `;
-        attachProfitWatcher("addCost", "addPrice", "addProfitSpan");
+        let modal=document.getElementById("manualAddModal");
+        let container=document.getElementById("manualAddFormContainer");
+        container.innerHTML=`<div><input id="addBarcode" placeholder="Barkod (manuel gir)"><input id="addName" placeholder="Ürün adı (max 35)" maxlength="35"><input id="addPrice" placeholder="Fiyat (€) (149→1.49)"><input id="addCost" placeholder="Maliyet (€)"><div id="addProfitSpan" class="profit-indicator"></div><select id="addCategory"><option>Genel</option><option>Dolap Ürünleri</option><option>Kuru Gıda</option></select><input id="addQuantity" placeholder="Stok" value="1"><input id="addExpiry" type="date"><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')">🖼️ GALERİ</button><button onclick="captureImageForAdd('camera')">📷 KAMERA</button><button onclick="openGoogleSearchForAdd()">🔍 İNTERNET</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProductFromModal()">💾 KAYDET</button><button class="btn-cancel" onclick="closeManualAddModal()">İPTAL</button></div></div>`;
+        attachProfitWatcher("addCost","addPrice","addProfitSpan");
         setupSmartPriceInput(document.getElementById("addPrice"));
-        modal.style.display = "flex";
+        modal.style.display="flex";
     }
-    function closeManualAddModal() { document.getElementById("manualAddModal").style.display = "none"; tempImageData = null; }
+    function closeManualAddModal(){ document.getElementById("manualAddModal").style.display="none"; tempImageData=null; }
     async function saveNewProductFromModal() {
-        const barcode = document.getElementById("addBarcode").value.trim();
-        const name = document.getElementById("addName").value.trim().toUpperCase();
-        const price = parseFloat(document.getElementById("addPrice").value);
-        const cost = parseFloat(document.getElementById("addCost").value) || null;
-        const category = document.getElementById("addCategory").value;
-        const quantity = parseInt(document.getElementById("addQuantity").value);
-        const expiry = document.getElementById("addExpiry").value;
-        if (!name || !barcode || isNaN(price)) { showToast("Eksik bilgi!"); return; }
-        const existing = products.findIndex(p => p.barcode === barcode);
-        if (existing !== -1 && confirm("Barkod var, üzerine yazılsın mı?")) {
-            products[existing] = { ...products[existing], name, price, cost, category, quantity, expiry, image: tempImageData || products[existing].image };
-        } else {
-            products.push({ barcode, name, price, cost, category, quantity, expiry, image: tempImageData, id: Date.now() });
-        }
-        await saveProducts();
-        tempImageData = null;
-        closeManualAddModal();
-        showToast(`Ürün kaydedildi: ${name}`);
-        await updateUI();
+        let barcode=document.getElementById("addBarcode").value.trim(), name=document.getElementById("addName").value.trim().toUpperCase(), price=parseFloat(document.getElementById("addPrice").value), cost=parseFloat(document.getElementById("addCost").value)||null, category=document.getElementById("addCategory").value, quantity=parseInt(document.getElementById("addQuantity").value), expiry=document.getElementById("addExpiry").value;
+        if(!name||!barcode||isNaN(price)){ showToast("Eksik bilgi!"); return; }
+        let existing=products.findIndex(p=>p.barcode===barcode);
+        if(existing!==-1 && confirm("Barkod var, üzerine yazılsın mı?")) products[existing]={...products[existing],name,price,cost,category,quantity,expiry, image:tempImageData||products[existing].image};
+        else products.push({barcode,name,price,cost,category,quantity,expiry, image:tempImageData, id:Date.now()});
+        await saveProducts(); tempImageData=null; closeManualAddModal(); showToast(`Ürün kaydedildi: ${name}`); await updateUI();
     }
 
-    // Envanter listesi render (etiket butonları çalışır)
+    // ENVANTER LİSTESİ - ETİKET BUTONU KESİN ÇALIŞIR
     function renderInventoryList() {
-        const container = document.getElementById("modalProductList");
-        let filtered = products;
-        const searchVal = document.getElementById("inventorySearchInput")?.value.trim().toLowerCase();
-        if (searchVal) filtered = products.filter(p => p.name.toLowerCase().includes(searchVal) || p.barcode.includes(searchVal));
-        if (filtered.length === 0) { container.innerHTML = "<div style='text-align:center; padding:20px;'>Ürün yok</div>"; return; }
-        let html = "";
-        filtered.forEach(p => {
-            const origIndex = products.findIndex(prod => prod.id === p.id);
-            const colorClass = getProductColorClass(p);
-            html += `
-                <div class="envanter-item ${colorClass}">
+        let container=document.getElementById("modalProductList");
+        let searchVal=document.getElementById("inventorySearchInput")?.value.trim().toLowerCase();
+        let filtered=searchVal? products.filter(p=>p.name.toLowerCase().includes(searchVal)||p.barcode.includes(searchVal)) : products;
+        if(filtered.length===0){ container.innerHTML="<div style='text-align:center;padding:20px;'>Ürün yok</div>"; return; }
+        let html="";
+        filtered.forEach(p=>{
+            let origIndex=products.findIndex(prod=>prod.id===p.id);
+            let colorClass=getProductColorClass(p);
+            html+=`<div class="envanter-item ${colorClass}">
                     <div class="product-name-item" onclick="openProductDetailModal(${origIndex})">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)} (${p.quantity})</div>
-                    <button class="btn-add-queue-list" onclick="addToPrintQueueFromList(products[origIndex])">➕ ETİKET</button>
-                </div>
-            `;
+                    <button class="btn-add-queue-list" onclick="addToPrintQueue(products[${origIndex}])">➕ ETİKET</button>
+                </div>`;
         });
-        container.innerHTML = html;
+        container.innerHTML=html;
     }
 
-    // Envanterden etiket ekleme (çalıştığından emin ol)
-    function addToPrintQueueFromList(product) {
-        if (!product) { showToast("Ürün bulunamadı!"); return; }
-        printQueue.push(product);
-        savePrintQueue();
-        showToast(`${product.name} etiket listesine eklendi. (Toplam: ${printQueue.length})`);
-    }
-
-    // Stok düşme (satış)
+    // STOK DÜŞME
     async function sellProduct(product, index) {
-        if (!product) return;
-        let newQ = product.quantity - 1;
-        if (newQ < 0) newQ = 0;
-        if (newQ === 0) {
-            if (confirm(`${product.name} stoğu sıfırlandı. Silinsin mi?`)) {
-                products.splice(index, 1);
-                await saveProducts();
-                await updateUI();
-                if (document.getElementById("productDetailModal").style.display === "flex") closeProductDetailModal();
-                if (document.getElementById("inventoryModal").style.display === "flex") openInventoryModal();
-                showToast(`${product.name} silindi.`);
-                playBeep();
-                return;
+        if(!product) return;
+        let newQ=product.quantity-1; if(newQ<0) newQ=0;
+        if(newQ===0){
+            if(confirm(`${product.name} stoğu sıfırlandı. Silinsin mi?`)){
+                products.splice(index,1); await saveProducts(); await updateUI();
+                if(document.getElementById("productDetailModal").style.display==="flex") closeProductDetailModal();
+                if(document.getElementById("inventoryModal").style.display==="flex") openInventoryModal();
+                showToast(`${product.name} silindi.`); playBeep(); return;
             } else {
-                product.quantity = 0;
-                await saveProducts();
-                await updateUI();
-                if (currentEditingProductId !== null && products[currentEditingProductId]?.id === product.id) openProductDetailModal(currentEditingProductId);
-                else if (lastScannedProduct?.id === product.id) showResult(product);
-                playBeep();
-                showToast(`${product.name} stoğu 0.`);
-                return;
+                product.quantity=0; await saveProducts(); await updateUI();
+                if(currentEditingProductId!==null && products[currentEditingProductId]?.id===product.id) openProductDetailModal(currentEditingProductId);
+                else if(lastScannedProduct?.id===product.id) showResult(product);
+                playBeep(); showToast(`${product.name} stoğu 0.`); return;
             }
         } else {
-            product.quantity = newQ;
-            await saveProducts();
-            await updateUI();
-            if (currentEditingProductId !== null && products[currentEditingProductId]?.id === product.id) openProductDetailModal(currentEditingProductId);
-            else if (lastScannedProduct?.id === product.id) showResult(product);
-            playBeep();
-            showToast(`1 ${product.name} satıldı. Kalan: ${product.quantity}`);
+            product.quantity=newQ; await saveProducts(); await updateUI();
+            if(currentEditingProductId!==null && products[currentEditingProductId]?.id===product.id) openProductDetailModal(currentEditingProductId);
+            else if(lastScannedProduct?.id===product.id) showResult(product);
+            playBeep(); showToast(`1 ${product.name} satıldı. Kalan: ${product.quantity}`);
         }
     }
 
-    function getProductColorClass(p) {
-        if (p.quantity === 0) return "expiry-zero-stock";
-        if (!p.expiry) return "expiry-no-date";
-        const diff = Math.ceil((new Date(p.expiry) - new Date()) / 86400000);
-        if (diff <= 7) return "expiry-red";
-        if (diff <= 14) return "expiry-yellow";
+    function getProductColorClass(p){
+        if(p.quantity===0) return "expiry-zero-stock";
+        if(!p.expiry) return "expiry-no-date";
+        let diff=Math.ceil((new Date(p.expiry)-new Date())/86400000);
+        if(diff<=7) return "expiry-red";
+        if(diff<=14) return "expiry-yellow";
         return "expiry-green";
     }
-
-    function getCategoryEmoji(cat) {
-        if (cat === "Dolap Ürünleri") return "🥫";
-        if (cat === "Kuru Gıda") return "🌾";
-        return "📦";
+    function getCategoryEmoji(cat){ if(cat==="Dolap Ürünleri") return "🥫"; if(cat==="Kuru Gıda") return "🌾"; return "📦"; }
+    function attachProfitWatcher(costId,priceId,spanId){
+        let costEl=document.getElementById(costId), priceEl=document.getElementById(priceId), span=document.getElementById(spanId);
+        if(!costEl||!priceEl||!span) return;
+        let upd=()=>{ let c=parseFloat(costEl.value), p=parseFloat(priceEl.value); span.innerText=formatProfitDisplay(c,p); };
+        costEl.addEventListener('input',upd); priceEl.addEventListener('input',upd); upd();
     }
+    function calculateProfitMargin(c,p){ if(!c||c<=0||!p||p<=0) return null; return ((p-c)/p)*100; }
+    function formatProfitDisplay(c,p){ let m=calculateProfitMargin(c,p); return m===null?"❓ Maliyet yok":`💰 Kâr Marjı: ${m.toFixed(1)}%`; }
 
-    function attachProfitWatcher(costId, priceId, spanId) {
-        const costEl = document.getElementById(costId);
-        const priceEl = document.getElementById(priceId);
-        const span = document.getElementById(spanId);
-        if (!costEl || !priceEl || !span) return;
-        const upd = () => {
-            let c = parseFloat(costEl.value);
-            let p = parseFloat(priceEl.value);
-            span.innerText = formatProfitDisplay(c, p);
-        };
-        costEl.addEventListener('input', upd);
-        priceEl.addEventListener('input', upd);
-        upd();
-    }
-    function calculateProfitMargin(c, p) { if (!c || c<=0 || !p || p<=0) return null; return ((p-c)/p)*100; }
-    function formatProfitDisplay(c,p) { let m = calculateProfitMargin(c,p); return m===null ? "❓ Maliyet yok" : `💰 Kâr Marjı: ${m.toFixed(1)}%`; }
+    async function compressImage(dataUrl,w=400,q=0.4){ return new Promise(r=>{ let img=new Image(); img.onload=()=>{ let cnv=document.createElement('canvas'); let ww=img.width,hh=img.height; if(ww>w){ hh=hh*w/ww; ww=w; } cnv.width=ww; cnv.height=hh; let ctx=cnv.getContext('2d'); ctx.drawImage(img,0,0,ww,hh); r(cnv.toDataURL('image/jpeg',q)); }; img.src=dataUrl; }); }
+    async function compressAllImages(){ let cnt=0; for(let p of products){ if(p.image && p.image.length>60000){ p.image=await compressImage(p.image); cnt++; } } if(cnt) await saveProducts(); showToast(cnt?`${cnt} resim sıkıştırıldı`:"Sıkıştırılacak resim yok"); }
 
-    async function compressImage(dataUrl, w=400,q=0.4) {
-        return new Promise(r=>{ let img=new Image(); img.onload=()=>{ let cnv=document.createElement('canvas'); let ww=img.width, hh=img.height; if(ww>w){ hh=hh*w/ww; ww=w; } cnv.width=ww; cnv.height=hh; let ctx=cnv.getContext('2d'); ctx.drawImage(img,0,0,ww,hh); r(cnv.toDataURL('image/jpeg',q)); }; img.src=dataUrl; });
-    }
-    async function compressAllImages() { let cnt=0; for(let p of products){ if(p.image && p.image.length>60000){ p.image = await compressImage(p.image); cnt++; } } if(cnt) await saveProducts(); showToast(cnt?`${cnt} resim sıkıştırıldı`:"Sıkıştırılacak resim yok"); }
+    // INDEXEDDB
+    function initDB(){ return new Promise((res,rej)=>{ let req=indexedDB.open("MarketProIDB",30); req.onerror=rej; req.onsuccess=e=>{ db=e.target.result; res(); }; req.onupgradeneeded=e=>{ let d=e.target.result; if(!d.objectStoreNames.contains("products")) d.createObjectStore("products",{keyPath:"id",autoIncrement:true}); if(!d.objectStoreNames.contains("backups")) d.createObjectStore("backups",{keyPath:"timestamp"}); if(!d.objectStoreNames.contains("printQueue")) d.createObjectStore("printQueue",{keyPath:"id"}); }; }); }
+    async function loadProducts(){ return new Promise(r=>{ db.transaction("products","readonly").objectStore("products").getAll().onsuccess=e=>{ products=e.target.result||[]; for(let p of products) if(!p.category) p.category="Genel"; r(); }; }); }
+    async function saveProducts(backup=true){ return new Promise((res,rej)=>{ let tx=db.transaction("products","readwrite"); let store=tx.objectStore("products"); store.clear(); for(let p of products) store.add(p); tx.oncomplete=async()=>{ if(backup) await createBackup(); res(); }; tx.onerror=rej; }); }
+    async function createBackup(){ if(!db) return; let tx=db.transaction("backups","readwrite"); let store=tx.objectStore("backups"); let all=await new Promise(r=>store.getAll().onsuccess=e=>r(e.target.result)); let backs=all||[]; backs.push({timestamp:Date.now(), data:JSON.parse(JSON.stringify(products))}); backs.sort((a,b)=>a.timestamp-b.timestamp); if(backs.length>5) backs.splice(0,backs.length-5); store.clear(); for(let b of backs) store.add(b); }
+    async function getBackups(){ return new Promise(r=>{ db.transaction("backups","readonly").objectStore("backups").getAll().onsuccess=e=>r(e.target.result||[]); }); }
+    async function restoreBackup(ts){ let backs=await getBackups(); let b=backs.find(b=>b.timestamp===ts); if(b){ products=b.data; await saveProducts(false); updateUI(); } }
+    async function updateUI(){ let today=new Date(); let urgent=products.filter(p=>p.expiry && Math.ceil((new Date(p.expiry)-today)/86400000)<=7 && Math.ceil((new Date(p.expiry)-today)/86400000)>=0); document.getElementById("urgentCount").innerText=urgent.length; }
 
-    // IndexedDB
-    function initDB() {
-        return new Promise((resolve, reject) => {
-            const req = indexedDB.open("MarketProIDB", 29);
-            req.onerror = reject;
-            req.onsuccess = e => { db = e.target.result; resolve(); };
-            req.onupgradeneeded = e => {
-                const d = e.target.result;
-                if (!d.objectStoreNames.contains("products")) d.createObjectStore("products", { keyPath: "id", autoIncrement: true });
-                if (!d.objectStoreNames.contains("backups")) d.createObjectStore("backups", { keyPath: "timestamp" });
-                if (!d.objectStoreNames.contains("printQueue")) d.createObjectStore("printQueue", { keyPath: "id" });
-            };
-        });
-    }
-    async function loadProducts() { return new Promise(r=>{ db.transaction("products","readonly").objectStore("products").getAll().onsuccess=e=>{ products=e.target.result||[]; for(let p of products) if(!p.category) p.category="Genel"; r(); }; }); }
-    async function saveProducts(backup=true) { return new Promise((res,rej)=>{ let tx=db.transaction("products","readwrite"); let store=tx.objectStore("products"); store.clear(); for(let p of products) store.add(p); tx.oncomplete=async()=>{ if(backup) await createBackup(); res(); }; tx.onerror=rej; }); }
-    async function createBackup() { if(!db) return; let tx=db.transaction("backups","readwrite"); let store=tx.objectStore("backups"); let all=await new Promise(r=>store.getAll().onsuccess=e=>r(e.target.result)); let backups=all||[]; backups.push({timestamp:Date.now(), data:JSON.parse(JSON.stringify(products))}); backups.sort((a,b)=>a.timestamp-b.timestamp); if(backups.length>5) backups.splice(0,backups.length-5); store.clear(); for(let b of backups) store.add(b); }
-    async function getBackups() { return new Promise(r=>{ db.transaction("backups","readonly").objectStore("backups").getAll().onsuccess=e=>r(e.target.result||[]); }); }
-    async function restoreBackup(ts) { let backs=await getBackups(); let b=backs.find(b=>b.timestamp===ts); if(b){ products=b.data; await saveProducts(false); updateUI(); } }
-    async function updateUI() { let today=new Date(); let urgent=products.filter(p=>p.expiry && Math.ceil((new Date(p.expiry)-today)/86400000)<=7 && Math.ceil((new Date(p.expiry)-today)/86400000)>=0); document.getElementById("urgentCount").innerText=urgent.length; }
+    function showResult(p){ if(!p) return; lastScannedProduct=p; let idx=products.findIndex(pr=>pr.id===p.id); document.getElementById("resultArea").innerHTML=`${p.image?`<img src="${p.image}" class="product-image" onerror="this.src='';">`:'<div>📷 RESİM YOK</div>'}<div class="result-name">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)}</div><div class="result-price">${p.price.toFixed(2)} €</div><div>STOK: ${p.quantity} | SKT: ${p.expiry||"YOK"}</div><div class="profit-indicator">${formatProfitDisplay(p.cost,p.price)}</div><div style="margin-top:10px; display:flex; gap:8px; justify-content:center;"><button class="btn-primary" onclick="showInlineEdit()" style="background:#c0392b; padding:10px;">📝 DÜZENLE</button><button class="btn-primary" onclick="sellProduct(products[${idx}], ${idx})" style="background:#e67e22; padding:10px;">🛒 SATILDI (1 AZALT)</button></div>`; }
+    function showInlineEdit(){ if(!lastScannedProduct) return; let p=lastScannedProduct; document.getElementById("resultArea").innerHTML=`<div><input id="editName" value="${escapeHtml(p.name)}" maxlength="35"><input id="editBarcode" value="${p.barcode}"><input id="editPrice" value="${p.price}"><input id="editCost" value="${p.cost||''}"><div id="inlineProfitSpan" class="profit-indicator" style="margin:5px 0;">${formatProfitDisplay(p.cost,p.price)}</div><select id="editCategory">${p.category=="Dolap Ürünleri"?"<option selected>Dolap Ürünleri</option><option>Kuru Gıda</option><option>Genel</option>":p.category=="Kuru Gıda"?"<option>Dolap Ürünleri</option><option selected>Kuru Gıda</option><option>Genel</option>":"<option>Dolap Ürünleri</option><option>Kuru Gıda</option><option selected>Genel</option>"}</select><input id="editQuantity" value="${p.quantity}"><input id="editExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveInlineEdit()">💾 KAYDET</button><button class="btn-cancel" onclick="showResult(lastScannedProduct)">İPTAL</button></div></div>`; attachProfitWatcher("editCost","editPrice","inlineProfitSpan"); setupSmartPriceInput(document.getElementById("editPrice")); }
+    async function saveInlineEdit(){ if(!lastScannedProduct) return; let idx=products.findIndex(p=>p.barcode===lastScannedProduct.barcode); if(idx!==-1){ products[idx].name=document.getElementById("editName").value.trim().toUpperCase(); products[idx].barcode=document.getElementById("editBarcode").value.trim(); products[idx].price=parseFloat(document.getElementById("editPrice").value); products[idx].cost=parseFloat(document.getElementById("editCost").value)||null; products[idx].category=document.getElementById("editCategory").value; products[idx].quantity=parseInt(document.getElementById("editQuantity").value); products[idx].expiry=document.getElementById("editExpiry").value; await saveProducts(); await updateUI(); showResult(products[idx]); playBeep(); } }
 
-    function showResult(p) { if(!p) return; lastScannedProduct=p; let idx=products.findIndex(pr=>pr.id===p.id); document.getElementById("resultArea").innerHTML=`${p.image?`<img src="${p.image}" class="product-image" onerror="this.src='';">`:'<div>📷 RESİM YOK</div>'}<div class="result-name">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)}</div><div class="result-price">${p.price.toFixed(2)} €</div><div>STOK: ${p.quantity} | SKT: ${p.expiry||"YOK"}</div><div class="profit-indicator">${formatProfitDisplay(p.cost,p.price)}</div><div style="margin-top:10px; display:flex; gap:8px; justify-content:center;"><button class="btn-primary" onclick="showInlineEdit()" style="background:#c0392b; padding:10px;">📝 DÜZENLE</button><button class="btn-primary" onclick="sellProduct(products[${idx}], ${idx})" style="background:#e67e22; padding:10px;">🛒 SATILDI (1 AZALT)</button></div>`; }
-    function showInlineEdit() { if(!lastScannedProduct) return; let p=lastScannedProduct; document.getElementById("resultArea").innerHTML=`<div><input id="editName" value="${escapeHtml(p.name)}" maxlength="35"><input id="editBarcode" value="${p.barcode}"><input id="editPrice" value="${p.price}"><input id="editCost" value="${p.cost||''}"><div id="inlineProfitSpan" class="profit-indicator" style="margin:5px 0;">${formatProfitDisplay(p.cost,p.price)}</div><select id="editCategory">${p.category=="Dolap Ürünleri"?"<option selected>Dolap Ürünleri</option><option>Kuru Gıda</option><option>Genel</option>":p.category=="Kuru Gıda"?"<option>Dolap Ürünleri</option><option selected>Kuru Gıda</option><option>Genel</option>":"<option>Dolap Ürünleri</option><option>Kuru Gıda</option><option selected>Genel</option>"}</select><input id="editQuantity" value="${p.quantity}"><input id="editExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveInlineEdit()">💾 KAYDET</button><button class="btn-cancel" onclick="showResult(lastScannedProduct)">İPTAL</button></div></div>`; attachProfitWatcher("editCost","editPrice","inlineProfitSpan"); setupSmartPriceInput(document.getElementById("editPrice")); }
-    async function saveInlineEdit() { if(!lastScannedProduct) return; let idx=products.findIndex(p=>p.barcode===lastScannedProduct.barcode); if(idx!==-1){ products[idx].name=document.getElementById("editName").value.trim().toUpperCase(); products[idx].barcode=document.getElementById("editBarcode").value.trim(); products[idx].price=parseFloat(document.getElementById("editPrice").value); products[idx].cost=parseFloat(document.getElementById("editCost").value)||null; products[idx].category=document.getElementById("editCategory").value; products[idx].quantity=parseInt(document.getElementById("editQuantity").value); products[idx].expiry=document.getElementById("editExpiry").value; await saveProducts(); await updateUI(); showResult(products[idx]); playBeep(); } }
-
-    // Kamera
-    async function openCameraModal(mode) {
+    // KAMERA
+    async function openCameraModal(mode){
         let modal=document.getElementById("cameraModal"), video=document.getElementById("cameraVideo"), statusDiv=document.getElementById("cameraModalStatus");
         modal.style.display="flex"; statusDiv.innerHTML="📷 BAŞLATILIYOR...";
         try{
@@ -334,7 +306,7 @@
             Quagga.onDetected(data=>{ let code=data.codeResult.code; playBeep(); closeCameraModal(); if(mode==='search'){ let found=products.find(p=>p.barcode===code); if(found) showResult(found); else document.getElementById("resultArea").innerHTML=`<div>❌ "${code}" BULUNAMADI<br><button class="btn-primary" onclick="showAddFormForBarcode('${code}')">➕ EKLE</button></div>`; } else showAddFormForBarcode(code); });
         } catch(e){ statusDiv.innerHTML="❌ KAMERA İZNİ GEREKLİ"; setTimeout(()=>closeCameraModal(),2000); }
     }
-    function closeCameraModal() { if(quaggaActive){ Quagga.stop(); quaggaActive=false; } if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; } document.getElementById("cameraModal").style.display="none"; }
+    function closeCameraModal(){ if(quaggaActive){ Quagga.stop(); quaggaActive=false; } if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; } document.getElementById("cameraModal").style.display="none"; }
 
     function showAddFormForBarcode(barcode){
         let container=document.getElementById("addFormContainer");
@@ -358,27 +330,14 @@
     }
     function closeAddForm(){ document.getElementById("addFormContainer").classList.add("hidden"); document.getElementById("addFormContainer").innerHTML=""; tempImageData=null; }
 
-    // Modal kontrolleri
+    // Modal aç/kapa
     function openInventoryModal(){ document.getElementById("inventoryModal").style.display="flex"; let inp=document.getElementById("inventorySearchInput"); if(inp){ inp.value=""; inp.oninput=()=>renderInventoryList(); } renderInventoryList(); }
     function closeInventoryModal(){ document.getElementById("inventoryModal").style.display="none"; }
-    function openProductDetailModal(index){
-        let p=products[index]; currentEditingProductId=index;
+    function openProductDetailModal(idx){
+        let p=products[idx]; currentEditingProductId=idx;
         let color=getProductColorClass(p);
         let modal=document.getElementById("productDetailModal"), content=document.getElementById("productDetailContent");
-        content.innerHTML=`
-            <div class="modal-header"><span class="modal-title">📄 ÜRÜN DETAYI</span><button class="close-modal-btn" onclick="closeProductDetailModal()">✖ KAPAT</button></div>
-            <div class="product-detail-card ${color}">
-                ${p.image?`<img src="${p.image}" class="detail-image" onerror="this.src='';">`:'<div>📷 RESİM YOK</div>'}
-                <div><strong>${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<br>Barkod: ${p.barcode}<br>Fiyat: ${p.price.toFixed(2)} €<br>Stok: ${p.quantity}<br>SKT: ${p.expiry||"YOK"}<br><span class="profit-indicator">${formatProfitDisplay(p.cost,p.price)}</span></div>
-                <div class="detail-actions">
-                    <div class="button-row"><button onclick="toggleEditMode()" style="background:#f39c12;">✏️ DÜZENLE</button><button onclick="deleteCurrentProduct()" style="background:#c0392b;">🗑️ SİL</button></div>
-                    <div class="button-row"><button onclick="sellProduct(products[${index}], ${index})" style="background:#e67e22;">🛒 SATILDI (1 AZALT)</button><button onclick="addImageToCurrentProduct('gallery')">🖼️ GALERİ</button></div>
-                    <div class="button-row"><button onclick="addImageToCurrentProduct('camera')">📷 KAMERA</button><button onclick="openGoogleSearchForCurrent()">🔍 İNTERNET</button></div>
-                    <button class="full-width-btn" onclick="addToPrintQueue(products[${index}])">➕ ETİKET LİSTESİNE EKLE</button>
-                </div>
-                <div id="editFields" style="display:none; margin-top:10px;"></div>
-            </div>
-        `;
+        content.innerHTML=`<div class="modal-header"><span class="modal-title">📄 ÜRÜN DETAYI</span><button class="close-modal-btn" onclick="closeProductDetailModal()">✖ KAPAT</button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.src='';">`:'<div>📷 RESİM YOK</div>'}<div><strong>${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<br>Barkod: ${p.barcode}<br>Fiyat: ${p.price.toFixed(2)} €<br>Stok: ${p.quantity}<br>SKT: ${p.expiry||"YOK"}<br><span class="profit-indicator">${formatProfitDisplay(p.cost,p.price)}</span></div><div class="detail-actions"><div class="button-row"><button onclick="toggleEditMode()" style="background:#f39c12;">✏️ DÜZENLE</button><button onclick="deleteCurrentProduct()" style="background:#c0392b;">🗑️ SİL</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}], ${idx})" style="background:#e67e22;">🛒 SATILDI (1 AZALT)</button><button onclick="addImageToCurrentProduct('gallery')">🖼️ GALERİ</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')">📷 KAMERA</button><button onclick="openGoogleSearchForCurrent()">🔍 İNTERNET</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])">➕ ETİKET LİSTESİNE EKLE</button></div><div id="editFields" style="display:none; margin-top:10px;"></div></div>`;
         modal.style.display="flex";
     }
     function closeProductDetailModal(){ document.getElementById("productDetailModal").style.display="none"; currentEditingProductId=null; }
@@ -419,6 +378,8 @@
         input.click();
     }
     function openGoogleSearchForCurrent(){ let name=products[currentEditingProductId].name; if(!name) return; window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank'); showToast("Google Görsel araması yeni sekmede açıldı."); }
+
+    // Uyarı modal
     function openUrgentModal(){
         let today=new Date(); let urgent=products.filter(p=>p.expiry && Math.ceil((new Date(p.expiry)-today)/86400000)<=7 && Math.ceil((new Date(p.expiry)-today)/86400000)>=0);
         let container=document.getElementById("urgentProductList");
@@ -435,6 +396,8 @@
         modal.style.display="flex";
     }
     function closeSktModal(){ document.getElementById("sktModal").style.display="none"; }
+
+    // Rapor
     function exportToCSV(){
         let rows=[["Ad","Barkod","Fiyat (€)","Stok","Maliyet (€)","Kar (€)","Kar Marjı (%)","SKT","Kategori"]];
         for(let p of products){ let profit=(p.cost && p.cost>0)?(p.price-p.cost):0; let margin=(p.cost && p.cost>0 && p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0"; rows.push([`"${p.name}"`,p.barcode,p.price,p.quantity,p.cost||0,profit.toFixed(2),margin,p.expiry||"",p.category]); }
@@ -443,7 +406,7 @@
     function printReport(){
         let html=`<table border="1" style="border-collapse:collapse; width:100%;"><thead><tr><th>Ad</th><th>Barkod</th><th>Fiyat (€)</th><th>Stok</th><th>Maliyet (€)</th><th>Kar (€)</th><th>Kar %</th><th>SKT</th><th>Kategori</th></tr></thead><tbody>`;
         for(let p of products){ let profit=(p.cost && p.cost>0)?(p.price-p.cost):0; let margin=(p.cost && p.cost>0 && p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0"; html+=`<tr><td style="border:1px solid #ddd; padding:4px;">${escapeHtml(p.name)}</td><td>${p.barcode}</td><td>${p.price.toFixed(2)}</td><td>${p.quantity}</td><td>${p.cost?p.cost.toFixed(2):'0'}</td><td>${profit.toFixed(2)}</td><td>${margin}%</td><td>${p.expiry||''}</td><td>${p.category}</td></tr>`; }
-        html+=`</tbody></table>`; document.getElementById("printTableContainer").innerHTML=html; document.getElementById("printModal").style.display="flex";
+        html+=`</tbody></tr>`; document.getElementById("printTableContainer").innerHTML=html; document.getElementById("printModal").style.display="flex";
     }
     function closePrintModal(){ document.getElementById("printModal").style.display="none"; }
     function openSettingsModal(){ document.getElementById("settingsModal").style.display="flex"; }
@@ -462,13 +425,13 @@
     function playBeep(){ try{ let ctx=new (window.AudioContext||window.webkitAudioContext)(); let o=ctx.createOscillator(); o.frequency.value=880; let g=ctx.createGain(); g.gain.value=0.1; o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.1); ctx.resume(); } catch(e){} }
     function escapeHtml(s){ if(!s) return ''; return s.replace(/[&<>]/g, m=> m==='&'?'&amp;': m==='<'?'&lt;': m==='>'?'&gt;': m); }
 
-    // Arama modalı (kapatma butonlu ve dışarı tıklamayla kapanan)
+    // ARAMA MODALI
     let searchModalDiv=null;
     function createSearchModal(){
         if(document.getElementById("dynamicSearchModal")) return;
-        let modalDiv=document.createElement("div"); modalDiv.id="dynamicSearchModal"; modalDiv.className="modal";
-        modalDiv.innerHTML=`<div class="modal-content" style="max-width:400px;"><div class="modal-header"><span class="modal-title">🔍 ÜRÜN ARA</span><button class="close-modal-btn" onclick="closeSearchModal()" style="color:white;">✖ KAPAT</button></div><input type="text" id="searchInputModal" placeholder="Ürün adı veya barkod..." autocomplete="off" autofocus><div id="searchResultsModal" style="margin-top:12px; max-height:300px; overflow-y:auto;"></div></div>`;
-        document.body.appendChild(modalDiv);
+        let m=document.createElement("div"); m.id="dynamicSearchModal"; m.className="modal";
+        m.innerHTML=`<div class="modal-content" style="max-width:400px;"><div class="modal-header"><span class="modal-title">🔍 ÜRÜN ARA</span><button class="close-modal-btn" onclick="closeSearchModal()" style="color:white;">✖ KAPAT</button></div><input type="text" id="searchInputModal" placeholder="Ürün adı veya barkod..." autocomplete="off" autofocus><div id="searchResultsModal" style="margin-top:12px; max-height:300px; overflow-y:auto;"></div></div>`;
+        document.body.appendChild(m);
         let inp=document.getElementById("searchInputModal");
         inp.addEventListener("input", function(){
             let term=this.value.trim().toLowerCase();
@@ -480,15 +443,14 @@
             filtered.forEach(p=>{ html+=`<div style="background:#3a3a3a; border-radius:28px; padding:10px; margin-bottom:8px; cursor:pointer;" onclick="selectProductFromSearchModal('${p.barcode}')"><strong>${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<br><span style="font-size:12px;">${p.price.toFixed(2)} € | Stok: ${p.quantity}</span></div>`; });
             resultsDiv.innerHTML=html;
         });
-        // Dışarı tıklayınca kapanma
-        modalDiv.addEventListener("click", function(e){ if(e.target===modalDiv) closeSearchModal(); });
+        m.addEventListener("click", function(e){ if(e.target===m) closeSearchModal(); });
     }
     function openSearchModal(){ createSearchModal(); document.getElementById("dynamicSearchModal").style.display="flex"; document.getElementById("searchInputModal").value=""; document.getElementById("searchResultsModal").innerHTML=""; document.getElementById("searchInputModal").focus(); }
     function closeSearchModal(){ let m=document.getElementById("dynamicSearchModal"); if(m) m.style.display="none"; }
-    function selectProductFromSearchModal(barcode){ let p=products.find(p=>p.barcode===barcode); if(p) openProductDetailModal(products.findIndex(p=>p.barcode===barcode)); closeSearchModal(); }
+    function selectProductFromSearchModal(barcode){ let p=products.find(p=>p.barcode===barcode); if(p) openProductDetailModal(products.findIndex(pr=>pr.id===p.id)); closeSearchModal(); }
 
-    // Etiket baskı
-    function addToPrintQueue(product){ printQueue.push(product); savePrintQueue(); showToast(`${product.name} etiket listesine eklendi. (Toplam: ${printQueue.length})`); }
+    // ETİKET BASKI
+    function addToPrintQueue(product){ if(!product) return; printQueue.push(product); savePrintQueue(); showToast(`${product.name} etiket listesine eklendi. (Toplam: ${printQueue.length})`); }
     function managePrintQueue(){
         let container=document.getElementById("queueListContainer");
         if(printQueue.length===0) container.innerHTML="<div style='text-align:center;padding:20px;'>Listede ürün yok.</div>";
@@ -506,7 +468,7 @@
             let div=document.createElement("div"); div.className="label-card";
             div.innerHTML=`<div class="label-row"><div class="label-image">${p.image?`<img src="${p.image}" onerror="this.src='';">`:'<div class="no-img">📷 RESİM YOK</div>'}</div><div class="label-info"><div class="label-title" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</div><div class="label-price">${intP}<small>,${decStr} €</small></div></div></div><div class="barcode-section"><svg class="barcode-svg" id="preview-barcode-${idx}"></svg></div>`;
             container.appendChild(div);
-            JsBarcode(`#preview-barcode-${idx}`, p.barcode, {format:"CODE128", width:1.6, height:24, displayValue:true, fontSize:9, fontOptions:"bold", margin:0, textMargin:1});
+            JsBarcode(`#preview-barcode-${idx}`, p.barcode, {format:"CODE128", width:1.5, height:22, displayValue:true, fontSize:8, fontOptions:"bold", margin:0, textMargin:1});
         });
         document.getElementById("previewModal").style.display="flex";
     }
@@ -517,7 +479,7 @@
             let intP=Math.floor(p.price), dec=Math.round((p.price-intP)*100), decStr=dec<10?'0'+dec:dec.toString();
             labelsHtml+=`<div class="label-card"><div class="label-row"><div class="label-image">${p.image?`<img src="${p.image}" onerror="this.src='';">`:'<div class="no-img">📷 RESİM YOK</div>'}</div><div class="label-info"><div class="label-title">${escapeHtml(p.name)}</div><div class="label-price">${intP}<small>,${decStr} €</small></div></div></div><div class="barcode-section"><svg class="barcode-svg" id="barcode-${idx}"></svg></div></div>`;
         });
-        w.document.write(`<html><head><style>@page{size:A4;margin:0.6cm}body{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#fff}.label-card{width:8.5cm;height:4.0cm;border:2px solid #000;padding:4px;display:flex;flex-direction:column;justify-content:space-between;background:white;page-break-inside:avoid}.label-row{display:flex;gap:6px;flex:1}.label-image{width:32%;display:flex;align-items:center;justify-content:center;background:#f8f8f8;border-radius:4px}.label-image img{max-width:100%;max-height:2.8cm;object-fit:contain}.label-info{width:68%;display:flex;flex-direction:column;justify-content:space-between;min-width:0}.label-title{font-family:'Arial Black',Impact,sans-serif;font-size:11pt;font-weight:900;text-transform:uppercase;-webkit-text-stroke:0.7px #000;text-shadow:0.4px 0.4px 0px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.label-price{font-family:'Arial Black',Impact,sans-serif;font-size:28pt;font-weight:1000;letter-spacing:-1px;transform:scaleX(1.05);text-align:right;white-space:nowrap}.label-price small{font-size:12pt;vertical-align:super}.barcode-section{text-align:center;margin-top:2px;border-top:1px dashed #ccc;padding-top:2px}.barcode-svg{width:100%;height:24px}.barcode-svg text{font-weight:900!important;font-size:9px!important}</style></head><body>${labelsHtml}<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script><script>${printQueue.map((p,i)=>`JsBarcode("#barcode-${i}","${p.barcode}",{format:"CODE128",width:1.6,height:24,displayValue:true,fontSize:9,fontOptions:"bold",margin:0,textMargin:1});`).join('')}window.onload=()=>{setTimeout(()=>{window.print();window.close();},500)};<\/script></body></html>`);
+        w.document.write(`<html><head><style>@page{size:A4;margin:0.5cm}body{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;background:#fff}.label-card{width:8.5cm;height:4.0cm;border:2px solid #000;padding:3px;display:flex;flex-direction:column;justify-content:space-between;background:white;page-break-inside:avoid;overflow:hidden}.label-row{display:flex;gap:5px;flex:1}.label-image{width:32%;display:flex;align-items:center;justify-content:center;background:#f8f8f8;border-radius:4px}.label-image img{max-width:100%;max-height:2.8cm;object-fit:contain}.label-info{width:68%;display:flex;flex-direction:column;justify-content:space-between;min-width:0}.label-title{font-family:'Arial Black',Impact,sans-serif;font-size:9pt;font-weight:900;text-transform:uppercase;-webkit-text-stroke:0.5px #000;text-shadow:0.2px 0.2px 0px #000;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.2}.label-price{font-family:'Arial Black',Impact,sans-serif;font-size:22pt;font-weight:1000;letter-spacing:-0.5px;transform:scaleX(1.03);text-align:right;white-space:nowrap}.label-price small{font-size:10pt;vertical-align:super}.barcode-section{text-align:center;margin-top:1px;border-top:1px dashed #ccc;padding-top:2px}.barcode-svg{width:100%;height:20px}.barcode-svg text{font-weight:900!important;font-size:7px!important}</style></head><body>${labelsHtml}<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script><script>${printQueue.map((p,i)=>`JsBarcode("#barcode-${i}","${p.barcode}",{format:"CODE128",width:1.5,height:20,displayValue:true,fontSize:7,fontOptions:"bold",margin:0,textMargin:1});`).join('')}window.onload=()=>{setTimeout(()=>{window.print();window.close();},500)};<\/script></body></html>`);
         closePreviewModal(); printQueue=[]; savePrintQueue();
     }
     function closePreviewModal(){ document.getElementById("previewModal").style.display="none"; document.getElementById("previewContainer").innerHTML=""; }
@@ -529,7 +491,6 @@
             a.href = URL.createObjectURL(new Blob([JSON.stringify(products)]));
             a.download = `otomatik_yedek_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.json`;
             a.click();
-            // Bekleme olmadan hemen indir, tarayıcı izin verir
         }
     });
 
