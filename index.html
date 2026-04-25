@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>MARKET PRO 10.4 - ETİKET YÖNETİMİ & KALIN YAZI</title>
+    <title>MARKET PRO 10.5 - ALTIN VURUŞ, KÜSURAT KÜÇÜK</title>
     <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
@@ -62,7 +62,7 @@
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
         
-        /* ========= ULTRA KALIN ETİKET ========= */
+        /* ========= ULTRA KALIN ETİKET - KÜSURAT KÜÇÜK ========= */
         .preview-container { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-height: 65vh; overflow-y: auto; padding: 8px; }
         .label-card {
             width: 8.5cm;
@@ -101,14 +101,20 @@
             font-size: 26pt;
             font-weight: 1000;
             letter-spacing: -1px;
-            transform: scaleX(1.12);
+            transform: scaleX(1.08);
             transform-origin: right;
             -webkit-text-stroke: 1.2px #000;
-            text-shadow: 0.8px 0.8px 0px #000, -0.8px -0.8px 0px #000;
+            text-shadow: 0.6px 0.6px 0px #000, -0.6px -0.6px 0px #000;
             text-align: right;
             white-space: nowrap;
             margin-top: 4px;
             color: #000;
+        }
+        /* Küsürat (virgülden sonrası) 1 tik küçük - aynı kalınlık ve renk */
+        .label-price .cents {
+            font-size: 20pt;
+            letter-spacing: -0.5px;
+            display: inline-block;
         }
         .barcode-section { text-align: center; margin-top: 2px; border-top: 1px dashed #ccc; padding-top: 2px; }
         .barcode-svg { width: 100%; height: 22px; }
@@ -134,7 +140,7 @@
 </div>
 <div id="toast-container"></div>
 
-<!-- Modaller -->
+<!-- Modaller (aynı) -->
 <div id="cameraModal" class="modal" style="justify-content:center; align-items:center; flex-direction:column;"><div style="width:90%; max-width:500px; background:#000; border-radius:40px; overflow:hidden;"><video id="cameraVideo" autoplay muted playsinline style="width:100%;"></video></div><button id="closeCameraModalBtn" style="background:#c0392b; margin-top:20px; padding:12px 25px; border-radius:40px;">✖ KAPAT</button><div id="cameraModalStatus" style="color:#ffaa88; margin-top:12px;">📷 KAMERA BAŞLATILIYOR...</div></div>
 <div id="inventoryModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">📦 ENVANTER</span><button class="close-modal-btn" onclick="closeInventoryModal()">✖ KAPAT</button></div><div class="inventory-search"><input type="text" id="inventorySearchInput" placeholder="🔍 Ürün adı veya barkod ile filtrele..." autocomplete="off"></div><div id="modalProductList" class="product-list-simple"></div></div></div>
 <div id="productDetailModal" class="modal"><div class="modal-content" id="productDetailContent"></div></div>
@@ -217,7 +223,7 @@
         container.innerHTML=html;
     }
 
-    // ETİKET LİSTESİ YÖNETİMİ (çalışan versiyon)
+    // ETİKET LİSTESİ YÖNETİMİ
     function managePrintQueue() {
         let container = document.getElementById("queueListContainer");
         if (printQueue.length === 0) {
@@ -237,7 +243,7 @@
     function removeFromQueue(idx) {
         printQueue.splice(idx, 1);
         savePrintQueue();
-        managePrintQueue();  // Listeyi yenile
+        managePrintQueue();
         showToast("Ürün etiket listesinden çıkarıldı.");
     }
     function clearPrintQueue() {
@@ -296,7 +302,7 @@
     async function compressAllImages(){ let cnt=0; for(let p of products){ if(p.image && p.image.length>60000){ p.image=await compressImage(p.image); cnt++; } } if(cnt) await saveProducts(); showToast(cnt?`${cnt} resim sıkıştırıldı`:"Sıkıştırılacak resim yok"); }
 
     // INDEXEDDB
-    function initDB(){ return new Promise((res,rej)=>{ let req=indexedDB.open("MarketProIDB",31); req.onerror=rej; req.onsuccess=e=>{ db=e.target.result; res(); }; req.onupgradeneeded=e=>{ let d=e.target.result; if(!d.objectStoreNames.contains("products")) d.createObjectStore("products",{keyPath:"id",autoIncrement:true}); if(!d.objectStoreNames.contains("backups")) d.createObjectStore("backups",{keyPath:"timestamp"}); if(!d.objectStoreNames.contains("printQueue")) d.createObjectStore("printQueue",{keyPath:"id"}); }; }); }
+    function initDB(){ return new Promise((res,rej)=>{ let req=indexedDB.open("MarketProIDB",32); req.onerror=rej; req.onsuccess=e=>{ db=e.target.result; res(); }; req.onupgradeneeded=e=>{ let d=e.target.result; if(!d.objectStoreNames.contains("products")) d.createObjectStore("products",{keyPath:"id",autoIncrement:true}); if(!d.objectStoreNames.contains("backups")) d.createObjectStore("backups",{keyPath:"timestamp"}); if(!d.objectStoreNames.contains("printQueue")) d.createObjectStore("printQueue",{keyPath:"id"}); }; }); }
     async function loadProducts(){ return new Promise(r=>{ db.transaction("products","readonly").objectStore("products").getAll().onsuccess=e=>{ products=e.target.result||[]; for(let p of products) if(!p.category) p.category="Genel"; r(); }; }); }
     async function saveProducts(backup=true){ return new Promise((res,rej)=>{ let tx=db.transaction("products","readwrite"); let store=tx.objectStore("products"); store.clear(); for(let p of products) store.add(p); tx.oncomplete=async()=>{ if(backup) await createBackup(); res(); }; tx.onerror=rej; }); }
     async function createBackup(){ if(!db) return; let tx=db.transaction("backups","readwrite"); let store=tx.objectStore("backups"); let all=await new Promise(r=>store.getAll().onsuccess=e=>r(e.target.result)); let backs=all||[]; backs.push({timestamp:Date.now(), data:JSON.parse(JSON.stringify(products))}); backs.sort((a,b)=>a.timestamp-b.timestamp); if(backs.length>5) backs.splice(0,backs.length-5); store.clear(); for(let b of backs) store.add(b); }
@@ -418,8 +424,8 @@
         let csv=rows.map(r=>r.join(",")).join("\n"); let blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}); let a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="envanter_raporu.csv"; a.click(); URL.revokeObjectURL(a.href); showToast("Rapor CSV indirildi.");
     }
     function printReport(){
-        let html=`<table border="1" style="border-collapse:collapse; width:100%;"><thead><tr><th>Ad</th><th>Barkod</th><th>Fiyat (€)</th><th>Stok</th><th>Maliyet (€)</th><th>Kar (€)</th><th>Kar %</th><th>SKT</th><th>Kategori</th></tr></thead><tbody>`;
-        for(let p of products){ let profit=(p.cost && p.cost>0)?(p.price-p.cost):0; let margin=(p.cost && p.cost>0 && p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0"; html+=`<tr><td style="border:1px solid #ddd; padding:4px;">${escapeHtml(p.name)}</td><td>${p.barcode}</td><td>${p.price.toFixed(2)}</td><td>${p.quantity}</td><td>${p.cost?p.cost.toFixed(2):'0'}</td><td>${profit.toFixed(2)}</td><td>${margin}%</td><td>${p.expiry||''}</td><td>${p.category}</td>`; }
+        let html=`<table border="1" style="border-collapse:collapse; width:100%;"><thead><tr><th>Ad</th><th>Barkod</th><th>Fiyat (€)</th><th>Stok</th><th>Maliyet (€)</th><th>Kar (€)</th><th>Kar %</th><th>SKT</th><th>Kategori</th>｜DSML｜</thead><tbody>`;
+        for(let p of products){ let profit=(p.cost && p.cost>0)?(p.price-p.cost):0; let margin=(p.cost && p.cost>0 && p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0"; html+=`<tr><td style="border:1px solid #ddd; padding:4px;">${escapeHtml(p.name)}</td><td style="border:1px solid #ddd; padding:4px;">${p.barcode}</td><td style="border:1px solid #ddd; padding:4px;">${p.price.toFixed(2)}</td><td style="border:1px solid #ddd; padding:4px;">${p.quantity}</td><td style="border:1px solid #ddd; padding:4px;">${p.cost?p.cost.toFixed(2):'0'}</td><td style="border:1px solid #ddd; padding:4px;">${profit.toFixed(2)}</td><td style="border:1px solid #ddd; padding:4px;">${margin}%</td><td style="border:1px solid #ddd; padding:4px;">${p.expiry||''}</td><td style="border:1px solid #ddd; padding:4px;">${p.category}</td></tr>`; }
         html+=`</tbody></table>`; document.getElementById("printTableContainer").innerHTML=html; document.getElementById("printModal").style.display="flex";
     }
     function closePrintModal(){ document.getElementById("printModal").style.display="none"; }
@@ -463,15 +469,18 @@
     function closeSearchModal(){ let m=document.getElementById("dynamicSearchModal"); if(m) m.style.display="none"; }
     function selectProductFromSearchModal(barcode){ let p=products.find(p=>p.barcode===barcode); if(p) openProductDetailModal(products.findIndex(pr=>pr.id===p.id)); closeSearchModal(); }
 
-    // ETİKET BASKI
+    // ETİKET BASKI - FİYAT KISMI KÜSURAT KÜÇÜK
     function addToPrintQueue(product){ if(!product) return; printQueue.push(product); savePrintQueue(); showToast(`${product.name} etiket listesine eklendi. (Toplam: ${printQueue.length})`); }
     function previewLabels(){
         if(printQueue.length===0){ showToast("Önce ürün ekleyin!"); return; }
         let container=document.getElementById("previewContainer"); container.innerHTML="";
         printQueue.forEach((p,idx)=>{
-            let priceStr = p.price.toFixed(2).replace('.', ',');
+            let priceValue = p.price;
+            let integerPart = Math.floor(priceValue);
+            let fractionalPart = Math.round((priceValue - integerPart) * 100);
+            let fractionalStr = fractionalPart < 10 ? '0' + fractionalPart : fractionalPart.toString();
             let div=document.createElement("div"); div.className="label-card";
-            div.innerHTML=`<div class="label-row"><div class="label-image">${p.image?`<img src="${p.image}" onerror="this.src='';">`:'<div class="no-img">📷 RESİM YOK</div>'}</div><div class="label-info"><div class="label-title" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</div><div class="label-price">${priceStr} €</div></div></div><div class="barcode-section"><svg class="barcode-svg" id="preview-barcode-${idx}"></svg></div>`;
+            div.innerHTML=`<div class="label-row"><div class="label-image">${p.image?`<img src="${p.image}" onerror="this.src='';">`:'<div class="no-img">📷 RESİM YOK</div>'}</div><div class="label-info"><div class="label-title" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</div><div class="label-price">${integerPart}<span class="cents">,${fractionalStr}</span> €</div></div></div><div class="barcode-section"><svg class="barcode-svg" id="preview-barcode-${idx}"></svg></div>`;
             container.appendChild(div);
             JsBarcode(`#preview-barcode-${idx}`, p.barcode, {format:"CODE128", width:1.5, height:22, displayValue:true, fontSize:8, fontOptions:"bold", margin:0, textMargin:1});
         });
@@ -481,15 +490,17 @@
         if(printQueue.length===0) return;
         let w=window.open('','_blank'); let labelsHtml="";
         printQueue.forEach((p,idx)=>{
-            let priceStr = p.price.toFixed(2).replace('.', ',');
-            labelsHtml+=`<div class="label-card"><div class="label-row"><div class="label-image">${p.image?`<img src="${p.image}" onerror="this.src='';">`:'<div class="no-img">📷 RESİM YOK</div>'}</div><div class="label-info"><div class="label-title">${escapeHtml(p.name)}</div><div class="label-price">${priceStr} €</div></div></div><div class="barcode-section"><svg class="barcode-svg" id="barcode-${idx}"></svg></div></div>`;
+            let priceValue = p.price;
+            let integerPart = Math.floor(priceValue);
+            let fractionalPart = Math.round((priceValue - integerPart) * 100);
+            let fractionalStr = fractionalPart < 10 ? '0' + fractionalPart : fractionalPart.toString();
+            labelsHtml+=`<div class="label-card"><div class="label-row"><div class="label-image">${p.image?`<img src="${p.image}" onerror="this.src='';">`:'<div class="no-img">📷 RESİM YOK</div>'}</div><div class="label-info"><div class="label-title">${escapeHtml(p.name)}</div><div class="label-price">${integerPart}<span class="cents">,${fractionalStr}</span> €</div></div></div><div class="barcode-section"><svg class="barcode-svg" id="barcode-${idx}"></svg></div></div>`;
         });
-        w.document.write(`<html><head><style>@page{size:A4;margin:0.5cm}body{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;background:#fff}.label-card{width:8.5cm;height:4.0cm;border:2px solid #000;padding:3px;display:flex;flex-direction:column;justify-content:space-between;background:white;page-break-inside:avoid;overflow:hidden}.label-row{display:flex;gap:5px;flex:1}.label-image{width:32%;display:flex;align-items:center;justify-content:center;background:#f8f8f8;border-radius:4px}.label-image img{max-width:100%;max-height:2.8cm;object-fit:contain}.label-info{width:68%;display:flex;flex-direction:column;justify-content:space-between;min-width:0}.label-title{font-family:'Arial Black',Impact,sans-serif;font-size:10pt;font-weight:900;text-transform:uppercase;-webkit-text-stroke:0.7px #000;text-shadow:0.4px 0.4px 0px #000;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.2}.label-price{font-family:'Arial Black',Impact,sans-serif;font-size:24pt;font-weight:1000;letter-spacing:-1px;transform:scaleX(1.1);-webkit-text-stroke:1.2px #000;text-shadow:0.6px 0.6px 0px #000;text-align:right;white-space:nowrap}.barcode-section{text-align:center;margin-top:2px;border-top:1px dashed #ccc;padding-top:2px}.barcode-svg{width:100%;height:20px}.barcode-svg text{font-weight:900!important;font-size:7px!important}</style></head><body>${labelsHtml}<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script><script>${printQueue.map((p,i)=>`JsBarcode("#barcode-${i}","${p.barcode}",{format:"CODE128",width:1.5,height:20,displayValue:true,fontSize:7,fontOptions:"bold",margin:0,textMargin:1});`).join('')}window.onload=()=>{setTimeout(()=>{window.print();window.close();},500)};<\/script></body></html>`);
+        w.document.write(`<html><head><style>@page{size:A4;margin:0.5cm}body{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;background:#fff}.label-card{width:8.5cm;height:4.0cm;border:2px solid #000;padding:3px;display:flex;flex-direction:column;justify-content:space-between;background:white;page-break-inside:avoid;overflow:hidden}.label-row{display:flex;gap:5px;flex:1}.label-image{width:32%;display:flex;align-items:center;justify-content:center;background:#f8f8f8;border-radius:4px}.label-image img{max-width:100%;max-height:2.8cm;object-fit:contain}.label-info{width:68%;display:flex;flex-direction:column;justify-content:space-between;min-width:0}.label-title{font-family:'Arial Black',Impact,sans-serif;font-size:10pt;font-weight:900;text-transform:uppercase;-webkit-text-stroke:0.7px #000;text-shadow:0.4px 0.4px 0px #000;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.2}.label-price{font-family:'Arial Black',Impact,sans-serif;font-size:24pt;font-weight:1000;letter-spacing:-1px;transform:scaleX(1.1);-webkit-text-stroke:1.2px #000;text-shadow:0.6px 0.6px 0px #000;text-align:right;white-space:nowrap}.label-price .cents{font-size:18pt;display:inline-block}.barcode-section{text-align:center;margin-top:2px;border-top:1px dashed #ccc;padding-top:2px}.barcode-svg{width:100%;height:20px}.barcode-svg text{font-weight:900!important;font-size:7px!important}</style></head><body>${labelsHtml}<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script><script>${printQueue.map((p,i)=>`JsBarcode("#barcode-${i}","${p.barcode}",{format:"CODE128",width:1.5,height:20,displayValue:true,fontSize:7,fontOptions:"bold",margin:0,textMargin:1});`).join('')}window.onload=()=>{setTimeout(()=>{window.print();window.close();},500)};<\/script></body></html>`);
         closePreviewModal(); printQueue=[]; savePrintQueue();
     }
     function closePreviewModal(){ document.getElementById("previewModal").style.display="none"; document.getElementById("previewContainer").innerHTML=""; }
 
-    // Sayfa kapanırken otomatik yedek
     window.addEventListener("beforeunload", function (e) {
         if (products.length > 0) {
             const a = document.createElement("a");
@@ -499,7 +510,6 @@
         }
     });
 
-    // Event listener
     document.getElementById("searchBtn").onclick = () => openCameraModal('search');
     document.getElementById("addBtn").onclick = () => openCameraModal('add');
     document.getElementById("manualAddBtn").onclick = openManualAddModal;
