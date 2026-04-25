@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>MARKET PRO 9.0 - SON DÜZELTMELER</title>
+    <title>MARKET PRO 9.1 - ÇIKIŞ BUTONU & ETİKET DÜZELTMESİ</title>
     <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
@@ -68,8 +68,8 @@
         .label-image img { max-width: 100%; max-height: 2.8cm; object-fit: contain; }
         .label-info { width: 68%; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
         .label-title { font-family: 'Arial Black', Impact, sans-serif; font-size: 11pt; font-weight: 900; text-transform: uppercase; -webkit-text-stroke: 0.7px #000; text-shadow: 0.4px 0.4px 0px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .label-category { font-family: 'Arial Black', sans-serif; font-size: 7pt; font-weight: 800; -webkit-text-stroke: 0.3px #000; }
-        .label-price { font-family: 'Arial Black', Impact, sans-serif; font-size: 28pt; font-weight: 1000; letter-spacing: -1px; transform: scaleX(1.05); text-align: right; white-space: nowrap; }
+        /* Kategori kaldırıldı */
+        .label-price { font-family: 'Arial Black', Impact, sans-serif; font-size: 28pt; font-weight: 1000; letter-spacing: -1px; transform: scaleX(1.05); text-align: right; white-space: nowrap; margin-top: 4px; }
         .label-price small { font-size: 12pt; vertical-align: super; }
         .barcode-section { text-align: center; margin-top: 2px; border-top: 1px dashed #ccc; padding-top: 2px; }
         .barcode-svg { width: 100%; height: 24px; }
@@ -144,7 +144,7 @@
         });
     }
 
-    // ---- PRINTQUEUE KALICI (IndexedDB) ----
+    // ---- PRINTQUEUE KALICI ----
     async function savePrintQueue() {
         if (!db) return;
         const tx = db.transaction(["printQueue"], "readwrite");
@@ -152,7 +152,6 @@
         store.clear();
         store.add({ id: "current", data: printQueue });
     }
-
     async function loadPrintQueue() {
         if (!db) return;
         const tx = db.transaction(["printQueue"], "readonly");
@@ -219,7 +218,9 @@
         container.innerHTML = html;
     }
 
+    // Envanterdeki etiket butonu için doğrudan çağrılan fonksiyon
     function addToPrintQueueFromList(product) {
+        if (!product) return;
         printQueue.push(product);
         savePrintQueue();
         showToast(`${product.name} etiket listesine eklendi. (Toplam: ${printQueue.length})`);
@@ -326,7 +327,7 @@
     // ---- INDEXEDDB ----
     function initDB() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open("MarketProIDB", 26);
+            const request = indexedDB.open("MarketProIDB", 27);
             request.onerror = reject;
             request.onsuccess = e => { db = e.target.result; resolve(); };
             request.onupgradeneeded = e => {
@@ -713,9 +714,9 @@
         for (let p of products) {
             const profit = (p.cost && p.cost>0) ? (p.price - p.cost) : 0;
             const margin = (p.cost && p.cost>0 && p.price>0) ? ((p.price - p.cost)/p.price*100).toFixed(1) : "0";
-            html += `<tr><td style="border:1px solid #ddd; padding:4px;">${escapeHtml(p.name)}</td><td>${p.barcode}</td><td>${p.price.toFixed(2)}</td><td>${p.quantity}</td><td>${p.cost?p.cost.toFixed(2):'0'}</td><td>${profit.toFixed(2)}</td><td>${margin}%</td><td>${p.expiry||''}</td><td>${p.category}</td></tr>`;
+            html += `<tr><td style="border:1px solid #ddd; padding:4px;">${escapeHtml(p.name)}</td><td style="border:1px solid #ddd; padding:4px;">${p.barcode}</td><td style="border:1px solid #ddd; padding:4px;">${p.price.toFixed(2)}</td><td style="border:1px solid #ddd; padding:4px;">${p.quantity}</td><td style="border:1px solid #ddd; padding:4px;">${p.cost?p.cost.toFixed(2):'0'}</td><td style="border:1px solid #ddd; padding:4px;">${profit.toFixed(2)}</td><td style="border:1px solid #ddd; padding:4px;">${margin}%</td><td style="border:1px solid #ddd; padding:4px;">${p.expiry||''}</td><td style="border:1px solid #ddd; padding:4px;">${p.category}</td></tr>`;
         }
-        html += `</tbody></td>`;
+        html += `</tbody></table>`;
         document.getElementById("printTableContainer").innerHTML = html;
         document.getElementById("printModal").style.display = "flex";
     }
@@ -859,7 +860,7 @@
         closeSearchModal();
     }
 
-    // ---- ETİKET BASKI ----
+    // ---- ETİKET BASKI (KATEGORİSİZ) ----
     function addToPrintQueue(product) {
         printQueue.push(product);
         savePrintQueue();
@@ -897,7 +898,6 @@
                     <div class="label-image">${p.image ? `<img src="${p.image}" onerror="this.src='';">` : '<div class="no-img">📷 RESİM YOK</div>'}</div>
                     <div class="label-info">
                         <div class="label-title" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</div>
-                        <div class="label-category">${p.category || 'GENEL'}</div>
                         <div class="label-price">${priceInt}<small>,${priceDecimalStr} €</small></div>
                     </div>
                 </div>
@@ -923,7 +923,6 @@
                         <div class="label-image">${p.image ? `<img src="${p.image}" onerror="this.src='';">` : '<div class="no-img">📷 RESİM YOK</div>'}</div>
                         <div class="label-info">
                             <div class="label-title">${escapeHtml(p.name)}</div>
-                            <div class="label-category">${p.category || 'GENEL'}</div>
                             <div class="label-price">${priceInt}<small>,${priceDecimalStr} €</small></div>
                         </div>
                     </div>
@@ -933,7 +932,7 @@
         });
         printWindow.document.write(`
             <html>
-            <head><style>@page{size:A4;margin:0.6cm}body{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#fff}.label-card{width:8.5cm;height:4.0cm;border:2px solid #000;padding:4px;display:flex;flex-direction:column;justify-content:space-between;background:white;page-break-inside:avoid}.label-row{display:flex;gap:6px;flex:1}.label-image{width:32%;display:flex;align-items:center;justify-content:center;background:#f8f8f8;border-radius:4px}.label-image img{max-width:100%;max-height:2.8cm;object-fit:contain}.label-info{width:68%;display:flex;flex-direction:column;justify-content:space-between;min-width:0}.label-title{font-family:'Arial Black',Impact,sans-serif;font-size:11pt;font-weight:900;text-transform:uppercase;-webkit-text-stroke:0.7px #000;text-shadow:0.4px 0.4px 0px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.label-category{font-family:'Arial Black',sans-serif;font-size:7pt;font-weight:800;-webkit-text-stroke:0.3px #000}.label-price{font-family:'Arial Black',Impact,sans-serif;font-size:28pt;font-weight:1000;letter-spacing:-1px;transform:scaleX(1.05);text-align:right;white-space:nowrap}.label-price small{font-size:12pt;vertical-align:super}.barcode-section{text-align:center;margin-top:2px;border-top:1px dashed #ccc;padding-top:2px}.barcode-svg{width:100%;height:24px}.barcode-svg text{font-weight:900!important;font-size:9px!important}</style></head>
+            <head><style>@page{size:A4;margin:0.6cm}body{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#fff}.label-card{width:8.5cm;height:4.0cm;border:2px solid #000;padding:4px;display:flex;flex-direction:column;justify-content:space-between;background:white;page-break-inside:avoid}.label-row{display:flex;gap:6px;flex:1}.label-image{width:32%;display:flex;align-items:center;justify-content:center;background:#f8f8f8;border-radius:4px}.label-image img{max-width:100%;max-height:2.8cm;object-fit:contain}.label-info{width:68%;display:flex;flex-direction:column;justify-content:space-between;min-width:0}.label-title{font-family:'Arial Black',Impact,sans-serif;font-size:11pt;font-weight:900;text-transform:uppercase;-webkit-text-stroke:0.7px #000;text-shadow:0.4px 0.4px 0px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.label-price{font-family:'Arial Black',Impact,sans-serif;font-size:28pt;font-weight:1000;letter-spacing:-1px;transform:scaleX(1.05);text-align:right;white-space:nowrap}.label-price small{font-size:12pt;vertical-align:super}.barcode-section{text-align:center;margin-top:2px;border-top:1px dashed #ccc;padding-top:2px}.barcode-svg{width:100%;height:24px}.barcode-svg text{font-weight:900!important;font-size:9px!important}</style></head>
             <body>${labelsHtml}<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script><script>${printQueue.map((p,i)=>`JsBarcode("#barcode-${i}","${p.barcode}",{format:"CODE128",width:1.6,height:24,displayValue:true,fontSize:9,fontOptions:"bold",margin:0,textMargin:1});`).join('')}window.onload=()=>{setTimeout(()=>{window.print();window.close();},500)};<\/script></body></html>
         `);
         closePreviewModal();
