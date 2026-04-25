@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>MARKET PRO 11.3 - KALICI ETİKET LİSTESİ & YAZDIR</title>
+    <title>MARKET PRO 11.4 - KALICI ETİKET LİSTESİ (localStorage)</title>
     <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
@@ -80,7 +80,7 @@
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
         
-        /* ========= ETİKET STİLLERİ ========= */
+        /*========= ETİKET STİLLERİ =========*/
         .preview-container { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-height: 65vh; overflow-y: auto; padding: 8px; }
         .label-card {
             width: 8.5cm;
@@ -206,22 +206,18 @@
         });
     }
 
-    // ---- PRINTQUEUE KALICI ----
-    async function savePrintQueue() {
-        if(!db) return;
-        let tx = db.transaction("printQueue", "readwrite");
-        let store = tx.objectStore("printQueue");
-        store.clear();
-        store.add({ id: "current", data: printQueue });
+    // ---- PRINTQUEUE KALICI (localStorage) ----
+    function savePrintQueue() {
+        try {
+            localStorage.setItem("market_print_queue", JSON.stringify(printQueue));
+        } catch(e) { console.error("localStorage hatası", e); }
     }
-    async function loadPrintQueue() {
-        if(!db) return;
-        let tx = db.transaction("printQueue", "readonly");
-        let req = tx.objectStore("printQueue").get("current");
-        req.onsuccess = () => {
-            if(req.result) printQueue = req.result.data || [];
+    function loadPrintQueue() {
+        try {
+            const stored = localStorage.getItem("market_print_queue");
+            if(stored) printQueue = JSON.parse(stored);
             else printQueue = [];
-        };
+        } catch(e) { printQueue = []; }
     }
 
     // MANUEL EKLEME MODAL
@@ -339,8 +335,8 @@
     async function compressImage(dataUrl,w=400,q=0.4){ return new Promise(r=>{ let img=new Image(); img.onload=()=>{ let cnv=document.createElement('canvas'); let ww=img.width,hh=img.height; if(ww>w){ hh=hh*w/ww; ww=w; } cnv.width=ww; cnv.height=hh; let ctx=cnv.getContext('2d'); ctx.drawImage(img,0,0,ww,hh); r(cnv.toDataURL('image/jpeg',q)); }; img.src=dataUrl; }); }
     async function compressAllImages(){ let cnt=0; for(let p of products){ if(p.image && p.image.length>60000){ p.image=await compressImage(p.image); cnt++; } } if(cnt) await saveProducts(); showToast(cnt?`${cnt} resim sıkıştırıldı`:"Sıkıştırılacak resim yok"); }
 
-    // INDEXEDDB
-    function initDB(){ return new Promise((res,rej)=>{ let req=indexedDB.open("MarketProIDB",35); req.onerror=rej; req.onsuccess=e=>{ db=e.target.result; res(); }; req.onupgradeneeded=e=>{ let d=e.target.result; if(!d.objectStoreNames.contains("products")) d.createObjectStore("products",{keyPath:"id",autoIncrement:true}); if(!d.objectStoreNames.contains("backups")) d.createObjectStore("backups",{keyPath:"timestamp"}); if(!d.objectStoreNames.contains("printQueue")) d.createObjectStore("printQueue",{keyPath:"id"}); }; }); }
+    // INDEXEDDB (ürünler ve yedekler için)
+    function initDB(){ return new Promise((res,rej)=>{ let req=indexedDB.open("MarketProIDB",36); req.onerror=rej; req.onsuccess=e=>{ db=e.target.result; res(); }; req.onupgradeneeded=e=>{ let d=e.target.result; if(!d.objectStoreNames.contains("products")) d.createObjectStore("products",{keyPath:"id",autoIncrement:true}); if(!d.objectStoreNames.contains("backups")) d.createObjectStore("backups",{keyPath:"timestamp"}); }; }); }
     async function loadProducts(){ return new Promise(r=>{ db.transaction("products","readonly").objectStore("products").getAll().onsuccess=e=>{ products=e.target.result||[]; for(let p of products) if(!p.category) p.category="Dolap Ürünleri"; r(); }; }); }
     async function saveProducts(backup=true){ return new Promise((res,rej)=>{ let tx=db.transaction("products","readwrite"); let store=tx.objectStore("products"); store.clear(); for(let p of products) store.add(p); tx.oncomplete=async()=>{ if(backup) await createBackup(); res(); }; tx.onerror=rej; }); }
     async function createBackup(){ if(!db) return; let tx=db.transaction("backups","readwrite"); let store=tx.objectStore("backups"); let all=await new Promise(r=>store.getAll().onsuccess=e=>r(e.target.result)); let backs=all||[]; backs.push({timestamp:Date.now(), data:JSON.parse(JSON.stringify(products))}); backs.sort((a,b)=>a.timestamp-b.timestamp); if(backs.length>5) backs.splice(0,backs.length-5); store.clear(); for(let b of backs) store.add(b); }
@@ -506,7 +502,7 @@
         let csv=rows.map(r=>r.join(",")).join("\n"); let blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}); let a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="envanter_raporu.csv"; a.click(); URL.revokeObjectURL(a.href); showToast("Rapor CSV indirildi.");
     }
     function printReport(){
-        let html=`<table border="1" style="border-collapse:collapse; width:100%;"><thead><tr><th>Ad</th><th>Barkod</th><th>Fiyat (€)</th><th>Stok</th><th>Maliyet (€)</th><th>Kar (€)</th><th>Kar %</th><th>SKT</th><th>Kategori</th><tr></thead><tbody>`;
+        let html=`<table border="1" style="border-collapse:collapse; width:100%;"><thead><tr><th>Ad</th><th>Barkod</th><th>Fiyat (€)</th><th>Stok</th><th>Maliyet (€)</th><th>Kar (€)</th><th>Kar %</th><th>SKT</th><th>Kategori</th></tr></thead><tbody>`;
         for(let p of products){ let profit=(p.cost && p.cost>0)?(p.price-p.cost):0; let margin=(p.cost && p.cost>0 && p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0"; html+=`<tr><td style="border:1px solid #ddd; padding:4px;">${escapeHtml(p.name)}</td><td style="border:1px solid #ddd; padding:4px;">${p.barcode}</td><td style="border:1px solid #ddd; padding:4px;">${p.price.toFixed(2)}</td><td style="border:1px solid #ddd; padding:4px;">${p.quantity}</td><td style="border:1px solid #ddd; padding:4px;">${p.cost?p.cost.toFixed(2):'0'}</td><td style="border:1px solid #ddd; padding:4px;">${profit.toFixed(2)}</td><td style="border:1px solid #ddd; padding:4px;">${margin}%</td><td style="border:1px solid #ddd; padding:4px;">${p.expiry||''}</td><td style="border:1px solid #ddd; padding:4px;">${p.category}</td></tr>`; }
         html+=`</tbody></table>`; document.getElementById("printTableContainer").innerHTML=html; document.getElementById("printModal").style.display="flex";
     }
@@ -551,7 +547,7 @@
     function closeSearchModal(){ let m=document.getElementById("dynamicSearchModal"); if(m) m.style.display="none"; }
     function selectProductFromSearchModal(barcode){ let p=products.find(p=>p.barcode===barcode); if(p) openProductDetailModal(products.findIndex(pr=>pr.id===p.id)); closeSearchModal(); }
 
-    // ETİKET BASKI - YAZDIR BUTONLU VE OTOMATİK YAZDIRMALI
+    // ETİKET BASKI
     function addToPrintQueue(product){ if(!product) return; printQueue.push(product); savePrintQueue(); showToast(`${product.name} etiket listesine eklendi. (Toplam: ${printQueue.length})`); }
     function previewLabels(){
         if(printQueue.length===0){ showToast("Önce ürün ekleyin!"); return; }
@@ -623,7 +619,7 @@
     }
     function closePreviewModal(){ document.getElementById("previewModal").style.display="none"; document.getElementById("previewContainer").innerHTML=""; }
 
-    // Sayfa yenilemede veri kalıcılığı için
+    // Sayfa kapanırken otomatik yedek (manuel yedek gibi JSON indir)
     window.addEventListener("beforeunload", function (e) {
         if (products.length > 0) {
             const a = document.createElement("a");
@@ -646,7 +642,7 @@
         if (navigator.storage && navigator.storage.persist) await navigator.storage.persist();
         await initDB();
         await loadProducts();
-        await loadPrintQueue();  // sayfa açılınca etiket listesini geri yükle
+        loadPrintQueue(); // localStorage'dan etiket listesini yükle
         if (products.length === 0) {
             products = [
                 { barcode: "4003998000470", name: "ÇAYKUR RİZE ÇAYI", price: 4.99, cost: 3.40, quantity: 12, expiry: "2025-12-15", image: null, id: Date.now()+1, category: "Dolap Ürünleri" },
