@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>MARKET PRO 9.1 - ÇIKIŞ BUTONU & ETİKET DÜZELTMESİ</title>
+    <title>MARKET PRO 10.0 - TAM ÇÖZÜM</title>
     <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
@@ -68,7 +68,6 @@
         .label-image img { max-width: 100%; max-height: 2.8cm; object-fit: contain; }
         .label-info { width: 68%; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
         .label-title { font-family: 'Arial Black', Impact, sans-serif; font-size: 11pt; font-weight: 900; text-transform: uppercase; -webkit-text-stroke: 0.7px #000; text-shadow: 0.4px 0.4px 0px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        /* Kategori kaldırıldı */
         .label-price { font-family: 'Arial Black', Impact, sans-serif; font-size: 28pt; font-weight: 1000; letter-spacing: -1px; transform: scaleX(1.05); text-align: right; white-space: nowrap; margin-top: 4px; }
         .label-price small { font-size: 12pt; vertical-align: super; }
         .barcode-section { text-align: center; margin-top: 2px; border-top: 1px dashed #ccc; padding-top: 2px; }
@@ -118,7 +117,6 @@
     let currentEditingProductId = null;
     let printQueue = [];
 
-    // ---- TOAST ----
     function showToast(message) {
         const container = document.getElementById("toast-container");
         const toast = document.createElement("div");
@@ -128,7 +126,6 @@
         setTimeout(() => toast.remove(), 2500);
     }
 
-    // ---- AKILLI FİYAT ----
     function setupSmartPriceInput(inputElement) {
         if (!inputElement) return;
         inputElement.addEventListener("blur", function() {
@@ -144,7 +141,6 @@
         });
     }
 
-    // ---- PRINTQUEUE KALICI ----
     async function savePrintQueue() {
         if (!db) return;
         const tx = db.transaction(["printQueue"], "readwrite");
@@ -163,7 +159,6 @@
         };
     }
 
-    // ---- MANUEL EKLEME MODAL ----
     function openManualAddModal() {
         const modal = document.getElementById("manualAddModal");
         const container = document.getElementById("manualAddFormContainer");
@@ -197,7 +192,6 @@
         await updateUI();
     }
 
-    // ---- ENVANTER LİSTESİ ----
     function renderInventoryList() {
         const container = document.getElementById("modalProductList");
         let filtered = products;
@@ -218,7 +212,6 @@
         container.innerHTML = html;
     }
 
-    // Envanterdeki etiket butonu için doğrudan çağrılan fonksiyon
     function addToPrintQueueFromList(product) {
         if (!product) return;
         printQueue.push(product);
@@ -226,7 +219,6 @@
         showToast(`${product.name} etiket listesine eklendi. (Toplam: ${printQueue.length})`);
     }
 
-    // ---- STOK DÜŞME ----
     async function sellProduct(product, index) {
         if (!product) return;
         let newQuantity = product.quantity - 1;
@@ -324,10 +316,9 @@
         updateUI();
     }
 
-    // ---- INDEXEDDB ----
     function initDB() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open("MarketProIDB", 27);
+            const request = indexedDB.open("MarketProIDB", 28);
             request.onerror = reject;
             request.onsuccess = e => { db = e.target.result; resolve(); };
             request.onupgradeneeded = e => {
@@ -441,7 +432,6 @@
         }
     }
 
-    // ---- KAMERA ----
     async function openCameraModal(mode) {
         const modal = document.getElementById("cameraModal");
         const video = document.getElementById("cameraVideo");
@@ -534,20 +524,17 @@
 
     function closeAddForm() { document.getElementById("addFormContainer").classList.add("hidden"); document.getElementById("addFormContainer").innerHTML = ""; tempImageData = null; }
 
-    // ---- ENVANTER MODAL ----
     function openInventoryModal() {
-        const modal = document.getElementById("inventoryModal");
+        document.getElementById("inventoryModal").style.display = "flex";
         const searchInput = document.getElementById("inventorySearchInput");
         if (searchInput) {
             searchInput.value = "";
             searchInput.oninput = () => renderInventoryList();
         }
         renderInventoryList();
-        modal.style.display = "flex";
     }
     function closeInventoryModal() { document.getElementById("inventoryModal").style.display = "none"; }
 
-    // ---- ÜRÜN DETAY MODAL ----
     function openProductDetailModal(index) {
         const p = products[index];
         currentEditingProductId = index;
@@ -651,7 +638,6 @@
         showToast("Google Görsel araması yeni sekmede açıldı.");
     }
 
-    // ---- UYARI MODALLARI ----
     function openUrgentModal() {
         const today = new Date();
         const urgent = products.filter(p => p.expiry && Math.ceil((new Date(p.expiry) - today) / 86400000) <= 7 && Math.ceil((new Date(p.expiry) - today) / 86400000) >= 0);
@@ -688,7 +674,6 @@
     }
     function closeSktModal() { document.getElementById("sktModal").style.display = "none"; }
 
-    // ---- RAPORLAR ----
     function exportToCSV() {
         let csvRows = [["Ad","Barkod","Fiyat (€)","Stok","Maliyet (€)","Kar (€)","Kar Marjı (%)","SKT","Kategori"]];
         for (let p of products) {
@@ -716,7 +701,7 @@
             const margin = (p.cost && p.cost>0 && p.price>0) ? ((p.price - p.cost)/p.price*100).toFixed(1) : "0";
             html += `<tr><td style="border:1px solid #ddd; padding:4px;">${escapeHtml(p.name)}</td><td style="border:1px solid #ddd; padding:4px;">${p.barcode}</td><td style="border:1px solid #ddd; padding:4px;">${p.price.toFixed(2)}</td><td style="border:1px solid #ddd; padding:4px;">${p.quantity}</td><td style="border:1px solid #ddd; padding:4px;">${p.cost?p.cost.toFixed(2):'0'}</td><td style="border:1px solid #ddd; padding:4px;">${profit.toFixed(2)}</td><td style="border:1px solid #ddd; padding:4px;">${margin}%</td><td style="border:1px solid #ddd; padding:4px;">${p.expiry||''}</td><td style="border:1px solid #ddd; padding:4px;">${p.category}</td></tr>`;
         }
-        html += `</tbody></table>`;
+        html += `</tbody></td>`;
         document.getElementById("printTableContainer").innerHTML = html;
         document.getElementById("printModal").style.display = "flex";
     }
@@ -812,7 +797,7 @@
         return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; });
     }
 
-    // ---- ARAMA MODALI (KAPATMA BUTONLU) ----
+    // ARAMA MODALI
     function createSearchModal() {
         if (document.getElementById("dynamicSearchModal")) return;
         const modalDiv = document.createElement("div");
@@ -860,7 +845,7 @@
         closeSearchModal();
     }
 
-    // ---- ETİKET BASKI (KATEGORİSİZ) ----
+    // ETİKET BASKI
     function addToPrintQueue(product) {
         printQueue.push(product);
         savePrintQueue();
@@ -942,7 +927,7 @@
 
     function closePreviewModal() { document.getElementById("previewModal").style.display = "none"; document.getElementById("previewContainer").innerHTML = ""; }
 
-    // ---- EVENT LISTENER ----
+    // Event Listener
     document.getElementById("searchBtn").onclick = () => openCameraModal('search');
     document.getElementById("addBtn").onclick = () => openCameraModal('add');
     document.getElementById("manualAddBtn").onclick = openManualAddModal;
@@ -952,7 +937,6 @@
     document.getElementById("urgentBtn").onclick = openUrgentModal;
     document.getElementById("closeCameraModalBtn").onclick = closeCameraModal;
 
-    // ---- BAŞLAT ----
     (async function() {
         if (navigator.storage && navigator.storage.persist) await navigator.storage.persist();
         await initDB();
