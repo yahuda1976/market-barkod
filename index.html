@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>MARKET PRO 10.2 - SABİT ETİKET & ÇALIŞAN BUTON</title>
+    <title>MARKET PRO 10.4 - ETİKET YÖNETİMİ & KALIN YAZI</title>
     <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
@@ -33,7 +33,7 @@
         .product-list-simple { display: flex; flex-direction: column; gap: 8px; max-height: 50vh; overflow-y: auto; }
         .envanter-item { background: #3a3a3a; border-radius: 40px; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
         .product-name-item { flex: 1; cursor: pointer; font-weight: 600; font-size: 0.85rem; text-align: left; padding: 6px 4px; }
-        .btn-add-queue-list { background: #e67e22; border: none; border-radius: 40px; padding: 6px 12px; color: white; font-weight: bold; font-size: 0.7rem; cursor: pointer; white-space: nowrap; }
+        .btn-add-queue-list { background: #e67e22; border: none; border-radius: 40px; padding: 6px 12px; color: white; font-weight: bold; font-size: 0.7rem; cursor: pointer; }
         .product-detail-card { border-radius: 40px; padding: 20px; text-align: center; font-size: 1rem; }
         .detail-image { max-width: 100%; max-height: 180px; border-radius: 25px; margin: 12px auto; display: block; }
         input, select { width: 100%; padding: 16px; border-radius: 60px; border: none; background: #555; color: white; font-size: 1rem; margin: 8px 0; }
@@ -62,7 +62,7 @@
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
         
-        /* SABİT ETİKET BOYUTU ve KESİN ÇÖZÜM */
+        /* ========= ULTRA KALIN ETİKET ========= */
         .preview-container { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-height: 65vh; overflow-y: auto; padding: 8px; }
         .label-card {
             width: 8.5cm;
@@ -76,62 +76,43 @@
             border: 2px solid #000;
             border-radius: 6px;
             page-break-inside: avoid;
-            overflow: hidden; /* taşmayı engeller */
+            overflow: hidden;
         }
-        .label-row {
-            display: flex;
-            gap: 6px;
-            flex: 1;
-            min-height: 0; /* flex çocuklarının taşmasını engeller */
-        }
-        .label-image {
-            width: 32%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f8f8f8;
-            border-radius: 4px;
-        }
+        .label-row { display: flex; gap: 6px; flex: 1; min-height: 0; }
+        .label-image { width: 32%; display: flex; align-items: center; justify-content: center; background: #f8f8f8; border-radius: 4px; }
         .label-image img { max-width: 100%; max-height: 2.8cm; object-fit: contain; }
-        .label-info {
-            width: 68%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-width: 0; /* taşmayı engeller */
-        }
-        /* Ürün adı: 2 satıra kadar, taşarsa ellipsis */
+        .label-info { width: 68%; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
         .label-title {
-            font-family: 'Arial Black', Impact, sans-serif;
-            font-size: 10pt;
+            font-family: 'Arial Black', 'Impact', 'Segoe UI Black', sans-serif;
+            font-size: 12pt;
             font-weight: 900;
             text-transform: uppercase;
-            -webkit-text-stroke: 0.5px #000;
-            text-shadow: 0.3px 0.3px 0px #000;
+            -webkit-text-stroke: 0.8px #000;
+            text-shadow: 0.5px 0.5px 0px #000, -0.5px -0.5px 0px #000;
             color: #000;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            text-overflow: ellipsis;
             line-height: 1.2;
-            max-height: 2.4em;
         }
         .label-price {
-            font-family: 'Arial Black', Impact, sans-serif;
-            font-size: 24pt;
+            font-family: 'Arial Black', 'Impact', 'Segoe UI Black', sans-serif;
+            font-size: 26pt;
             font-weight: 1000;
             letter-spacing: -1px;
-            transform: scaleX(1.03);
+            transform: scaleX(1.12);
+            transform-origin: right;
+            -webkit-text-stroke: 1.2px #000;
+            text-shadow: 0.8px 0.8px 0px #000, -0.8px -0.8px 0px #000;
             text-align: right;
             white-space: nowrap;
-            margin-top: 2px;
+            margin-top: 4px;
             color: #000;
         }
-        .label-price small { font-size: 11pt; vertical-align: super; }
         .barcode-section { text-align: center; margin-top: 2px; border-top: 1px dashed #ccc; padding-top: 2px; }
         .barcode-svg { width: 100%; height: 22px; }
-        .barcode-svg text { font-weight: 900 !important; font-size: 8px !important; }
+        .barcode-svg text { font-weight: 900 !important; font-size: 8px !important; -webkit-text-stroke: 0.2px #000; }
         @media print { body * { visibility: hidden; } .print-modal, .print-modal * { visibility: visible; } .print-modal { position: absolute; top: 0; left: 0; width: 100%; } }
     </style>
 </head>
@@ -218,7 +199,7 @@
         await saveProducts(); tempImageData=null; closeManualAddModal(); showToast(`Ürün kaydedildi: ${name}`); await updateUI();
     }
 
-    // ENVANTER LİSTESİ - ETİKET BUTONU KESİN ÇALIŞIR
+    // ENVANTER LİSTESİ
     function renderInventoryList() {
         let container=document.getElementById("modalProductList");
         let searchVal=document.getElementById("inventorySearchInput")?.value.trim().toLowerCase();
@@ -235,6 +216,39 @@
         });
         container.innerHTML=html;
     }
+
+    // ETİKET LİSTESİ YÖNETİMİ (çalışan versiyon)
+    function managePrintQueue() {
+        let container = document.getElementById("queueListContainer");
+        if (printQueue.length === 0) {
+            container.innerHTML = "<div style='text-align:center;padding:20px;'>Listede ürün yok.</div>";
+        } else {
+            let html = "";
+            printQueue.forEach((p, idx) => {
+                html += `<div style="background:#3a3a3a; border-radius:40px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                            <div><strong>${escapeHtml(p.name)}</strong> (${p.price.toFixed(2)} €)</div>
+                            <button onclick="removeFromQueue(${idx})" style="background:#c0392b; border:none; border-radius:30px; padding:6px 12px; color:white;">ÇIKAR</button>
+                         </div>`;
+            });
+            container.innerHTML = html;
+        }
+        document.getElementById("queueModal").style.display = "flex";
+    }
+    function removeFromQueue(idx) {
+        printQueue.splice(idx, 1);
+        savePrintQueue();
+        managePrintQueue();  // Listeyi yenile
+        showToast("Ürün etiket listesinden çıkarıldı.");
+    }
+    function clearPrintQueue() {
+        if (confirm("Tüm etiket listesi temizlensin mi?")) {
+            printQueue = [];
+            savePrintQueue();
+            managePrintQueue();
+            showToast("Liste tamamen temizlendi.");
+        }
+    }
+    function closeQueueModal() { document.getElementById("queueModal").style.display = "none"; }
 
     // STOK DÜŞME
     async function sellProduct(product, index) {
@@ -282,7 +296,7 @@
     async function compressAllImages(){ let cnt=0; for(let p of products){ if(p.image && p.image.length>60000){ p.image=await compressImage(p.image); cnt++; } } if(cnt) await saveProducts(); showToast(cnt?`${cnt} resim sıkıştırıldı`:"Sıkıştırılacak resim yok"); }
 
     // INDEXEDDB
-    function initDB(){ return new Promise((res,rej)=>{ let req=indexedDB.open("MarketProIDB",30); req.onerror=rej; req.onsuccess=e=>{ db=e.target.result; res(); }; req.onupgradeneeded=e=>{ let d=e.target.result; if(!d.objectStoreNames.contains("products")) d.createObjectStore("products",{keyPath:"id",autoIncrement:true}); if(!d.objectStoreNames.contains("backups")) d.createObjectStore("backups",{keyPath:"timestamp"}); if(!d.objectStoreNames.contains("printQueue")) d.createObjectStore("printQueue",{keyPath:"id"}); }; }); }
+    function initDB(){ return new Promise((res,rej)=>{ let req=indexedDB.open("MarketProIDB",31); req.onerror=rej; req.onsuccess=e=>{ db=e.target.result; res(); }; req.onupgradeneeded=e=>{ let d=e.target.result; if(!d.objectStoreNames.contains("products")) d.createObjectStore("products",{keyPath:"id",autoIncrement:true}); if(!d.objectStoreNames.contains("backups")) d.createObjectStore("backups",{keyPath:"timestamp"}); if(!d.objectStoreNames.contains("printQueue")) d.createObjectStore("printQueue",{keyPath:"id"}); }; }); }
     async function loadProducts(){ return new Promise(r=>{ db.transaction("products","readonly").objectStore("products").getAll().onsuccess=e=>{ products=e.target.result||[]; for(let p of products) if(!p.category) p.category="Genel"; r(); }; }); }
     async function saveProducts(backup=true){ return new Promise((res,rej)=>{ let tx=db.transaction("products","readwrite"); let store=tx.objectStore("products"); store.clear(); for(let p of products) store.add(p); tx.oncomplete=async()=>{ if(backup) await createBackup(); res(); }; tx.onerror=rej; }); }
     async function createBackup(){ if(!db) return; let tx=db.transaction("backups","readwrite"); let store=tx.objectStore("backups"); let all=await new Promise(r=>store.getAll().onsuccess=e=>r(e.target.result)); let backs=all||[]; backs.push({timestamp:Date.now(), data:JSON.parse(JSON.stringify(products))}); backs.sort((a,b)=>a.timestamp-b.timestamp); if(backs.length>5) backs.splice(0,backs.length-5); store.clear(); for(let b of backs) store.add(b); }
@@ -330,7 +344,7 @@
     }
     function closeAddForm(){ document.getElementById("addFormContainer").classList.add("hidden"); document.getElementById("addFormContainer").innerHTML=""; tempImageData=null; }
 
-    // Modal aç/kapa
+    // Modal kontrolleri
     function openInventoryModal(){ document.getElementById("inventoryModal").style.display="flex"; let inp=document.getElementById("inventorySearchInput"); if(inp){ inp.value=""; inp.oninput=()=>renderInventoryList(); } renderInventoryList(); }
     function closeInventoryModal(){ document.getElementById("inventoryModal").style.display="none"; }
     function openProductDetailModal(idx){
@@ -379,7 +393,7 @@
     }
     function openGoogleSearchForCurrent(){ let name=products[currentEditingProductId].name; if(!name) return; window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank'); showToast("Google Görsel araması yeni sekmede açıldı."); }
 
-    // Uyarı modal
+    // Uyarı modalları
     function openUrgentModal(){
         let today=new Date(); let urgent=products.filter(p=>p.expiry && Math.ceil((new Date(p.expiry)-today)/86400000)<=7 && Math.ceil((new Date(p.expiry)-today)/86400000)>=0);
         let container=document.getElementById("urgentProductList");
@@ -397,7 +411,7 @@
     }
     function closeSktModal(){ document.getElementById("sktModal").style.display="none"; }
 
-    // Rapor
+    // Raporlar
     function exportToCSV(){
         let rows=[["Ad","Barkod","Fiyat (€)","Stok","Maliyet (€)","Kar (€)","Kar Marjı (%)","SKT","Kategori"]];
         for(let p of products){ let profit=(p.cost && p.cost>0)?(p.price-p.cost):0; let margin=(p.cost && p.cost>0 && p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0"; rows.push([`"${p.name}"`,p.barcode,p.price,p.quantity,p.cost||0,profit.toFixed(2),margin,p.expiry||"",p.category]); }
@@ -405,8 +419,8 @@
     }
     function printReport(){
         let html=`<table border="1" style="border-collapse:collapse; width:100%;"><thead><tr><th>Ad</th><th>Barkod</th><th>Fiyat (€)</th><th>Stok</th><th>Maliyet (€)</th><th>Kar (€)</th><th>Kar %</th><th>SKT</th><th>Kategori</th></tr></thead><tbody>`;
-        for(let p of products){ let profit=(p.cost && p.cost>0)?(p.price-p.cost):0; let margin=(p.cost && p.cost>0 && p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0"; html+=`<tr><td style="border:1px solid #ddd; padding:4px;">${escapeHtml(p.name)}</td><td>${p.barcode}</td><td>${p.price.toFixed(2)}</td><td>${p.quantity}</td><td>${p.cost?p.cost.toFixed(2):'0'}</td><td>${profit.toFixed(2)}</td><td>${margin}%</td><td>${p.expiry||''}</td><td>${p.category}</td></tr>`; }
-        html+=`</tbody></tr>`; document.getElementById("printTableContainer").innerHTML=html; document.getElementById("printModal").style.display="flex";
+        for(let p of products){ let profit=(p.cost && p.cost>0)?(p.price-p.cost):0; let margin=(p.cost && p.cost>0 && p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0"; html+=`<tr><td style="border:1px solid #ddd; padding:4px;">${escapeHtml(p.name)}</td><td>${p.barcode}</td><td>${p.price.toFixed(2)}</td><td>${p.quantity}</td><td>${p.cost?p.cost.toFixed(2):'0'}</td><td>${profit.toFixed(2)}</td><td>${margin}%</td><td>${p.expiry||''}</td><td>${p.category}</td>`; }
+        html+=`</tbody></table>`; document.getElementById("printTableContainer").innerHTML=html; document.getElementById("printModal").style.display="flex";
     }
     function closePrintModal(){ document.getElementById("printModal").style.display="none"; }
     function openSettingsModal(){ document.getElementById("settingsModal").style.display="flex"; }
@@ -451,22 +465,13 @@
 
     // ETİKET BASKI
     function addToPrintQueue(product){ if(!product) return; printQueue.push(product); savePrintQueue(); showToast(`${product.name} etiket listesine eklendi. (Toplam: ${printQueue.length})`); }
-    function managePrintQueue(){
-        let container=document.getElementById("queueListContainer");
-        if(printQueue.length===0) container.innerHTML="<div style='text-align:center;padding:20px;'>Listede ürün yok.</div>";
-        else{ let html=""; printQueue.forEach((p,idx)=>{ html+=`<div style="background:#3a3a3a; border-radius:40px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between;"><div><strong>${escapeHtml(p.name)}</strong> (${p.price.toFixed(2)} €)</div><button onclick="removeFromQueue(${idx})" style="background:#c0392b; border:none; border-radius:30px; padding:6px 12px; color:white;">ÇIKAR</button></div>`; }); container.innerHTML=html; }
-        document.getElementById("queueModal").style.display="flex";
-    }
-    function removeFromQueue(idx){ printQueue.splice(idx,1); savePrintQueue(); managePrintQueue(); showToast("Ürün çıkarıldı."); }
-    function clearPrintQueue(){ if(confirm("Liste temizlensin mi?")){ printQueue=[]; savePrintQueue(); managePrintQueue(); showToast("Liste temizlendi."); } }
-    function closeQueueModal(){ document.getElementById("queueModal").style.display="none"; }
     function previewLabels(){
         if(printQueue.length===0){ showToast("Önce ürün ekleyin!"); return; }
         let container=document.getElementById("previewContainer"); container.innerHTML="";
         printQueue.forEach((p,idx)=>{
-            let intP=Math.floor(p.price), dec=Math.round((p.price-intP)*100), decStr=dec<10?'0'+dec:dec.toString();
+            let priceStr = p.price.toFixed(2).replace('.', ',');
             let div=document.createElement("div"); div.className="label-card";
-            div.innerHTML=`<div class="label-row"><div class="label-image">${p.image?`<img src="${p.image}" onerror="this.src='';">`:'<div class="no-img">📷 RESİM YOK</div>'}</div><div class="label-info"><div class="label-title" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</div><div class="label-price">${intP}<small>,${decStr} €</small></div></div></div><div class="barcode-section"><svg class="barcode-svg" id="preview-barcode-${idx}"></svg></div>`;
+            div.innerHTML=`<div class="label-row"><div class="label-image">${p.image?`<img src="${p.image}" onerror="this.src='';">`:'<div class="no-img">📷 RESİM YOK</div>'}</div><div class="label-info"><div class="label-title" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</div><div class="label-price">${priceStr} €</div></div></div><div class="barcode-section"><svg class="barcode-svg" id="preview-barcode-${idx}"></svg></div>`;
             container.appendChild(div);
             JsBarcode(`#preview-barcode-${idx}`, p.barcode, {format:"CODE128", width:1.5, height:22, displayValue:true, fontSize:8, fontOptions:"bold", margin:0, textMargin:1});
         });
@@ -476,15 +481,15 @@
         if(printQueue.length===0) return;
         let w=window.open('','_blank'); let labelsHtml="";
         printQueue.forEach((p,idx)=>{
-            let intP=Math.floor(p.price), dec=Math.round((p.price-intP)*100), decStr=dec<10?'0'+dec:dec.toString();
-            labelsHtml+=`<div class="label-card"><div class="label-row"><div class="label-image">${p.image?`<img src="${p.image}" onerror="this.src='';">`:'<div class="no-img">📷 RESİM YOK</div>'}</div><div class="label-info"><div class="label-title">${escapeHtml(p.name)}</div><div class="label-price">${intP}<small>,${decStr} €</small></div></div></div><div class="barcode-section"><svg class="barcode-svg" id="barcode-${idx}"></svg></div></div>`;
+            let priceStr = p.price.toFixed(2).replace('.', ',');
+            labelsHtml+=`<div class="label-card"><div class="label-row"><div class="label-image">${p.image?`<img src="${p.image}" onerror="this.src='';">`:'<div class="no-img">📷 RESİM YOK</div>'}</div><div class="label-info"><div class="label-title">${escapeHtml(p.name)}</div><div class="label-price">${priceStr} €</div></div></div><div class="barcode-section"><svg class="barcode-svg" id="barcode-${idx}"></svg></div></div>`;
         });
-        w.document.write(`<html><head><style>@page{size:A4;margin:0.5cm}body{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;background:#fff}.label-card{width:8.5cm;height:4.0cm;border:2px solid #000;padding:3px;display:flex;flex-direction:column;justify-content:space-between;background:white;page-break-inside:avoid;overflow:hidden}.label-row{display:flex;gap:5px;flex:1}.label-image{width:32%;display:flex;align-items:center;justify-content:center;background:#f8f8f8;border-radius:4px}.label-image img{max-width:100%;max-height:2.8cm;object-fit:contain}.label-info{width:68%;display:flex;flex-direction:column;justify-content:space-between;min-width:0}.label-title{font-family:'Arial Black',Impact,sans-serif;font-size:9pt;font-weight:900;text-transform:uppercase;-webkit-text-stroke:0.5px #000;text-shadow:0.2px 0.2px 0px #000;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.2}.label-price{font-family:'Arial Black',Impact,sans-serif;font-size:22pt;font-weight:1000;letter-spacing:-0.5px;transform:scaleX(1.03);text-align:right;white-space:nowrap}.label-price small{font-size:10pt;vertical-align:super}.barcode-section{text-align:center;margin-top:1px;border-top:1px dashed #ccc;padding-top:2px}.barcode-svg{width:100%;height:20px}.barcode-svg text{font-weight:900!important;font-size:7px!important}</style></head><body>${labelsHtml}<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script><script>${printQueue.map((p,i)=>`JsBarcode("#barcode-${i}","${p.barcode}",{format:"CODE128",width:1.5,height:20,displayValue:true,fontSize:7,fontOptions:"bold",margin:0,textMargin:1});`).join('')}window.onload=()=>{setTimeout(()=>{window.print();window.close();},500)};<\/script></body></html>`);
+        w.document.write(`<html><head><style>@page{size:A4;margin:0.5cm}body{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;background:#fff}.label-card{width:8.5cm;height:4.0cm;border:2px solid #000;padding:3px;display:flex;flex-direction:column;justify-content:space-between;background:white;page-break-inside:avoid;overflow:hidden}.label-row{display:flex;gap:5px;flex:1}.label-image{width:32%;display:flex;align-items:center;justify-content:center;background:#f8f8f8;border-radius:4px}.label-image img{max-width:100%;max-height:2.8cm;object-fit:contain}.label-info{width:68%;display:flex;flex-direction:column;justify-content:space-between;min-width:0}.label-title{font-family:'Arial Black',Impact,sans-serif;font-size:10pt;font-weight:900;text-transform:uppercase;-webkit-text-stroke:0.7px #000;text-shadow:0.4px 0.4px 0px #000;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.2}.label-price{font-family:'Arial Black',Impact,sans-serif;font-size:24pt;font-weight:1000;letter-spacing:-1px;transform:scaleX(1.1);-webkit-text-stroke:1.2px #000;text-shadow:0.6px 0.6px 0px #000;text-align:right;white-space:nowrap}.barcode-section{text-align:center;margin-top:2px;border-top:1px dashed #ccc;padding-top:2px}.barcode-svg{width:100%;height:20px}.barcode-svg text{font-weight:900!important;font-size:7px!important}</style></head><body>${labelsHtml}<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script><script>${printQueue.map((p,i)=>`JsBarcode("#barcode-${i}","${p.barcode}",{format:"CODE128",width:1.5,height:20,displayValue:true,fontSize:7,fontOptions:"bold",margin:0,textMargin:1});`).join('')}window.onload=()=>{setTimeout(()=>{window.print();window.close();},500)};<\/script></body></html>`);
         closePreviewModal(); printQueue=[]; savePrintQueue();
     }
     function closePreviewModal(){ document.getElementById("previewModal").style.display="none"; document.getElementById("previewContainer").innerHTML=""; }
 
-    // OTOMATİK YEDEK (sayfa kapanırken)
+    // Sayfa kapanırken otomatik yedek
     window.addEventListener("beforeunload", function (e) {
         if (products.length > 0) {
             const a = document.createElement("a");
