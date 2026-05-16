@@ -333,16 +333,27 @@ function buildAngebotPreviewHTML(size,orientation,p,pw,ph){
         return `<div style="width:${pw}px;height:${ph}px;background:white;padding:${mg}px;box-sizing:border-box;display:grid;grid-template-columns:repeat(2,${halfW}px);grid-template-rows:repeat(2,${halfH}px);gap:${gap}px;overflow:hidden;">${blocks.join('')}</div>`;
     }
 
-    if(size==='a5'){
-        let cutPx=4,posterH=Math.floor((ph-cutPx)/2);
-        let isL=orientation==='landscape';
-        return `<div style="width:${pw}px;height:${ph}px;background:white;overflow:hidden;display:flex;flex-direction:column;">
-            <div style="height:${posterH}px;overflow:hidden;">${_posterBlock(p,pw,posterH,isL)}</div>
-            <div style="height:${cutPx}px;background:#e0e0e0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <div style="border-top:1px dashed #999;width:94%;"></div>
-            </div>
-            <div style="height:${posterH}px;overflow:hidden;">${_posterBlock(p,pw,posterH,isL)}</div>
-        </div>`;
+        if(size==='a5'){
+        let cutPx = 8;
+        let posterH = Math.floor((ph - cutPx) / 2);
+        let isL = orientation === 'landscape';
+        if (!isL) {
+            return `<div style="width:${pw}px;height:${ph}px;background:white;display:flex;flex-direction:column;overflow:hidden;">
+                <div style="height:${posterH}px;overflow:hidden;box-sizing:border-box;border-bottom:2px dashed #aaa;">${_posterBlock(p, pw, posterH, false)}</div>
+                <div style="height:${cutPx}px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-top:1px solid #ddd;border-bottom:1px solid #ddd;">
+                    <div style="font-size:8px;color:#999;letter-spacing:2px;">✂ - - - KESME ÇİZGİSİ - - - ✂</div>
+                </div>
+                <div style="height:${posterH}px;overflow:hidden;box-sizing:border-box;border-top:2px dashed #aaa;">${_posterBlock(p, pw, posterH, false)}</div>
+            </div>`;
+        } else {
+            return `<div style="width:${pw}px;height:${ph}px;background:white;display:flex;flex-direction:column;overflow:hidden;">
+                <div style="height:${posterH}px;overflow:hidden;box-sizing:border-box;border-bottom:2px dashed #aaa;">${_posterBlock(p, pw, posterH, true)}</div>
+                <div style="height:${cutPx}px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-top:1px solid #ddd;border-bottom:1px solid #ddd;">
+                    <div style="font-size:8px;color:#999;letter-spacing:2px;">✂ - - - KESME ÇİZGİSİ - - - ✂</div>
+                </div>
+                <div style="height:${posterH}px;overflow:hidden;box-sizing:border-box;border-top:2px dashed #aaa;">${_posterBlock(p, pw, posterH, true)}</div>
+            </div>`;
+        }
     }
 
     return _posterBlock(p,pw,ph,orientation==='landscape');
