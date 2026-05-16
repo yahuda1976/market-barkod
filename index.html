@@ -83,6 +83,29 @@
         .sayim-diff-neg{color:#e74c3c;font-weight:800;font-size:0.8rem;min-width:28px;text-align:center}
         .sayim-diff-zero{color:#aaa;font-size:0.8rem;min-width:28px;text-align:center}
         @media print{body *{visibility:hidden}.print-modal,.print-modal *{visibility:visible}.print-modal{position:absolute;top:0;left:0;width:100%}}
+        #liveClock {
+            background: linear-gradient(145deg, #0d0d0d, #1a1a1a);
+            color: #00ff88;
+            padding: 8px 12px;
+            border-radius: 14px;
+            font-family: 'Courier New', monospace;
+            font-weight: 800;
+            font-size: 0.9rem;
+            letter-spacing: 1.5px;
+            border: 1px solid #00ff88;
+            box-shadow: 0 0 10px rgba(0,255,136,0.35);
+            text-shadow: 0 0 6px rgba(0,255,136,0.8);
+            min-width: 78px;
+            text-align: center;
+            white-space: nowrap;
+        }
+        #liveClock .clock-date {
+            display: block;
+            font-size: 0.55rem;
+            color: #00cc77;
+            letter-spacing: 0.8px;
+            margin-top: 1px;
+        }
     </style>
 </head>
 <body>
@@ -110,7 +133,7 @@
 </div>
 
 <div class="app-container">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><button onclick="openDrawer()" style="background:#2a2a2a;border:none;border-radius:16px;padding:12px 16px;cursor:pointer;font-size:1.3rem;color:white">☰</button><div style="font-size:1.4rem;font-weight:900;color:#ff2222;letter-spacing:2px;text-shadow:0 0 8px #ff4444">MARKET PRO</div><div style="width:52px"></div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><button onclick="openDrawer()" style="background:#2a2a2a;border:none;border-radius:16px;padding:12px 16px;cursor:pointer;font-size:1.3rem;color:white">☰</button><div style="font-size:1.4rem;font-weight:900;color:#ff2222;letter-spacing:2px;text-shadow:0 0 8px #ff4444">MARKET PRO</div><div id="liveClock"><span id="clockTime">--:--:--</span><span class="clock-date" id="clockDate">--/--</span></div></div>
     <div class="result-area" id="resultArea"><div class="result-placeholder">📷 BARKOD OKUTUN</div></div>
     <div class="button-grid"><button class="btn btn-primary" id="searchBtn">📷 SORGULA</button><button class="btn btn-primary" id="addBtn">➕ ÜRÜN EKLE</button></div>
     <div class="button-grid"><button class="btn btn-success" id="productSearchBtn">🔍 ÜRÜN ARA</button><button class="btn btn-success" id="manualAddBtn">✏️ MANUEL EKLE</button></div>
@@ -145,6 +168,15 @@ function playBeep(){ try{let ctx=new(window.AudioContext||window.webkitAudioCont
 function escapeHtml(s){ if(!s)return'';return s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 function getProductColorClass(p){ if(p.quantity===0)return"expiry-zero-stock"; if(!p.expiry)return"expiry-no-date"; let d=Math.ceil((new Date(p.expiry)-new Date())/86400000); if(d<=7)return"expiry-red"; if(d<=14)return"expiry-yellow"; return"expiry-green"; }
 function getPriority(p){ if(p.quantity===0)return 3; if(!p.expiry)return 2; let d=Math.ceil((new Date(p.expiry)-new Date())/86400000); if(d<=7)return 0; if(d<=14)return 1; return 2; }
+function getProductSortInfo(p) {
+    if (!p.expiry) return { priority: 4, date: Number.MAX_SAFE_INTEGER };
+    let expiryTime = new Date(p.expiry).getTime();
+    if (p.quantity === 0) return { priority: 3, date: expiryTime };
+    let diff = Math.ceil((new Date(p.expiry) - new Date()) / 86400000);
+    if (diff <= 7)  return { priority: 0, date: expiryTime };
+    if (diff <= 14) return { priority: 1, date: expiryTime };
+    return { priority: 2, date: expiryTime };
+}
 function getCategoryEmoji(cat){ return cat==="Dolap Ürünleri"?"🥫":(cat==="Kuru Gıda"?"🌾":"📦"); }
 function setupPriceFields(costId, priceId, boxId){
     let costEl=document.getElementById(costId),priceEl=document.getElementById(priceId),boxEl=document.getElementById(boxId);
@@ -174,7 +206,14 @@ function closeInventoryModal(){ document.getElementById("inventoryModal").style.
 function renderInventoryList(){
     let statsEl=document.getElementById("inventoryStats");
     if(statsEl){ let total=products.length,active=products.filter(p=>p.quantity>0).length,zero=products.filter(p=>p.quantity===0).length,urgent=products.filter(p=>p.expiry&&Math.ceil((new Date(p.expiry)-new Date())/86400000)<=7&&p.quantity>0).length; statsEl.innerHTML=`<div style="background:#3498db;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;">📦 TOPLAM: ${total}</div><div style="background:#2ecc71;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;">✅ AKTİF: ${active}</div>`+(zero>0?`<div style="background:#7f8c8d;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;">⬜ STOKSUZ: ${zero}</div>`:'')+(urgent>0?`<div style="background:#e74c3c;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;">⚠️ ACİL: ${urgent}</div>`:''); }
-    let container=document.getElementById("modalProductList"); let sv=(document.getElementById("inventorySearchInput")?.value||'').trim().toLowerCase(); let filtered=sv?products.filter(p=>p.name.toLowerCase().includes(sv)||p.barcode.includes(sv)):products; let sorted=[...filtered].sort((a,b)=>{ let pa=getPriority(a),pb=getPriority(b); if(pa!==pb)return pa-pb; return a.name.localeCompare(b.name); }); if(!sorted.length){ container.innerHTML="<div style='text-align:center;padding:20px;'>Ürün yok</div>"; return; } container.innerHTML=sorted.map(p=>{ let idx=products.findIndex(pr=>pr.id===p.id),cc=getProductColorClass(p); return `<div class="envanter-item ${cc}"><div class="product-name-item" onclick="openProductDetailModal(${idx})">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)} (${p.quantity})</div><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])">➕ ETİKET</button></div>`; }).join('');
+    let container=document.getElementById("modalProductList"); let sv=(document.getElementById("inventorySearchInput")?.value||'').trim().toLowerCase(); let filtered=sv?products.filter(p=>p.name.toLowerCase().includes(sv)||p.barcode.includes(sv)):products; 
+    let sorted=[...filtered].sort((a, b) => {
+        let sa = getProductSortInfo(a);
+        let sb = getProductSortInfo(b);
+        if (sa.priority !== sb.priority) return sa.priority - sb.priority;
+        return sa.date - sb.date;
+    });
+    if(!sorted.length){ container.innerHTML="<div style='text-align:center;padding:20px;'>Ürün yok</div>"; return; } container.innerHTML=sorted.map(p=>{ let idx=products.findIndex(pr=>pr.id===p.id),cc=getProductColorClass(p); return `<div class="envanter-item ${cc}"><div class="product-name-item" onclick="openProductDetailModal(${idx})">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)} (${p.quantity})</div><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])">➕ ETİKET</button></div>`; }).join('');
 }
 function openProductDetailModal(idx){ let p=products[idx];currentEditingProductId=idx;let color=getProductColorClass(p);let modal=document.getElementById("productDetailModal"),content=document.getElementById("productDetailContent");content.innerHTML=`<div class="modal-header"><span class="modal-title">📄 ÜRÜN DETAYI</span><button class="close-modal-btn" onclick="closeProductDetailModal()">✖ KAPAT</button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.src='';">`:'<div>📷 RESİM YOK</div>'}<div><strong>${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<br>Barkod: ${p.barcode}<br>Fiyat: ${p.price.toFixed(2)} €<br>Stok: ${p.quantity}<br>SKT: ${p.expiry||"YOK"}</div><div class="detail-actions"><div class="button-row"><button onclick="toggleEditMode()" style="background:#f39c12;">✏️ DÜZENLE</button><button onclick="deleteCurrentProduct()" style="background:#c0392b;">🗑️ SİL</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:#e67e22;">🛒 SATILDI</button><button onclick="addImageToCurrentProduct('gallery')">🖼️ GALERİ</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')">📷 KAMERA</button><button onclick="openGoogleSearchForCurrent()">🔍 İNTERNET</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])">➕ ETİKET LİSTESİNE EKLE</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:#8e44ad!important;margin-top:6px;">🏷️ ANGEBOT HAZIRLA</button></div><div id="editFields" style="display:none;margin-top:10px;"></div></div>`;modal.style.display="flex"; }
 function closeProductDetailModal(){ document.getElementById("productDetailModal").style.display="none";currentEditingProductId=null; }
@@ -184,7 +223,24 @@ async function deleteCurrentProduct(){ if(confirm(`${products[currentEditingProd
 async function addImageToCurrentProduct(source){ let input=document.createElement("input");input.type="file";input.accept="image/*";if(source==='camera')input.capture="environment";input.onchange=async(e)=>{let file=e.target.files[0];if(file){let reader=new FileReader();reader.onload=async(ev)=>{products[currentEditingProductId].image=await compressImage(ev.target.result);await saveProducts();openProductDetailModal(currentEditingProductId);playBeep();};reader.readAsDataURL(file);}};input.click(); }
 function openGoogleSearchForCurrent(){ let name=products[currentEditingProductId]?.name;if(name)window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank'); }
 async function compressImage(dataUrl,w=400,q=0.4){ return new Promise(r=>{let img=new Image();img.onload=()=>{let cnv=document.createElement('canvas'),ww=img.width,hh=img.height;if(ww>w){hh=hh*w/ww;ww=w;}cnv.width=ww;cnv.height=hh;cnv.getContext('2d').drawImage(img,0,0,ww,hh);r(cnv.toDataURL('image/jpeg',q));};img.src=dataUrl;}); }
-async function sellProduct(product,index){ if(!product)return;let newQ=product.quantity-1;if(newQ<0)newQ=0;if(newQ===0){if(confirm(`${product.name} stoğu sıfırlandı. Silinsin mi?`)){products.splice(index,1);await saveProducts();await updateUI();closeProductDetailModal();}else{product.quantity=0;await saveProducts();await updateUI();}}else{product.quantity=newQ;await saveProducts();await updateUI();} }
+async function sellProduct(product,index){ 
+    if (!product) return;
+    if (product.quantity <= 0) {
+        showToast(`${product.name} zaten stoksuz`);
+        return;
+    }
+    product.quantity--;
+    await saveProducts();
+    await updateUI();
+    if (lastScannedProduct && lastScannedProduct.id === product.id) {
+        showResult(products.find(pr => pr.id === product.id));
+    }
+    if (product.quantity === 0) {
+        showToast(`⚠️ ${product.name} STOK SIFIRLANDI`);
+    } else {
+        showToast(`${product.name} stok: ${product.quantity}`);
+    }
+}
 function savePrintQueue(){ try{localStorage.setItem("market_print_queue",JSON.stringify(printQueue));}catch(e){} }
 function loadPrintQueue(){ try{printQueue=JSON.parse(localStorage.getItem("market_print_queue")||'[]');}catch(e){printQueue=[];} }
 function addToPrintQueue(product){ if(!product)return;printQueue.push(product);savePrintQueue();showToast(`${product.name} etiket listesine eklendi.`); }
@@ -212,7 +268,7 @@ function removeSayimBarkod(bc){ delete sayimBarkodMap[bc];renderSayimBarkodListe
 function clearSayimBarkod(){ if(confirm('Sayım listesi temizlensin mi?')){sayimBarkodMap={};renderSayimBarkodListe();} }
 async function saveSayimBarkod(){ let keys=Object.keys(sayimBarkodMap);if(!keys.length){showToast('Hiç ürün taranmadı!');return;}let cnt=0;keys.forEach(bc=>{let p=products.find(x=>x.barcode===bc);if(p){p.quantity=sayimBarkodMap[bc];cnt++;}});await saveProducts();await updateUI();showToast('✅ '+cnt+' ürün stoğu güncellendi');sayimBarkodMap={};closeStokSayimModal(); }
 
-// ========== ANGEBOT (TAMAMEN DÜZELTİLDİ) ==========
+// ========== ANGEBOT ==========
 function openAngebotModal(p){ angebotProduct=p;document.getElementById('angebotProductName').innerText=p.name+' — '+p.price.toFixed(2)+' €';document.getElementById('angebotModal').style.display='flex'; }
 function openAngebotPreview(size,orientation){ if(!angebotProduct)return;currentAngebotSize=size;currentAngebotOrientation=orientation;let modal=document.getElementById('angebotPreviewModal'),content=document.getElementById('angebotPreviewContent'),title=document.getElementById('angebotPreviewTitle');let sizeLabel=size==='a4'?'A4':size==='a5'?'A5':size==='a6'?'A6 (4\'lü)':'ETİKET';let oriLabel=orientation==='portrait'?'DİKEY':'YATAY';if(size==='a6')oriLabel='4\'LÜ';if(size==='etiket')oriLabel='21\'Lİ';title.innerText='👁️ '+sizeLabel+' '+oriLabel;let pw=595,ph=842;if(size==='a4'&&orientation==='landscape'){pw=842;ph=595;}let availW=Math.min(window.innerWidth*0.85-48,520),availH=window.innerHeight*0.72,scale=Math.min(availW/pw,availH/ph,1),scaledW=Math.round(pw*scale),scaledH=Math.round(ph*scale);content.style.background='transparent';content.style.borderRadius='0';content.style.overflow='visible';content.innerHTML=`<div style="width:${scaledW}px;height:${scaledH}px;margin:0 auto;overflow:hidden;border-radius:6px;box-shadow:0 6px 24px rgba(0,0,0,0.45);"><div style="width:${pw}px;height:${ph}px;transform:scale(${scale});transform-origin:top left;overflow:hidden;">${buildAngebotPreviewHTML(size,orientation,angebotProduct,pw,ph)}</div></div>`;document.getElementById('angebotModal').style.display='none';modal.style.display='flex'; }
 function closeAngebotPreview(){ document.getElementById('angebotPreviewModal').style.display='none';document.getElementById('angebotModal').style.display='flex'; }
@@ -278,8 +334,7 @@ function buildAngebotPreviewHTML(size,orientation,p,pw,ph){
     }
 
     if(size==='a5'){
-        let cutPx=4, // kesme çizgisi piksel olarak
-            posterH=Math.floor((ph-cutPx)/2);
+        let cutPx=4,posterH=Math.floor((ph-cutPx)/2);
         let isL=orientation==='landscape';
         return `<div style="width:${pw}px;height:${ph}px;background:white;overflow:hidden;display:flex;flex-direction:column;">
             <div style="height:${posterH}px;overflow:hidden;">${_posterBlock(p,pw,posterH,isL)}</div>
@@ -308,14 +363,11 @@ function buildAngebotPrintHTML(size,orientation,p){
         let card=`<div class="card">${imgSrc}<div class="title">ANGEBOT</div><div class="name">${escapeHtml(p.name)}</div><div class="price">€ ${ip},<span class="cents">${centsStr}</span></div></div>`;
         bodyHTML=card+card+card+card;
     } else if(size==='a5'){
-        // A5 dikey ve yatay için KESİN çözüm
         if(orientation==='landscape'){
-            // A5 YATAY: A4 dikey sayfaya iki adet yatay poster
             bodyCSS=`@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;background:white;font-family:'Arial Black',Arial,sans-serif;}.sheet{width:210mm;height:297mm;display:flex;flex-direction:column;}.poster{width:210mm;height:147mm;display:flex;flex-direction:row;align-items:center;justify-content:center;padding:6mm 10mm;box-sizing:border-box;overflow:hidden;}.cut{width:210mm;height:3mm;background:#f0f0f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;}.cut-line{border-top:2px dashed #999;width:94%;}.poster-left{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding-right:4mm;}.poster-right{flex:1;display:flex;align-items:center;justify-content:center;max-height:130mm;}.poster-right img{max-width:100%;max-height:130mm;object-fit:contain;}.angebot{font-family:'Anton',Impact,sans-serif;font-size:38pt;font-weight:900;color:#cc0000;letter-spacing:3px;text-shadow:.7px 0 #8b0000,-.7px 0 #8b0000,0 .7px #8b0000,0 -.7px #8b0000;}.pname{font-size:14pt;font-weight:900;color:#111;line-height:1.3;margin:5px 0;}.psub{font-size:9pt;color:#444;margin-bottom:5px;}.price{font-family:'Anton',Impact,sans-serif;font-size:44pt;font-weight:900;color:#cc0000;text-shadow:.7px 0 #8b0000,-.7px 0 #8b0000,0 .7px #8b0000,0 -.7px #8b0000;}.cents{font-size:26pt;}.footer{font-size:9pt;font-weight:800;color:#333;margin-top:8px;border-top:1px solid #ddd;padding-top:5px;}`;
             let poster=`<div class="poster"><div class="poster-left"><div class="angebot">ANGEBOT</div><div class="pname">${escapeHtml(p.name)}</div><div class="psub">• ${escapeHtml(p.category||'')}</div><div class="price">€ ${ip},<span class="cents">${centsStr}</span></div><div class="footer"><strong>SONDERPREIS!</strong></div></div><div class="poster-right">${imgSrc}</div></div>`;
             bodyHTML=`<div class="sheet">${poster}<div class="cut"><div class="cut-line"></div></div>${poster}</div>`;
         } else {
-            // A5 DİKEY: A4 dikey sayfaya iki adet dikey poster
             bodyCSS=`@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;background:white;font-family:'Arial Black',Arial,sans-serif;}.sheet{width:210mm;height:297mm;display:flex;flex-direction:column;}.poster{width:210mm;height:147mm;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8mm 14mm;box-sizing:border-box;overflow:hidden;text-align:center;}.cut{width:210mm;height:3mm;background:#f0f0f0;display:flex;align-items:center;justify-content:center;flex-shrink:0;}.cut-line{border-top:2px dashed #999;width:94%;}.angebot{font-family:'Anton',Impact,sans-serif;font-size:44pt;font-weight:900;color:#cc0000;letter-spacing:4px;text-shadow:.7px 0 #8b0000,-.7px 0 #8b0000,0 .7px #8b0000,0 -.7px #8b0000;}.img-box{flex:1;width:100%;display:flex;align-items:center;justify-content:center;max-height:65mm;overflow:hidden;}.img-box img{max-width:100%;max-height:65mm;object-fit:contain;}.pname{font-size:14pt;font-weight:900;color:#111;line-height:1.3;margin:4px 0;}.psub{font-size:9pt;color:#444;}.price{font-family:'Anton',Impact,sans-serif;font-size:46pt;font-weight:900;color:#cc0000;text-shadow:.7px 0 #8b0000,-.7px 0 #8b0000,0 .7px #8b0000,0 -.7px #8b0000;}.cents{font-size:28pt;}.footer{font-size:9pt;font-weight:800;color:#333;border-top:1px solid #ddd;padding-top:4px;width:100%;}`;
             let poster=`<div class="poster"><div class="angebot">ANGEBOT</div><div class="img-box">${imgSrc}</div><div class="pname">${escapeHtml(p.name)}</div><div class="psub">• ${escapeHtml(p.category||'')}</div><div class="price">€ ${ip},<span class="cents">${centsStr}</span></div><div class="footer"><strong>SONDERPREIS!</strong> | ${escapeHtml(p.name)}</div></div>`;
             bodyHTML=`<div class="sheet">${poster}<div class="cut"><div class="cut-line"></div></div>${poster}</div>`;
@@ -352,6 +404,17 @@ function exportToCSV(){ let rows=[["Ad","Barkod","Fiyat (€)","Stok","Maliyet (
 function printReport(){ let html=`<table border="1"><thead><tr><th>Ad</th><th>Barkod</th><th>Fiyat</th><th>Stok</th><th>Maliyet</th><th>Kar</th><th>Kar%</th><th>SKT</th><th>Kategori</th></tr></thead><tbody>`;for(let p of products){let pr=(p.cost&&p.cost>0)?(p.price-p.cost):0,m=(p.cost&&p.cost>0&&p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0";html+=`<tr><td>${escapeHtml(p.name)}</td><td>${p.barcode}</td><td>${p.price.toFixed(2)}</td><td>${p.quantity}</td><td>${p.cost?p.cost.toFixed(2):'0'}</td><td>${pr.toFixed(2)}</td><td>${m}%</td><td>${p.expiry||''}</td><td>${p.category}</td></tr>`;}html+=`</tbody></table>`;document.getElementById("printTableContainer").innerHTML=html;document.getElementById("printModal").style.display="flex"; }
 async function compressAllImages(){ let cnt=0;for(let p of products){if(p.image&&p.image.length>60000){p.image=await compressImage(p.image);cnt++;}}if(cnt)await saveProducts();showToast(cnt?`${cnt} resim sıkıştırıldı`:"Sıkıştırılacak yok"); }
 
+function updateClock() {
+    let now = new Date();
+    let h = String(now.getHours()).padStart(2,'0');
+    let m = String(now.getMinutes()).padStart(2,'0');
+    let s = String(now.getSeconds()).padStart(2,'0');
+    let dd = String(now.getDate()).padStart(2,'0');
+    let mo = String(now.getMonth()+1).padStart(2,'0');
+    document.getElementById('clockTime').textContent = `${h}:${m}:${s}`;
+    document.getElementById('clockDate').textContent = `${dd}/${mo}`;
+}
+
 document.getElementById("searchBtn").onclick=()=>openCameraModal('search');
 document.getElementById("addBtn").onclick=()=>openCameraModal('add');
 document.getElementById("manualAddBtn").onclick=openManualAddModal;
@@ -363,6 +426,8 @@ document.getElementById("closeCameraModalBtn").onclick=closeCameraModal;
     loadPrintQueue();
     await updateUI();
     showToast("✅ Market Pro Hazır!");
+    updateClock();
+    setInterval(updateClock, 1000);
 })();
 </script>
 </body>
