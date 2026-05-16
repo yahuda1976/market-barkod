@@ -160,7 +160,7 @@
 <div id="queueModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">🏷️ ETİKET LİSTESİ</span><button class="close-modal-btn" onclick="closeQueueModal()">✖ KAPAT</button></div><div id="queueListContainer" style="max-height:50vh;overflow-y:auto"></div><div style="margin-top:16px"><button class="btn btn-primary" style="width:100%;background:#c0392b" onclick="clearPrintQueue()">🗑️ LİSTEYİ TEMİZLE</button></div></div></div>
 <div id="stokSayimModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">🔢 STOK SAYIM</span><button class="close-modal-btn" onclick="closeStokSayimModal()">✖ KAPAT</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px"><button id="sayimModListeBtn" onclick="setSayimMod('liste')" style="background:#3498db;border:none;border-radius:40px;padding:12px;color:white;font-weight:800;font-size:0.85rem;cursor:pointer">📋 LİSTE MODU</button><button id="sayimModBarkodBtn" onclick="setSayimMod('barkod')" style="background:#2a2a2a;border:none;border-radius:40px;padding:12px;color:white;font-weight:800;font-size:0.85rem;cursor:pointer">📷 BARKOD MODU</button></div><div id="sayimListeContainer"><div style="font-size:0.75rem;color:#aaa;margin-bottom:8px">Sayılan miktarı girin, fark otomatik hesaplanır.</div><input type="text" id="sayimSearchInput" placeholder="🔍 Ürün ara..." style="margin-bottom:8px" oninput="renderSayimListe()"><div id="sayimListeItems" style="max-height:42vh;overflow-y:auto"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px"><button onclick="saveSayimListe()" style="background:#2ecc71;border:none;border-radius:40px;padding:14px;color:white;font-weight:800;cursor:pointer">💾 GÜNCELLE</button><button onclick="resetSayimInputs()" style="background:#95a5a6;border:none;border-radius:40px;padding:14px;color:white;font-weight:800;cursor:pointer">🔄 SIFIRLA</button></div></div><div id="sayimBarkodContainer" style="display:none"><div style="font-size:0.75rem;color:#aaa;margin-bottom:8px">Barkodu okut → adet gir → tekrar tara. Bitince Kaydet.</div><button onclick="openSayimKamera()" style="width:100%;background:#3498db;border:none;border-radius:40px;padding:14px;color:white;font-weight:800;font-size:1rem;cursor:pointer;margin-bottom:12px">📷 KAMERA İLE TARA</button><div id="sayimBarkodListesi" style="max-height:38vh;overflow-y:auto"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px"><button onclick="saveSayimBarkod()" style="background:#2ecc71;border:none;border-radius:40px;padding:14px;color:white;font-weight:800;cursor:pointer">💾 GÜNCELLE</button><button onclick="clearSayimBarkod()" style="background:#c0392b;border:none;border-radius:40px;padding:14px;color:white;font-weight:800;cursor:pointer">🗑️ TEMİZLE</button></div></div></div></div>
 
-<!-- ANGEBOT MODAL (21'li etiket seçeneği geri eklendi) -->
+<!-- ANGEBOT MODAL -->
 <div id="angebotModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">🏷️ ANGEBOT HAZIRLA</span><button class="close-modal-btn" onclick="document.getElementById('angebotModal').style.display='none'">✖ KAPAT</button></div><div id="angebotProductName" style="font-size:1rem;font-weight:800;color:#ffaa88;margin-bottom:8px;text-align:center"></div><div style="background:#3a3a3a;border-radius:32px;padding:12px;margin-bottom:16px;"><div style="font-size:0.9rem;color:#ccc;">💰 Normal fiyat: <strong id="angebotOriginalPrice"></strong> €</div><input type="number" id="angebotDiscountPrice" step="0.01" placeholder="İndirimli fiyat (€)" style="margin:10px 0 0;padding:12px;"><div id="angebotError" style="color:#ff8888;font-size:0.75rem;margin-top:6px;"></div></div><div style="display:flex;flex-direction:column;gap:10px"><div style="color:#aaa;font-size:0.72rem;font-weight:800;letter-spacing:1px">📄 A4</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button onclick="generateAngebotWithDiscount('a4','portrait')" style="background:#5dade2;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A4 DİKEY</button><button onclick="printAngebotDirectWithDiscount('a4','portrait')" style="background:#3498db;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A4 DİKEY</button><button onclick="generateAngebotWithDiscount('a4','landscape')" style="background:#5dade2;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A4 YATAY</button><button onclick="printAngebotDirectWithDiscount('a4','landscape')" style="background:#2980b9;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A4 YATAY</button></div><div style="color:#aaa;font-size:0.72rem;font-weight:800;letter-spacing:1px">📄 A5</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button onclick="generateAngebotWithDiscount('a5','portrait')" style="background:#58d68d;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A5 DİKEY</button><button onclick="printAngebotDirectWithDiscount('a5','portrait')" style="background:#2ecc71;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A5 DİKEY</button><button onclick="generateAngebotWithDiscount('a5','landscape')" style="background:#58d68d;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A5 YATAY</button><button onclick="printAngebotDirectWithDiscount('a5','landscape')" style="background:#27ae60;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A5 YATAY</button></div><div style="color:#aaa;font-size:0.72rem;font-weight:800;letter-spacing:1px">📄 A6 (4'LÜ)</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button onclick="generateAngebotWithDiscount('a6','portrait')" style="background:#f0a500;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A6 4'LÜ</button><button onclick="printAngebotDirectWithDiscount('a6','portrait')" style="background:#e67e22;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A6 4'LÜ</button></div><div style="color:#aaa;font-size:0.72rem;font-weight:800;letter-spacing:1px">🏷️ ETİKET (21'li)</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button onclick="generateAngebotWithDiscount('etiket','landscape')" style="background:#f0a500;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ ÖNİZLE</button><button onclick="printAngebotDirectWithDiscount('etiket','landscape')" style="background:#e67e22;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ YAZDIR</button></div></div></div></div>
 
 <div id="angebotPreviewModal" class="modal" style="z-index:2000"><div class="modal-content" style="max-width:600px;max-height:95vh"><div class="modal-header"><span class="modal-title" id="angebotPreviewTitle">👁️ ÖNİZLEME</span><button class="close-modal-btn" onclick="closeAngebotPreview()">✖ KAPAT</button></div><div id="angebotPreviewContent" style="background:white;border-radius:20px;overflow:hidden;margin-bottom:16px"></div><button id="angebotPreviewPrintBtn" onclick="printCurrentAngebot()" style="width:100%;background:#e67e22;border:none;border-radius:40px;padding:16px;color:white;font-weight:800;font-size:1rem;cursor:pointer">🖨️ YAZDIR</button></div></div>
@@ -258,7 +258,7 @@ function removeFromQueue(i){ printQueue.splice(i,1);savePrintQueue();managePrint
 function clearPrintQueue(){ printQueue=[];savePrintQueue();managePrintQueue(); }
 function closeQueueModal(){ document.getElementById("queueModal").style.display="none"; }
 
-// Yenilenen previewLabels: 21'li grid düzeninde göster
+// ETİKET ÖNİZLEME (21'li grid) - DÜZELTİLDİ
 function previewLabels(){
     if(!printQueue.length){ showToast("Etiket listesi boş, önce ürün ekleyin."); return; }
     let container = document.getElementById("previewContainer");
@@ -294,20 +294,18 @@ function previewLabels(){
                         <svg class="barcode-svg" id="preview-barcode-${pageIdx}-${j}"></svg>
                     </div>
                 `;
+                setTimeout(() => {
+                    JsBarcode(`#preview-barcode-${pageIdx}-${j}`, product.barcode, {format:"CODE128", width:1.5, height:22, displayValue:true, fontSize:8});
+                }, 10);
             } else {
                 card.style.visibility = "hidden";
                 card.style.border = "1px solid #eee";
+                card.innerHTML = "";
             }
             gridDiv.appendChild(card);
         }
         pageDiv.appendChild(gridDiv);
         container.appendChild(pageDiv);
-        pageItems.forEach((product, idx) => {
-            let svgId = `preview-barcode-${pageIdx}-${idx}`;
-            setTimeout(() => {
-                JsBarcode(`#${svgId}`, product.barcode, {format:"CODE128", width:1.5, height:22, displayValue:true, fontSize:8});
-            }, 10);
-        });
     });
     document.getElementById("previewModal").style.display = "flex";
 }
@@ -396,7 +394,7 @@ function removeSayimBarkod(bc){ delete sayimBarkodMap[bc];renderSayimBarkodListe
 function clearSayimBarkod(){ if(confirm('Sayım listesi temizlensin mi?')){sayimBarkodMap={};renderSayimBarkodListe();} }
 async function saveSayimBarkod(){ let keys=Object.keys(sayimBarkodMap);if(!keys.length){showToast('Hiç ürün taranmadı!');return;}let cnt=0;keys.forEach(bc=>{let p=products.find(x=>x.barcode===bc);if(p){p.quantity=sayimBarkodMap[bc];cnt++;}});await saveProducts();await updateUI();showToast('✅ '+cnt+' ürün stoğu güncellendi');sayimBarkodMap={};closeStokSayimModal(); }
 
-// ========== YENİ ANGEBOT FONKSİYONLARI (YATAY DÜZEN İYİLEŞTİRMELİ VE 21'Lİ ETİKET) ==========
+// ========== ANGEBOT FONKSİYONLARI (YATAY DÜZEN İYİLEŞTİRİLDİ, 21'Lİ ETİKET DÜZELDİ) ==========
 function openAngebotModal(p){
     angebotProduct = p;
     document.getElementById('angebotProductName').innerHTML = `${escapeHtml(p.name)} — ${p.price.toFixed(2)} €`;
@@ -437,7 +435,7 @@ function generateAngebotWithDiscount(size, orientation){
     title.innerText = '👁️ ' + sizeLabel + ' ' + oriLabel;
     let pw = 595, ph = 842;
     if(size === 'a4' && orientation === 'landscape') { pw = 842; ph = 595; }
-    if(size === 'etiket') { pw = 842; ph = 595; } // yatay A4 üzerine 21'li grid
+    if(size === 'etiket') { pw = 842; ph = 595; }
     let availW = Math.min(window.innerWidth * 0.85 - 48, 520);
     let availH = window.innerHeight * 0.72;
     let scale = Math.min(availW / pw, availH / ph, 1);
@@ -476,7 +474,6 @@ function closeAngebotPreview(){
     document.getElementById('angebotModal').style.display = 'flex';
 }
 
-// Poster blok (dikey ve yatay düzen iyileştirildi)
 function _posterBlock(p, w, h, isLandscape, smaller, discountPrice){
     let originalPrice = p.price;
     let showDiscount = (discountPrice !== null && discountPrice < originalPrice);
@@ -492,22 +489,20 @@ function _posterBlock(p, w, h, isLandscape, smaller, discountPrice){
         let nPx = Math.round(w * 0.022);
         let prPx = Math.round(w * 0.11);
         let cPx = Math.round(w * 0.06);
-        let imgW = Math.round(w * 0.45);
+        let imgW = Math.round(w * 0.42);
         let oldPriceHtml = '';
         if(showDiscount){
             let oip = Math.floor(originalPrice);
             let oic = Math.round((originalPrice - oip) * 100);
             let ocents = oic < 10 ? '0' + oic : '' + oic;
-            oldPriceHtml = `<div style="font-size:${Math.round(prPx * 0.4)}px; color:#555; text-decoration:line-through; text-decoration-color:#cc0000; margin-bottom:4px;">€ ${oip},<span style="font-size:${Math.round(cPx * 0.4)}px;">${ocents}</span></div>`;
+            oldPriceHtml = `<div style="font-size:${Math.round(prPx * 0.4)}px; color:#555; text-decoration:line-through; text-decoration-color:#cc0000; margin-bottom:3px;">€ ${oip},<span style="font-size:${Math.round(cPx * 0.4)}px;">${ocents}</span></div>`;
         }
-        return `<div style="width:${w}px;height:${h}px;background:white;font-family:'Arial Black',Arial,sans-serif;display:flex;align-items:stretch;padding:${pad}px;box-sizing:border-box;gap:${Math.round(w * 0.02)}px;overflow:hidden;">
-            <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;text-align:center;">
-                <div style="font-family:Impact,'Arial Black',sans-serif;font-size:${tPx}px;color:#cc0000;letter-spacing:${Math.round(w * 0.005)}px;font-weight:900;line-height:1.1;text-shadow:.8px 0 #8b0000,-.8px 0 #8b0000,0 .8px #8b0000,0 -.8px #8b0000;">ANGEBOT</div>
-                <div style="padding-top:5px;text-align:left;">
-                    <div style="font-size:${nPx}px;font-weight:900;color:#111;line-height:1.3;">${escapeHtml(p.name)}</div>
-                </div>
+        return `<div style="width:${w}px;height:${h}px;background:white;font-family:'Arial Black',Arial,sans-serif;display:flex;align-items:center;justify-content:center;padding:${pad}px;box-sizing:border-box;gap:${Math.round(w * 0.02)}px;overflow:hidden;">
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:6px;text-align:left; padding-left:8px;">
+                <div style="font-family:Impact,'Arial Black',sans-serif;font-size:${tPx}px;color:#cc0000;letter-spacing:2px;font-weight:900;line-height:1;text-shadow:.6px 0 #8b0000,-.6px 0 #8b0000;">ANGEBOT</div>
+                <div style="font-size:${nPx}px;font-weight:900;color:#111;line-height:1.3; margin-top:4px;">${escapeHtml(p.name)}</div>
                 ${oldPriceHtml}
-                <div style="font-family:Impact,'Arial Black',sans-serif;font-size:${prPx}px;color:#cc0000;font-weight:900;line-height:1;text-shadow:.8px 0 #8b0000,-.8px 0 #8b0000,0 .8px #8b0000,0 -.8px #8b0000;">€ ${ip},<span style="font-size:${cPx}px;">${centsStr}</span></div>
+                <div style="font-family:Impact,'Arial Black',sans-serif;font-size:${prPx}px;color:#cc0000;font-weight:900;line-height:1;text-shadow:.6px 0 #8b0000,-.6px 0 #8b0000;">€ ${ip},<span style="font-size:${cPx}px;">${centsStr}</span></div>
             </div>
             <div style="width:${imgW}px;display:flex;align-items:center;justify-content:center;">${imgTag}</div>
         </div>`;
@@ -548,7 +543,6 @@ function _posterBlock(p, w, h, isLandscape, smaller, discountPrice){
 function buildAngebotPreviewHTML(size, orientation, p, pw, ph, discountPrice){
     if(!pw) pw = 595; if(!ph) ph = 842;
     if(size === 'etiket'){
-        // 21'li etiket poster (3x7 grid)
         let mg = 8, gap = 3;
         let cols = 3, rows = 7;
         let cellW = Math.floor((pw - 2*mg - (cols-1)*gap) / cols);
@@ -605,7 +599,6 @@ function buildAngebotPrintHTML(size, orientation, p, discountPrice){
     let fontLink = `<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">`;
     let bodyCSS = '', bodyHTML = '';
     if(size === 'etiket'){
-        // 21'li etiket poster yazdırma
         let mg = 8, gap = 3, cols=3, rows=7;
         let cellW = Math.floor((842 - 2*mg - (cols-1)*gap) / cols);
         let cellH = Math.floor((595 - 2*mg - (rows-1)*gap) / rows);
@@ -675,7 +668,6 @@ async function clearAllData(){ if(confirm("TÜM VERİLER SİLİNECEK!")){product
 function exportToCSV(){ let rows=[["Ad","Barkod","Fiyat (€)","Stok","Maliyet (€)","Kar (€)","Kar%","SKT","Kategori"]];for(let p of products){let pr=(p.cost&&p.cost>0)?(p.price-p.cost):0,m=(p.cost&&p.cost>0&&p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0";rows.push([`"${p.name}"`,p.barcode,p.price,p.quantity,p.cost||0,pr.toFixed(2),m,p.expiry||"",p.category]);}let csv=rows.map(r=>r.join(",")).join("\n"),blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="envanter_raporu.csv";a.click();URL.revokeObjectURL(a.href);showToast("CSV indirildi."); }
 function printReport(){ let html=`<table border="1"><thead><tr><th>Ad</th><th>Barkod</th><th>Fiyat</th><th>Stok</th><th>Maliyet</th><th>Kar</th><th>Kar%</th><th>SKT</th><th>Kategori</th></tr></thead><tbody>`;for(let p of products){let pr=(p.cost&&p.cost>0)?(p.price-p.cost):0,m=(p.cost&&p.cost>0&&p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0";html+=`<tr><td>${escapeHtml(p.name)}</td><td>${p.barcode}</td><td>${p.price.toFixed(2)}</td><td>${p.quantity}</td><td>${p.cost?p.cost.toFixed(2):'0'}</td><td>${pr.toFixed(2)}</td><td>${m}%</td><td>${p.expiry||''}</td><td>${p.category}</td></tr>`;}html+=`</tbody></table>`;document.getElementById("printTableContainer").innerHTML=html;document.getElementById("printModal").style.display="flex"; }
 async function compressAllImages(){ let cnt=0;for(let p of products){if(p.image&&p.image.length>60000){p.image=await compressImage(p.image);cnt++;}}if(cnt)await saveProducts();showToast(cnt?`${cnt} resim sıkıştırıldı`:"Sıkıştırılacak yok"); }
-
 function updateClock() {
     let now = new Date();
     let h = String(now.getHours()).padStart(2,'0');
@@ -686,13 +678,11 @@ function updateClock() {
     document.getElementById('clockTime').textContent = `${h}:${m}:${s}`;
     document.getElementById('clockDate').textContent = `${dd}/${mo}`;
 }
-
 document.getElementById("searchBtn").onclick=()=>openCameraModal('search');
 document.getElementById("addBtn").onclick=()=>openCameraModal('add');
 document.getElementById("manualAddBtn").onclick=openManualAddModal;
 document.getElementById("productSearchBtn").onclick=()=>openInventoryModal();
 document.getElementById("closeCameraModalBtn").onclick=closeCameraModal;
-
 (async function(){
     await loadProducts();
     loadPrintQueue();
