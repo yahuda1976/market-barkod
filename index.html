@@ -7,6 +7,7 @@
     <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
+        /* Tüm stiller aynen korunuyor, sadece gerekli yerler eklendi */
         *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
         body{background:#f2f2f7;display:flex;justify-content:center;min-height:100vh;padding:8px}
         .app-container{max-width:550px;width:100%;background:#f2f2f7;border-radius:48px;padding:10px 16px}
@@ -58,7 +59,6 @@
         .toast{background:#333;color:white;padding:12px 20px;border-radius:40px;box-shadow:0 4px 12px rgba(0,0,0,0.3);font-size:0.9rem;animation:slideIn 0.3s ease,fadeOut 0.5s ease 2.5s forwards;pointer-events:none}
         @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
         @keyframes fadeOut{to{opacity:0;visibility:hidden}}
-        /* Etiket grid stilleri (21'li poster için) */
         .label-grid-container{background:#fff;padding:8px;box-sizing:border-box;page-break-after:always;}
         .label-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:0 auto;}
         .label-card{width:100%;aspect-ratio:10 / 3.5;background:white;color:black;border:2px solid #000;border-radius:6px;padding:3px 5px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;box-sizing:border-box;}
@@ -160,8 +160,8 @@
 <div id="queueModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">🏷️ ETİKET LİSTESİ</span><button class="close-modal-btn" onclick="closeQueueModal()">✖ KAPAT</button></div><div id="queueListContainer" style="max-height:50vh;overflow-y:auto"></div><div style="margin-top:16px"><button class="btn btn-primary" style="width:100%;background:#c0392b" onclick="clearPrintQueue()">🗑️ LİSTEYİ TEMİZLE</button></div></div></div>
 <div id="stokSayimModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">🔢 STOK SAYIM</span><button class="close-modal-btn" onclick="closeStokSayimModal()">✖ KAPAT</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px"><button id="sayimModListeBtn" onclick="setSayimMod('liste')" style="background:#3498db;border:none;border-radius:40px;padding:12px;color:white;font-weight:800;font-size:0.85rem;cursor:pointer">📋 LİSTE MODU</button><button id="sayimModBarkodBtn" onclick="setSayimMod('barkod')" style="background:#2a2a2a;border:none;border-radius:40px;padding:12px;color:white;font-weight:800;font-size:0.85rem;cursor:pointer">📷 BARKOD MODU</button></div><div id="sayimListeContainer"><div style="font-size:0.75rem;color:#aaa;margin-bottom:8px">Sayılan miktarı girin, fark otomatik hesaplanır.</div><input type="text" id="sayimSearchInput" placeholder="🔍 Ürün ara..." style="margin-bottom:8px" oninput="renderSayimListe()"><div id="sayimListeItems" style="max-height:42vh;overflow-y:auto"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px"><button onclick="saveSayimListe()" style="background:#2ecc71;border:none;border-radius:40px;padding:14px;color:white;font-weight:800;cursor:pointer">💾 GÜNCELLE</button><button onclick="resetSayimInputs()" style="background:#95a5a6;border:none;border-radius:40px;padding:14px;color:white;font-weight:800;cursor:pointer">🔄 SIFIRLA</button></div></div><div id="sayimBarkodContainer" style="display:none"><div style="font-size:0.75rem;color:#aaa;margin-bottom:8px">Barkodu okut → adet gir → tekrar tara. Bitince Kaydet.</div><button onclick="openSayimKamera()" style="width:100%;background:#3498db;border:none;border-radius:40px;padding:14px;color:white;font-weight:800;font-size:1rem;cursor:pointer;margin-bottom:12px">📷 KAMERA İLE TARA</button><div id="sayimBarkodListesi" style="max-height:38vh;overflow-y:auto"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px"><button onclick="saveSayimBarkod()" style="background:#2ecc71;border:none;border-radius:40px;padding:14px;color:white;font-weight:800;cursor:pointer">💾 GÜNCELLE</button><button onclick="clearSayimBarkod()" style="background:#c0392b;border:none;border-radius:40px;padding:14px;color:white;font-weight:800;cursor:pointer">🗑️ TEMİZLE</button></div></div></div></div>
 
-<!-- ANGEBOT MODAL -->
-<div id="angebotModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">🏷️ ANGEBOT HAZIRLA</span><button class="close-modal-btn" onclick="document.getElementById('angebotModal').style.display='none'">✖ KAPAT</button></div><div id="angebotProductName" style="font-size:1rem;font-weight:800;color:#ffaa88;margin-bottom:8px;text-align:center"></div><div style="background:#3a3a3a;border-radius:32px;padding:12px;margin-bottom:16px;"><div style="font-size:0.9rem;color:#ccc;">💰 Normal fiyat: <strong id="angebotOriginalPrice"></strong> €</div><input type="number" id="angebotDiscountPrice" step="0.01" placeholder="İndirimli fiyat (€)" style="margin:10px 0 0;padding:12px;"><div id="angebotError" style="color:#ff8888;font-size:0.75rem;margin-top:6px;"></div></div><div style="display:flex;flex-direction:column;gap:10px"><div style="color:#aaa;font-size:0.72rem;font-weight:800;letter-spacing:1px">📄 A4</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button onclick="generateAngebotWithDiscount('a4','portrait')" style="background:#5dade2;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A4 DİKEY</button><button onclick="printAngebotDirectWithDiscount('a4','portrait')" style="background:#3498db;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A4 DİKEY</button><button onclick="generateAngebotWithDiscount('a4','landscape')" style="background:#5dade2;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A4 YATAY</button><button onclick="printAngebotDirectWithDiscount('a4','landscape')" style="background:#2980b9;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A4 YATAY</button></div><div style="color:#aaa;font-size:0.72rem;font-weight:800;letter-spacing:1px">📄 A5</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button onclick="generateAngebotWithDiscount('a5','portrait')" style="background:#58d68d;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A5 DİKEY</button><button onclick="printAngebotDirectWithDiscount('a5','portrait')" style="background:#2ecc71;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A5 DİKEY</button><button onclick="generateAngebotWithDiscount('a5','landscape')" style="background:#58d68d;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A5 YATAY</button><button onclick="printAngebotDirectWithDiscount('a5','landscape')" style="background:#27ae60;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A5 YATAY</button></div><div style="color:#aaa;font-size:0.72rem;font-weight:800;letter-spacing:1px">📄 A6 (4'LÜ)</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button onclick="generateAngebotWithDiscount('a6','portrait')" style="background:#f0a500;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A6 4'LÜ</button><button onclick="printAngebotDirectWithDiscount('a6','portrait')" style="background:#e67e22;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A6 4'LÜ</button></div><div style="color:#aaa;font-size:0.72rem;font-weight:800;letter-spacing:1px">🏷️ ETİKET (21'li / Çoklu Ürün)</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button onclick="printMultiLabelPoster()" style="background:#f0a500;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ YAZDIR</button></div></div></div></div>
+<!-- ANGEBOT MODAL (düzenlendi: 21'li için önizleme ve yazdır ayrıldı) -->
+<div id="angebotModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">🏷️ ANGEBOT HAZIRLA</span><button class="close-modal-btn" onclick="document.getElementById('angebotModal').style.display='none'">✖ KAPAT</button></div><div id="angebotProductName" style="font-size:1rem;font-weight:800;color:#ffaa88;margin-bottom:8px;text-align:center"></div><div style="background:#3a3a3a;border-radius:32px;padding:12px;margin-bottom:16px;"><div style="font-size:0.9rem;color:#ccc;">💰 Normal fiyat: <strong id="angebotOriginalPrice"></strong> €</div><input type="number" id="angebotDiscountPrice" step="0.01" placeholder="İndirimli fiyat (€)" style="margin:10px 0 0;padding:12px;"><div id="angebotError" style="color:#ff8888;font-size:0.75rem;margin-top:6px;"></div></div><div style="display:flex;flex-direction:column;gap:10px"><div style="color:#aaa;font-size:0.72rem;font-weight:800;letter-spacing:1px">📄 A4</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button onclick="generateAngebotWithDiscount('a4','portrait')" style="background:#5dade2;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A4 DİKEY</button><button onclick="printAngebotDirectWithDiscount('a4','portrait')" style="background:#3498db;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A4 DİKEY</button><button onclick="generateAngebotWithDiscount('a4','landscape')" style="background:#5dade2;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A4 YATAY</button><button onclick="printAngebotDirectWithDiscount('a4','landscape')" style="background:#2980b9;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A4 YATAY</button></div><div style="color:#aaa;font-size:0.72rem;font-weight:800;letter-spacing:1px">📄 A5</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button onclick="generateAngebotWithDiscount('a5','portrait')" style="background:#58d68d;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A5 DİKEY</button><button onclick="printAngebotDirectWithDiscount('a5','portrait')" style="background:#2ecc71;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A5 DİKEY</button><button onclick="generateAngebotWithDiscount('a5','landscape')" style="background:#58d68d;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A5 YATAY</button><button onclick="printAngebotDirectWithDiscount('a5','landscape')" style="background:#27ae60;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A5 YATAY</button></div><div style="color:#aaa;font-size:0.72rem;font-weight:800;letter-spacing:1px">📄 A6 (4'LÜ)</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button onclick="generateAngebotWithDiscount('a6','portrait')" style="background:#f0a500;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A6 4'LÜ</button><button onclick="printAngebotDirectWithDiscount('a6','portrait')" style="background:#e67e22;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A6 4'LÜ</button></div><div style="color:#aaa;font-size:0.72rem;font-weight:800;letter-spacing:1px">🏷️ ETİKET (21'li / Çoklu Ürün)</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button onclick="showMultiLabelPreview()" style="background:#f0a500;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ ÖNİZLE</button><button onclick="printMultiLabelPoster()" style="background:#e67e22;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ YAZDIR</button></div></div></div></div>
 
 <div id="angebotPreviewModal" class="modal" style="z-index:2000"><div class="modal-content" style="max-width:600px;max-height:95vh"><div class="modal-header"><span class="modal-title" id="angebotPreviewTitle">👁️ ÖNİZLEME</span><button class="close-modal-btn" onclick="closeAngebotPreview()">✖ KAPAT</button></div><div id="angebotPreviewContent" style="background:white;border-radius:20px;overflow:hidden;margin-bottom:16px"></div><button id="angebotPreviewPrintBtn" onclick="printCurrentAngebot()" style="width:100%;background:#e67e22;border:none;border-radius:40px;padding:16px;color:white;font-weight:800;font-size:1rem;cursor:pointer">🖨️ YAZDIR</button></div></div>
 
@@ -258,7 +258,7 @@ function removeFromQueue(i){ printQueue.splice(i,1);savePrintQueue();managePrint
 function clearPrintQueue(){ printQueue=[];savePrintQueue();managePrintQueue(); }
 function closeQueueModal(){ document.getElementById("queueModal").style.display="none"; }
 
-// ETİKET ÖNİZLEME (21'li grid) - Yine de çalışır durumda
+// Menüdeki etiket önizleme (boş gelme sorunu çözüldü)
 function previewLabels(){
     if(!printQueue.length){ showToast("Etiket listesi boş, önce ürün ekleyin."); return; }
     let container = document.getElementById("previewContainer");
@@ -394,7 +394,75 @@ function removeSayimBarkod(bc){ delete sayimBarkodMap[bc];renderSayimBarkodListe
 function clearSayimBarkod(){ if(confirm('Sayım listesi temizlensin mi?')){sayimBarkodMap={};renderSayimBarkodListe();} }
 async function saveSayimBarkod(){ let keys=Object.keys(sayimBarkodMap);if(!keys.length){showToast('Hiç ürün taranmadı!');return;}let cnt=0;keys.forEach(bc=>{let p=products.find(x=>x.barcode===bc);if(p){p.quantity=sayimBarkodMap[bc];cnt++;}});await saveProducts();await updateUI();showToast('✅ '+cnt+' ürün stoğu güncellendi');sayimBarkodMap={};closeStokSayimModal(); }
 
-// ========== YENİ FONKSİYON: Çoklu ürün 21'li etiket poster (Angebot yazısız, normal etiket) ==========
+// ========== YENİ: 21'li etiket için önizleme modalı ==========
+function showMultiLabelPreview(){
+    if(!printQueue.length){
+        showToast("Etiket listesi boş! Önce '➕ ETİKET' butonuyla ürün ekleyin.");
+        return;
+    }
+    let modal = document.getElementById('angebotPreviewModal');
+    let content = document.getElementById('angebotPreviewContent');
+    let title = document.getElementById('angebotPreviewTitle');
+    title.innerText = '👁️ 21\'li Etiket Önizleme (Çoklu Ürün)';
+    // Grid boyutları A4 yatay (842x595) üzerine 3x7
+    let pw = 842, ph = 595;
+    let mg = 8, gap = 3;
+    let cols = 3, rows = 7;
+    let cellW = Math.floor((pw - 2*mg - (cols-1)*gap) / cols);
+    let cellH = Math.floor((ph - 2*mg - (rows-1)*gap) / rows);
+    let items = [];
+    // printQueue'deki tüm ürünleri sırayla yerleştir, 21'e kadar
+    for(let i=0; i<rows*cols; i++){
+        let product = i < printQueue.length ? printQueue[i] : null;
+        if(product){
+            let ip = Math.floor(product.price);
+            let ic = Math.round((product.price - ip)*100);
+            let cents = ic<10?'0'+ic:''+ic;
+            let imgTag = product.image ? `<img src="${product.image}" style="max-width:100%;max-height:100%;object-fit:contain;">` : '📷';
+            let cardHtml = `
+                <div style="width:${cellW}px;height:${cellH}px;background:white;border:2px solid #000;border-radius:6px;padding:3px;display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box;overflow:hidden;">
+                    <div style="display:flex;gap:5px;height:60%;">
+                        <div style="width:28%;display:flex;align-items:center;justify-content:center;background:#f8f8f8;border-radius:4px;">${imgTag}</div>
+                        <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+                            <div style="font-family:'Arial Black',Impact,sans-serif;font-size:9pt;font-weight:900;text-transform:uppercase;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.2;">${escapeHtml(product.name)}</div>
+                            <div style="font-family:'Arial Black',Impact,sans-serif;font-size:24pt;font-weight:1000;letter-spacing:-1px;transform:scaleX(1.05);text-align:right;white-space:nowrap;">${ip}<span style="font-size:14pt;">,${cents}</span> €</div>
+                        </div>
+                    </div>
+                    <div style="text-align:center;margin-top:2px;border-top:1px dashed #ccc;padding-top:2px;">
+                        <svg class="barcode-svg" id="multipreview-barcode-${i}" style="width:100%;height:18px;"></svg>
+                    </div>
+                </div>
+            `;
+            items.push(cardHtml);
+        } else {
+            items.push(`<div style="width:${cellW}px;height:${cellH}px;visibility:hidden;border:1px solid #eee;"></div>`);
+        }
+    }
+    let gridHtml = `<div style="width:${pw}px;height:${ph}px;background:white;padding:${mg}px;box-sizing:border-box;display:grid;grid-template-columns:repeat(${cols},${cellW}px);grid-template-rows:repeat(${rows},${cellH}px);gap:${gap}px;overflow:hidden;">${items.join('')}</div>`;
+    let scale = Math.min( (window.innerWidth*0.85-48) / pw, (window.innerHeight*0.72) / ph, 1);
+    let scaledW = Math.round(pw * scale);
+    let scaledH = Math.round(ph * scale);
+    content.innerHTML = `<div style="width:${scaledW}px;height:${scaledH}px;margin:0 auto;overflow:hidden;border-radius:6px;box-shadow:0 6px 24px rgba(0,0,0,0.45);"><div style="width:${pw}px;height:${ph}px;transform:scale(${scale});transform-origin:top left;overflow:hidden;">${gridHtml}</div></div>`;
+    // Barkodları oluştur
+    setTimeout(() => {
+        for(let i=0; i<printQueue.length; i++){
+            let product = printQueue[i];
+            if(product){
+                JsBarcode(`#multipreview-barcode-${i}`, product.barcode, {format:"CODE128", width:1.5, height:22, displayValue:true, fontSize:8});
+            }
+        }
+    }, 50);
+    document.getElementById('angebotModal').style.display = 'none';
+    modal.style.display = 'flex';
+    // YAZDIR butonunun aksiyonunu değiştir
+    let printBtn = document.getElementById('angebotPreviewPrintBtn');
+    printBtn.onclick = () => {
+        printMultiLabelPoster();
+        modal.style.display = 'none';
+        document.getElementById('angebotModal').style.display = 'flex';
+    };
+}
+
 function printMultiLabelPoster(){
     if(!printQueue.length){
         showToast("Etiket listesi boş! Önce '➕ ETİKET' butonuyla ürün ekleyin.");
@@ -511,6 +579,13 @@ function generateAngebotWithDiscount(size, orientation){
     content.innerHTML = `<div style="width:${scaledW}px;height:${scaledH}px;margin:0 auto;overflow:hidden;border-radius:6px;box-shadow:0 6px 24px rgba(0,0,0,0.45);"><div style="width:${pw}px;height:${ph}px;transform:scale(${scale});transform-origin:top left;overflow:hidden;">${htmlContent}</div></div>`;
     document.getElementById('angebotModal').style.display = 'none';
     modal.style.display = 'flex';
+    // YAZDIR butonunu eski haline getir (Angebot yazdırma)
+    let printBtn = document.getElementById('angebotPreviewPrintBtn');
+    printBtn.onclick = () => {
+        printAngebotDirectWithDiscount(currentAngebotSize, currentAngebotOrientation);
+        modal.style.display = 'none';
+        document.getElementById('angebotModal').style.display = 'flex';
+    };
 }
 function printAngebotDirectWithDiscount(size, orientation){
     if(!angebotProduct) return;
@@ -679,6 +754,7 @@ function buildAngebotPrintHTML(size, orientation, p, discountPrice){
     }
     return `<!DOCTYPE html><html><head><meta charset="UTF-8">${fontLink}<style>${bodyCSS}</style></head><body>${bodyHTML}</body></html>`;
 }
+
 function showAddFormForBarcode(barcode){ let c=document.getElementById("addFormContainer");c.classList.remove("hidden");c.innerHTML=`<div style="background:#2a2a2a;padding:20px;border-radius:40px;margin-top:10px;"><strong style="color:white;display:block;margin-bottom:8px;">➕ YENİ ÜRÜN</strong><input id="addBarcode" value="${barcode}"><input id="addName" placeholder="Ürün adı (max 35)" maxlength="35"><input id="addPrice" placeholder="Fiyat (€) — 549 → 5.49 otomatik"><input id="addCost" placeholder="Maliyet (€) — 349 → 3.49 otomatik"><div id="addProfitBox" class="profit-box"><div class="profit-suggested">💰 Maliyet girilirse fiyat önerilir</div></div><select id="addCategory"><option selected>Dolap Ürünleri</option><option>Kuru Gıda</option></select><input id="addQuantity" placeholder="Stok" value="1" type="number"><input id="addExpiry" type="date"><div class="image-buttons-group"><button onclick="openGoogleSearchForAdd()" style="background:#27ae60;flex:unset;width:100%;">🔍 İNTERNET'TEN GÖRSEL ARA</button></div><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')">🖼️ GALERİ</button><button onclick="captureImageForAdd('camera')">📷 KAMERA</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProduct()">💾 KAYDET</button><button class="btn-cancel" onclick="closeAddForm()">İPTAL</button></div></div>`;setupPriceFields('addCost','addPrice','addProfitBox'); }
 async function saveNewProduct(){ let barcode=document.getElementById("addBarcode").value.trim(),name=document.getElementById("addName").value.trim().toUpperCase(),price=parseFloat(document.getElementById("addPrice").value),cost=parseFloat(document.getElementById("addCost").value)||null,category=document.getElementById("addCategory").value,quantity=parseInt(document.getElementById("addQuantity").value)||1,expiry=document.getElementById("addExpiry").value;if(!name||!barcode||isNaN(price)){showToast("Eksik bilgi!");return;}let existing=products.findIndex(p=>p.barcode===barcode);if(existing!==-1&&confirm("Barkod var, üzerine yazılsın mı?"))products[existing]={...products[existing],name,price,cost,category,quantity,expiry,image:tempImageData||products[existing].image};else products.push({barcode,name,price,cost,category,quantity,expiry,image:tempImageData,id:Date.now()});await saveProducts();tempImageData=null;closeAddForm();showToast("Ürün kaydedildi!");await updateUI(); }
 function closeAddForm(){ document.getElementById("addFormContainer").classList.add("hidden");document.getElementById("addFormContainer").innerHTML="";tempImageData=null; }
@@ -699,7 +775,7 @@ function backupData(){ let a=document.createElement("a");a.href=URL.createObject
 async function restoreData(){ let inp=document.createElement("input");inp.type="file";inp.accept="application/json";inp.onchange=async e=>{let file=e.target.files[0];let r=new FileReader();r.onload=async ev=>{try{let d=JSON.parse(ev.target.result);if(Array.isArray(d)){products=d;await saveProducts(false);showToast("Yedek yüklendi");location.reload();}else throw 0;}catch(err){showToast("Hatalı dosya!");}};r.readAsText(file);};inp.click(); }
 async function clearAllData(){ if(confirm("TÜM VERİLER SİLİNECEK!")){products=[];await saveProducts(false);showToast("Veriler silindi");location.reload();} }
 function exportToCSV(){ let rows=[["Ad","Barkod","Fiyat (€)","Stok","Maliyet (€)","Kar (€)","Kar%","SKT","Kategori"]];for(let p of products){let pr=(p.cost&&p.cost>0)?(p.price-p.cost):0,m=(p.cost&&p.cost>0&&p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0";rows.push([`"${p.name}"`,p.barcode,p.price,p.quantity,p.cost||0,pr.toFixed(2),m,p.expiry||"",p.category]);}let csv=rows.map(r=>r.join(",")).join("\n"),blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="envanter_raporu.csv";a.click();URL.revokeObjectURL(a.href);showToast("CSV indirildi."); }
-function printReport(){ let html=`<table border="1"><thead><tr><th>Ad</th><th>Barkod</th><th>Fiyat</th><th>Stok</th><th>Maliyet</th><th>Kar</th><th>Kar%</th><th>SKT</th><th>Kategori</th></tr></thead><tbody>`;for(let p of products){let pr=(p.cost&&p.cost>0)?(p.price-p.cost):0,m=(p.cost&&p.cost>0&&p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0";html+=`<tr><td>${escapeHtml(p.name)}</td><td>${p.barcode}</td><td>${p.price.toFixed(2)}</td><td>${p.quantity}</td><td>${p.cost?p.cost.toFixed(2):'0'}</td><td>${pr.toFixed(2)}</td><td>${m}%</td><td>${p.expiry||''}</td><td>${p.category}</td></tr>`;}html+=`</tbody></td>`;document.getElementById("printTableContainer").innerHTML=html;document.getElementById("printModal").style.display="flex"; }
+function printReport(){ let html=`<table border="1"><thead><tr><th>Ad</th><th>Barkod</th><th>Fiyat</th><th>Stok</th><th>Maliyet</th><th>Kar</th><th>Kar%</th><th>SKT</th><th>Kategori</th></tr></thead><tbody>`;for(let p of products){let pr=(p.cost&&p.cost>0)?(p.price-p.cost):0,m=(p.cost&&p.cost>0&&p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0";html+=`<tr><td>${escapeHtml(p.name)}</td><td>${p.barcode}</td><td>${p.price.toFixed(2)}</td><td>${p.quantity}</td><td>${p.cost?p.cost.toFixed(2):'0'}</td><td>${pr.toFixed(2)}</td><td>${m}%</td><td>${p.expiry||''}</td><td>${p.category}</td></tr>`;}html+=`</tbody></table>`;document.getElementById("printTableContainer").innerHTML=html;document.getElementById("printModal").style.display="flex"; }
 async function compressAllImages(){ let cnt=0;for(let p of products){if(p.image&&p.image.length>60000){p.image=await compressImage(p.image);cnt++;}}if(cnt)await saveProducts();showToast(cnt?`${cnt} resim sıkıştırıldı`:"Sıkıştırılacak yok"); }
 function updateClock() {
     let now = new Date();
