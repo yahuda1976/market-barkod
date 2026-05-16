@@ -65,8 +65,8 @@
         .label-image{width:28%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#f8f8f8;border-radius:4px;overflow:hidden;}
         .label-image img{max-width:100%;max-height:100%;object-fit:contain;}
         .label-info{flex:1;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;}
-        .label-title{font-family:'Arial Black',Impact,sans-serif;font-size:9pt;font-weight:900;text-transform:uppercase;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.2;}
-        .label-price{font-family:'Arial Black',Impact,sans-serif;font-size:24pt;font-weight:1000;letter-spacing:-1px;transform:scaleX(1.05);text-align:right;white-space:nowrap;line-height:1;}
+        .label-title{font-family:'Arial Black',Impact,sans-serif;font-size:10pt;font-weight:900;text-transform:uppercase;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.2;color:#000;}
+        .label-price{font-family:'Arial Black',Impact,sans-serif;font-size:26pt;font-weight:1000;letter-spacing:-1px;transform:scaleX(1.05);text-align:right;white-space:nowrap;line-height:1;color:#000;}
         .label-price .cents{font-size:14pt;}
         .barcode-section{text-align:center;margin-top:2px;border-top:1px dashed #ccc;padding-top:2px;}
         .barcode-svg{width:100%;height:18px;}
@@ -112,9 +112,34 @@
             letter-spacing: 0.8px;
             margin-top: 1px;
         }
+        /* Kopyala butonu stili */
+        .copy-btn-container {
+            text-align: center;
+            margin: 15px 0 5px;
+        }
+        .copy-all-btn {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 60px;
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #1e8449;
+            transition: 0.1s;
+        }
+        .copy-all-btn:active {
+            transform: scale(0.97);
+        }
     </style>
 </head>
 <body>
+
+<!-- Kopyala butonu (sayfa içinde) -->
+<div class="copy-btn-container">
+    <button class="copy-all-btn" id="copyAllBtn">📋 BU SAYFANIN HTML KODUNU KOPYALA</button>
+</div>
 
 <div id="drawerOverlay" onclick="closeDrawer()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:500;"></div>
 <div id="drawer" style="position:fixed;top:0;left:-300px;width:280px;height:100%;background:#2a2a2a;z-index:600;transition:left 0.3s;box-shadow:4px 0 24px rgba(0,0,0,0.5);border-radius:0 28px 28px 0;">
@@ -255,7 +280,7 @@ function removeFromQueue(i){ printQueue.splice(i,1);savePrintQueue();managePrint
 function clearPrintQueue(){ printQueue=[];savePrintQueue();managePrintQueue(); }
 function closeQueueModal(){ document.getElementById("queueModal").style.display="none"; }
 
-// ========== 21'li etiket önizleme (çoklu ürün) ==========
+// ========== 21'li etiket önizleme (çoklu ürün) - DÜZELTİLDİ, ürün adı ve fiyat KESİN görünüyor ==========
 function showMultiLabelPreview(){
     if(!printQueue.length){
         showToast("Etiket listesi boş! Önce '➕ ETİKET' butonuyla ürün ekleyin.");
@@ -283,8 +308,8 @@ function showMultiLabelPreview(){
                     <div style="display:flex;gap:5px;height:60%;">
                         <div style="width:28%;display:flex;align-items:center;justify-content:center;background:#f8f8f8;border-radius:4px;">${imgTag}</div>
                         <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;">
-                            <div style="font-family:'Arial Black',Impact,sans-serif;font-size:9pt;font-weight:900;text-transform:uppercase;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.2;">${escapeHtml(product.name)}</div>
-                            <div style="font-family:'Arial Black',Impact,sans-serif;font-size:24pt;font-weight:1000;letter-spacing:-1px;transform:scaleX(1.05);text-align:right;white-space:nowrap;">${ip}<span style="font-size:14pt;">,${cents}</span> €</div>
+                            <div style="font-family:'Arial Black',Impact,sans-serif;font-size:11pt;font-weight:900;text-transform:uppercase;color:#000;line-height:1.2;overflow:hidden;word-break:break-word;">${escapeHtml(product.name)}</div>
+                            <div style="font-family:'Arial Black',Impact,sans-serif;font-size:28pt;font-weight:1000;letter-spacing:-1px;transform:scaleX(1.05);text-align:right;white-space:nowrap;color:#000;">${ip}<span style="font-size:16pt;">,${cents}</span> €</div>
                         </div>
                     </div>
                     <div style="text-align:center;margin-top:2px;border-top:1px dashed #ccc;padding-top:2px;">
@@ -336,9 +361,9 @@ function printMultiLabelPoster(){
         .label-image{width:28%; flex-shrink:0; display:flex; align-items:center; justify-content:center; background:#f8f8f8; border-radius:4px; overflow:hidden;}
         .label-image img{max-width:100%; max-height:100%; object-fit:contain;}
         .label-info{flex:1; display:flex; flex-direction:column; justify-content:space-between; overflow:hidden;}
-        .label-title{font-family:'Arial Black',Impact,sans-serif; font-size:9pt; font-weight:900; text-transform:uppercase; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.2;}
-        .label-price{font-family:'Arial Black',Impact,sans-serif; font-size:24pt; font-weight:1000; letter-spacing:-1px; transform:scaleX(1.05); text-align:right; white-space:nowrap; line-height:1;}
-        .label-price .cents{font-size:14pt;}
+        .label-title{font-family:'Arial Black',Impact,sans-serif; font-size:11pt; font-weight:900; text-transform:uppercase; color:#000; line-height:1.2; overflow:hidden; word-break:break-word;}
+        .label-price{font-family:'Arial Black',Impact,sans-serif; font-size:28pt; font-weight:1000; letter-spacing:-1px; transform:scaleX(1.05); text-align:right; white-space:nowrap; line-height:1; color:#000;}
+        .label-price .cents{font-size:16pt;}
         .barcode-section{text-align:center; margin-top:2px; border-top:1px dashed #ccc; padding-top:2px;}
         .barcode-svg{width:100%; height:20px;}
     </style><script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script></head><body>`;
@@ -611,12 +636,28 @@ function buildAngebotPrintHTML(size, orientation, p, discountPrice){
     return `<!DOCTYPE html><html><head><meta charset="UTF-8">${fontLink}<style>${bodyCSS}</style></head><body>${bodyHTML}</body></html>`;
 }
 
-// ========== Barkod ve Kamera ==========
+// ========== Yaklaşan SKT: sadece stoğu > 0 olanlar ==========
+function openUrgentModal(){ 
+    let today=new Date();
+    let urgent=products.filter(p=>p.expiry && p.quantity > 0 && Math.ceil((new Date(p.expiry)-today)/86400000) <= 7 && Math.ceil((new Date(p.expiry)-today)/86400000) >= 0);
+    urgent.sort((a,b)=>new Date(a.expiry)-new Date(b.expiry));
+    let c=document.getElementById("urgentProductList");
+    if(urgent.length===0){ c.innerHTML="<div>7 gün içinde SKT'si geçecek ve stokta olan ürün yok.</div>"; }
+    else {
+        c.innerHTML=urgent.map(p=>{
+            let d=Math.ceil((new Date(p.expiry)-today)/86400000);
+            let cl=getProductColorClass(p);
+            return`<div class="${cl}" style="border-radius:28px;padding:12px;margin-bottom:10px;"><strong>${escapeHtml(p.name)}</strong><br>SKT: ${p.expiry} (${d} gün)<br>Stok: ${p.quantity}</div>`;
+        }).join('');
+    }
+    document.getElementById("urgentModal").style.display="flex"; 
+}
+function closeUrgentModal(){ document.getElementById("urgentModal").style.display="none"; }
+
+// ========== Diğer fonksiyonlar (kamera, stok sayımı, yedekleme vb.) ==========
 async function openCameraModal(mode){ let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");sayimKameraMode=false;modal.style.display="flex";status.innerHTML="📷 BAŞLATILIYOR..."; try{ let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}); video.srcObject=stream;currentStream=stream;video.play(); if(quaggaActive)Quagga.stop(); Quagga.init({inputStream:{name:"LiveStream",type:"LiveStream",target:video},decoder:{readers:["ean_reader","ean_8_reader","upc_reader","code_128_reader"]}},err=>{ if(err){status.innerHTML="HATA";return;} Quagga.start();quaggaActive=true;status.innerHTML="🎥 BARKODU GÖSTER..."; }); Quagga.onDetected(data=>{ let code=data.codeResult.code;if(!code||code.length<4)return;playBeep();closeCameraModal(); if(mode==='search'){ let found=products.find(p=>p.barcode===code);if(found)showResult(found);else document.getElementById("resultArea").innerHTML=`<div style="color:white;padding:10px;">❌ "${code}" BULUNAMADI<br><button class="btn btn-primary" onclick="showAddFormForBarcode('${code}')" style="margin-top:10px;width:100%;">➕ EKLE</button></div>`; } else showAddFormForBarcode(code); }); }catch(e){ status.innerHTML="❌ KAMERA İZNİ GEREKLİ";setTimeout(()=>closeCameraModal(),2000); } }
 async function openSayimKamera(){ let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");sayimKameraMode=true;document.getElementById("stokSayimModal").style.display="none";modal.style.display="flex";status.innerHTML="📷 SAYIM - BARKODU GÖSTER..."; try{ let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}); video.srcObject=stream;currentStream=stream;video.play(); if(quaggaActive)Quagga.stop(); Quagga.init({inputStream:{name:"LiveStream",type:"LiveStream",target:video},decoder:{readers:["ean_reader","ean_8_reader","upc_reader","code_128_reader"]}},err=>{ if(err){status.innerHTML="HATA";return;} Quagga.start();quaggaActive=true;status.innerHTML="🎥 SAYIM: BARKODU GÖSTER..."; }); let detected=false; Quagga.onDetected(data=>{ if(detected)return;let code=data.codeResult.code;if(!code||code.length<4)return;detected=true;playBeep(); if(quaggaActive){Quagga.stop();quaggaActive=false;} if(currentStream){currentStream.getTracks().forEach(t=>t.stop());currentStream=null;} modal.style.display="none";document.getElementById("stokSayimModal").style.display="flex"; let p=products.find(x=>x.barcode===code);let nm=p?p.name:("Bilinmeyen: "+code);let mev=sayimBarkodMap[code]||0; let girilen=prompt("📦 "+nm+"\nSistem stoğu: "+(p?p.quantity:"?")+(mev>0?"\nÖnceki sayım: "+mev:"")+"\n\nKaç adet saydınız?",mev>0?String(mev):"1"); if(girilen!==null){ let adet=parseInt(girilen);if(!isNaN(adet)&&adet>=0){ if(adet===0)delete sayimBarkodMap[code];else sayimBarkodMap[code]=adet; renderSayimBarkodListe();showToast(adet===0?"Listeden çıkarıldı":"✅ "+nm+" → "+adet+" adet"); } else showToast("❌ Geçersiz miktar!"); } sayimKameraMode=false; }); }catch(e){ modal.style.display="none";document.getElementById("stokSayimModal").style.display="flex";showToast("❌ Kamera açılamadı!");sayimKameraMode=false; } }
 function closeCameraModal(){ if(quaggaActive){Quagga.stop();quaggaActive=false;} if(currentStream){currentStream.getTracks().forEach(t=>t.stop());currentStream=null;} document.getElementById("cameraModal").style.display="none"; if(sayimKameraMode){document.getElementById("stokSayimModal").style.display="flex";sayimKameraMode=false;} }
-
-// ========== Stok Sayımı ==========
 function openStokSayimModal(){ sayimBarkodMap={};setSayimMod('liste');document.getElementById("stokSayimModal").style.display="flex"; }
 function closeStokSayimModal(){ document.getElementById("stokSayimModal").style.display="none"; }
 function setSayimMod(mod){ sayimMod=mod;document.getElementById('sayimModListeBtn').style.background=mod==='liste'?'#3498db':'#2a2a2a';document.getElementById('sayimModBarkodBtn').style.background=mod==='barkod'?'#3498db':'#2a2a2a';document.getElementById('sayimListeContainer').style.display=mod==='liste'?'block':'none';document.getElementById('sayimBarkodContainer').style.display=mod==='barkod'?'block':'none';if(mod==='liste')renderSayimListe();else renderSayimBarkodListe(); }
@@ -628,8 +669,6 @@ function renderSayimBarkodListe(){ let c=document.getElementById('sayimBarkodLis
 function removeSayimBarkod(bc){ delete sayimBarkodMap[bc];renderSayimBarkodListe(); }
 function clearSayimBarkod(){ if(confirm('Sayım listesi temizlensin mi?')){sayimBarkodMap={};renderSayimBarkodListe();} }
 async function saveSayimBarkod(){ let keys=Object.keys(sayimBarkodMap);if(!keys.length){showToast('Hiç ürün taranmadı!');return;}let cnt=0;keys.forEach(bc=>{let p=products.find(x=>x.barcode===bc);if(p){p.quantity=sayimBarkodMap[bc];cnt++;}});await saveProducts();await updateUI();showToast('✅ '+cnt+' ürün stoğu güncellendi');sayimBarkodMap={};closeStokSayimModal(); }
-
-// ========== Diğerleri ==========
 function showAddFormForBarcode(barcode){ let c=document.getElementById("addFormContainer");c.classList.remove("hidden");c.innerHTML=`<div style="background:#2a2a2a;padding:20px;border-radius:40px;margin-top:10px;"><strong style="color:white;display:block;margin-bottom:8px;">➕ YENİ ÜRÜN</strong><input id="addBarcode" value="${barcode}"><input id="addName" placeholder="Ürün adı (max 35)" maxlength="35"><input id="addPrice" placeholder="Fiyat (€) — 549 → 5.49 otomatik"><input id="addCost" placeholder="Maliyet (€) — 349 → 3.49 otomatik"><div id="addProfitBox" class="profit-box"><div class="profit-suggested">💰 Maliyet girilirse fiyat önerilir</div></div><select id="addCategory"><option selected>Dolap Ürünleri</option><option>Kuru Gıda</option></select><input id="addQuantity" placeholder="Stok" value="1" type="number"><input id="addExpiry" type="date"><div class="image-buttons-group"><button onclick="openGoogleSearchForAdd()" style="background:#27ae60;flex:unset;width:100%;">🔍 İNTERNET'TEN GÖRSEL ARA</button></div><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')">🖼️ GALERİ</button><button onclick="captureImageForAdd('camera')">📷 KAMERA</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProduct()">💾 KAYDET</button><button class="btn-cancel" onclick="closeAddForm()">İPTAL</button></div></div>`;setupPriceFields('addCost','addPrice','addProfitBox'); }
 async function saveNewProduct(){ let barcode=document.getElementById("addBarcode").value.trim(),name=document.getElementById("addName").value.trim().toUpperCase(),price=parseFloat(document.getElementById("addPrice").value),cost=parseFloat(document.getElementById("addCost").value)||null,category=document.getElementById("addCategory").value,quantity=parseInt(document.getElementById("addQuantity").value)||1,expiry=document.getElementById("addExpiry").value;if(!name||!barcode||isNaN(price)){showToast("Eksik bilgi!");return;}let existing=products.findIndex(p=>p.barcode===barcode);if(existing!==-1&&confirm("Barkod var, üzerine yazılsın mı?"))products[existing]={...products[existing],name,price,cost,category,quantity,expiry,image:tempImageData||products[existing].image};else products.push({barcode,name,price,cost,category,quantity,expiry,image:tempImageData,id:Date.now()});await saveProducts();tempImageData=null;closeAddForm();showToast("Ürün kaydedildi!");await updateUI(); }
 function closeAddForm(){ document.getElementById("addFormContainer").classList.add("hidden");document.getElementById("addFormContainer").innerHTML="";tempImageData=null; }
@@ -642,8 +681,6 @@ async function saveInlineEdit(){ let idx=products.findIndex(p=>p.barcode===lastS
 function openManualAddModal(){ let container=document.getElementById("manualAddFormContainer");container.innerHTML=`<div><input id="addBarcode" placeholder="Barkod (manuel gir)"><input id="addName" placeholder="Ürün adı (max 35)" maxlength="35"><input id="addPrice" placeholder="Fiyat (€) — 549 → 5.49 otomatik"><input id="addCost" placeholder="Maliyet (€) — 349 → 3.49 otomatik"><div id="addProfitBox" class="profit-box"></div><select id="addCategory"><option selected>Dolap Ürünleri</option><option>Kuru Gıda</option></select><input id="addQuantity" placeholder="Stok" value="1" type="number"><input id="addExpiry" type="date"><div class="image-buttons-group"><button onclick="openGoogleSearchForAdd()" style="background:#27ae60;flex:unset;width:100%;">🔍 İNTERNET'TEN GÖRSEL ARA</button></div><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')">🖼️ GALERİ</button><button onclick="captureImageForAdd('camera')">📷 KAMERA</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProductFromModal()">💾 KAYDET</button><button class="btn-cancel" onclick="closeManualAddModal()">İPTAL</button></div></div>`;setupPriceFields('addCost','addPrice','addProfitBox');document.getElementById("manualAddModal").style.display="flex"; }
 function closeManualAddModal(){ document.getElementById("manualAddModal").style.display="none";tempImageData=null; }
 async function saveNewProductFromModal(){ let barcode=document.getElementById("addBarcode").value.trim(),name=document.getElementById("addName").value.trim().toUpperCase(),price=parseFloat(document.getElementById("addPrice").value),cost=parseFloat(document.getElementById("addCost").value)||null,category=document.getElementById("addCategory").value,quantity=parseInt(document.getElementById("addQuantity").value)||1,expiry=document.getElementById("addExpiry").value;if(!name||!barcode||isNaN(price)){showToast("Eksik bilgi!");return;}let existing=products.findIndex(p=>p.barcode===barcode);if(existing!==-1&&confirm("Barkod var, üzerine yazılsın mı?"))products[existing]={...products[existing],name,price,cost,category,quantity,expiry,image:tempImageData||products[existing].image};else products.push({barcode,name,price,cost,category,quantity,expiry,image:tempImageData,id:Date.now()});await saveProducts();tempImageData=null;closeManualAddModal();showToast(`Ürün kaydedildi: ${name}`);await updateUI(); }
-function openUrgentModal(){ let today=new Date(),urgent=products.filter(p=>p.expiry&&Math.ceil((new Date(p.expiry)-today)/86400000)<=7&&Math.ceil((new Date(p.expiry)-today)/86400000)>=0);urgent.sort((a,b)=>new Date(a.expiry)-new Date(b.expiry));let c=document.getElementById("urgentProductList");c.innerHTML=!urgent.length?"<div>7 gün içinde SKT'si geçecek ürün yok.</div>":urgent.map(p=>{let d=Math.ceil((new Date(p.expiry)-today)/86400000),cl=getProductColorClass(p);return`<div class="${cl}" style="border-radius:28px;padding:12px;margin-bottom:10px;"><strong>${escapeHtml(p.name)}</strong><br>SKT: ${p.expiry} (${d} gün)<br>Stok: ${p.quantity}</div>`;}).join('');document.getElementById("urgentModal").style.display="flex"; }
-function closeUrgentModal(){ document.getElementById("urgentModal").style.display="none"; }
 function openDrawer(){ document.getElementById("drawer").style.left="0";document.getElementById("drawerOverlay").style.display="block"; }
 function closeDrawer(){ document.getElementById("drawer").style.left="-300px";document.getElementById("drawerOverlay").style.display="none"; }
 function backupData(){ let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(products)]));a.download=`backup_${Date.now()}.json`;a.click();showToast("Yedek alındı"); }
@@ -667,6 +704,15 @@ document.getElementById("addBtn").onclick=()=>openCameraModal('add');
 document.getElementById("productSearchBtn").onclick=()=>openInventoryModal();
 document.getElementById("manualAddBtn").onclick=openManualAddModal;
 document.getElementById("closeCameraModalBtn").onclick=closeCameraModal;
+// Kopyala butonu işlevi
+document.getElementById("copyAllBtn").addEventListener("click", function() {
+    const htmlContent = document.documentElement.outerHTML;
+    navigator.clipboard.writeText(htmlContent).then(() => {
+        showToast("✅ Tüm HTML kodu panoya kopyalandı!");
+    }).catch(() => {
+        alert("Kopyalama başarısız, manuel seçip kopyalayın.");
+    });
+});
 (async function(){
     await loadProducts();
     loadPrintQueue();
