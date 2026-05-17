@@ -65,28 +65,31 @@
         ═══════════════════════════════════════════════ */
         .label-grid-container{background:#fff;padding:0;margin:0;box-sizing:border-box;page-break-after:always;width:210mm;overflow:hidden}
         .label-grid{width:210mm;margin:0 auto;border-collapse:collapse;table-layout:fixed}
-        .label-cell{width:70mm;height:42.4mm;padding:0;margin:0;vertical-align:top;border:0.5px solid #000;overflow:hidden}
-        .label-card{width:100%;height:100%;display:table;table-layout:fixed;background:white}
+        /* Hücre: kenar yok, sadece iç boşluk → köşe yuvarlama için yer */
+        .label-cell{width:70mm;height:42.4mm;padding:1mm;border:none;vertical-align:top;overflow:hidden}
+        /* Dış sarmalayıcı: görsel sınır + yuvarlak köşeler */
+        .label-outer{width:100%;height:100%;border:1px solid #000;border-radius:6px;overflow:hidden;box-sizing:border-box;display:flex;flex-direction:column;}
+        .label-card{flex:1;display:table;table-layout:fixed;background:white;width:100%}
 
         /* Resim alanı — sol */
-        .label-image-area{display:table-cell;width:25mm;height:42.4mm;vertical-align:middle;text-align:center;padding:1mm 0.5mm 1mm 2mm}
-        .label-image{width:21mm;height:34mm;display:flex;align-items:center;justify-content:center;margin:0 auto;overflow:hidden}
+        .label-image-area{display:table-cell;width:25mm;height:36mm;vertical-align:middle;text-align:center;padding:1mm 0.5mm 1mm 2mm}
+        .label-image{width:21mm;height:32mm;display:flex;align-items:center;justify-content:center;margin:0 auto;overflow:hidden}
         .label-image img{max-width:100%;max-height:100%;object-fit:contain}
 
         /* İçerik alanı — sağ */
-        .label-content-area{display:table-cell;width:42mm;height:42.4mm;vertical-align:middle;padding:2mm 3mm 2mm 1.5mm;text-align:right}
+        .label-content-area{display:table-cell;width:42mm;height:36mm;vertical-align:middle;padding:1.5mm 3mm 1.5mm 1.5mm;text-align:right}
 
         /* Ürün adı — kalın, büyük */
-        .label-product-name{display:block;font-size:8pt;font-weight:900;color:#000;line-height:1.2;text-transform:uppercase;margin-bottom:2mm;overflow:hidden;word-wrap:break-word}
+        .label-product-name{display:block;font-size:9pt;font-weight:900;color:#000;line-height:1.2;text-transform:uppercase;margin-bottom:1.5mm;overflow:hidden;word-wrap:break-word}
 
-        /* Fiyat — çok büyük */
-        .label-price{font-size:24pt;font-weight:900;color:#000;letter-spacing:-1px;line-height:1;margin-top:0}
-        .label-price .cents{font-size:14pt;font-weight:900}
-        /* € = fiyatın yarısı kadar */
-        .label-price .currency{font-size:13pt;font-weight:900;margin-left:1px}
+        /* Fiyat — çok büyük, kuruş ayrı ve küçük */
+        .label-price{font-size:26pt;font-weight:900;color:#000;letter-spacing:-1px;line-height:1;margin-top:0}
+        .label-price .cents{font-size:13pt;font-weight:900}
+        /* € = fiyatın ~yarısı */
+        .label-price .currency{font-size:12pt;font-weight:900;margin-left:1px}
 
-        .label-barcode{text-align:center;margin-top:2px;border-top:1px dashed #ccc;padding-top:2px}
-        .barcode-svg{width:100%;height:16px}
+        .label-barcode{text-align:center;border-top:1px dashed #ccc;padding:1px 2px 1px}
+        .barcode-svg{width:100%;height:14px}
 
         @media print{body *{visibility:hidden}.print-modal,.print-modal *{visibility:visible}.print-modal{position:absolute;top:0;left:0;width:100%}.label-grid-container{page-break-after:always}}
         .drawer-btn{background:#2a2a2a;border:none;border-radius:40px;padding:14px 18px;color:white;font-weight:700;font-size:0.95rem;cursor:pointer;text-align:left;width:100%;transition:background 0.15s}
@@ -108,7 +111,7 @@
 </head>
 <body>
 <div id="drawerOverlay" onclick="closeDrawer()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:500;"></div>
-<div id="drawer" style="position:fixed;top:0;left:-300px;width:280px;height:100%;background:#2a2a2a;z-index:600;transition:left 0.3s;box-shadow:4px 0 24px rgba(0,0,0,0.5);border-radius:0 28px 28px 0;">
+<div id="drawer" style="position:fixed;top:0;left:-255px;width:245px;height:100%;background:#2a2a2a;z-index:600;transition:left 0.3s;box-shadow:4px 0 24px rgba(0,0,0,0.5);border-radius:0 28px 28px 0;">
     <div style="background:#383838;padding:48px 24px 20px;border-radius:0 28px 0 0;"><div style="font-size:1.5rem;font-weight:900;color:#ffaa88;">🛒 MARKET PRO</div><div style="font-size:0.75rem;color:#aaa;margin-top:4px;">Envanter Yönetimi</div></div>
     <div style="padding:12px;display:flex;flex-direction:column;gap:6px;overflow-y:auto;max-height:calc(100vh - 120px)">
         <div class="drawer-group-title">📦 ENVANTER</div>
@@ -128,7 +131,7 @@
     </div>
 </div>
 <div class="app-container">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><button onclick="openDrawer()" style="background:#2a2a2a;border:none;border-radius:16px;padding:12px 16px;cursor:pointer;font-size:1.3rem;color:white">☰</button><div style="font-size:1.4rem;font-weight:900;color:#ff2222;letter-spacing:2px;text-shadow:0 0 8px #ff4444">MARKET PRO</div><div id="liveClock"><span id="clockTime">--:--:--</span><span class="clock-date" id="clockDate">--/--</span></div></div>
+    <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px;margin-bottom:10px"><button onclick="openDrawer()" style="background:#2a2a2a;border:none;border-radius:16px;padding:12px 20px;cursor:pointer;font-size:1.65rem;color:white;justify-self:start">☰</button><div style="text-align:center;font-size:1.4rem;font-weight:900;color:#ff2222;letter-spacing:2px;text-shadow:0 0 8px #ff4444">MARKET PRO</div><div id="liveClock"><span id="clockTime">--:--:--</span><span class="clock-date" id="clockDate">--/--</span></div></div>
     <div class="result-area" id="resultArea"><div class="result-placeholder">📷 BARKOD OKUTUN</div></div>
     <div class="button-grid"><button class="btn btn-primary" id="searchBtn">📷 SORGULA</button><button class="btn btn-primary" id="addBtn">➕ ÜRÜN EKLE</button></div>
     <div class="button-grid"><button class="btn btn-success" id="productSearchBtn">🔍 ÜRÜN ARA</button><button class="btn btn-success" id="manualAddBtn">✏️ MANUEL EKLE</button></div>
@@ -194,33 +197,41 @@ function showMultiLabelPreview(){
     let modal=document.getElementById('angebotPreviewModal');
     let content=document.getElementById('angebotPreviewContent');
     let title=document.getElementById('angebotPreviewTitle');
-    title.innerText="👁️ 21'li Etiket Önizleme (Çoklu Ürün)";
+    let totalPages=Math.ceil(printQueue.length/21);
+    title.innerText=`👁️ ${printQueue.length} Etiket — ${totalPages} Sayfa`;
     let pw=210, ph=297;
-    let scale=Math.min((window.innerWidth*0.85-48)/(pw*3.779527),(window.innerHeight*0.72)/(ph*3.779527),1);
-    let scaledW=Math.round(pw*3.779527*scale);
-    let scaledH=Math.round(ph*3.779527*scale);
-    let items=[];
-    for(let i=0;i<21;i++){
-        let product=i<printQueue.length?printQueue[i]:null;
-        if(product){
-            let ip=Math.floor(product.price);
-            let ic=Math.round((product.price-ip)*100);
-            let cents=ic<10?'0'+ic:''+ic;
-            let imgTag=product.image?`<img src="${product.image}" style="max-width:100%;max-height:100%;object-fit:contain;">`:'<span style="font-size:1.2rem;">📷</span>';
-            items.push(`<td class="label-cell"><div class="label-card"><div class="label-image-area"><div class="label-image">${imgTag}</div></div><div class="label-content-area"><div class="label-product-name">${escapeHtml(product.name)}</div><div class="label-price">${ip}<span class="cents">,${cents}</span><span class="currency">€</span></div></div></div><div class="label-barcode"><svg class="barcode-svg" id="multipreview-barcode-${i}"></svg></div></td>`);
-        } else {
-            items.push(`<td class="label-cell" style="visibility:hidden;"></td>`);
+    let pxW=Math.round(pw*3.779527), pxH=Math.round(ph*3.779527);
+    let scale=Math.min((window.innerWidth*0.85-48)/pxW,(window.innerHeight*0.72)/pxH,1);
+    let scaledW=Math.round(pxW*scale), scaledH=Math.round(pxH*scale);
+    let allPagesHtml='', barcodeIds=[];
+    for(let page=0;page<totalPages;page++){
+        let startIdx=page*21;
+        let items=[];
+        for(let i=0;i<21;i++){
+            let qIdx=startIdx+i;
+            let product=qIdx<printQueue.length?printQueue[qIdx]:null;
+            let bId=`mpr-bc-${page}-${i}`;
+            if(product){
+                let ip=Math.floor(product.price);
+                let ic=Math.round((product.price-ip)*100);
+                let cents=ic<10?'0'+ic:''+ic;
+                let imgTag=product.image?`<img src="${product.image}" style="max-width:100%;max-height:100%;object-fit:contain;">`:'<span style="font-size:1.2rem;">📷</span>';
+                items.push(`<td class="label-cell"><div class="label-outer"><div class="label-card"><div class="label-image-area"><div class="label-image">${imgTag}</div></div><div class="label-content-area"><div class="label-product-name">${escapeHtml(product.name)}</div><div class="label-price">${ip}<span class="cents">,${cents}</span><span class="currency">€</span></div></div></div><div class="label-barcode"><svg class="barcode-svg" id="${bId}"></svg></div></div></td>`);
+                barcodeIds.push({id:bId,barcode:product.barcode});
+            } else {
+                items.push(`<td class="label-cell" style="visibility:hidden;"></td>`);
+            }
+            if((i+1)%3===0 && i!==20) items.push(`</tr><tr>`);
         }
-        if((i+1)%3===0 && i!==20) items.push(`</tr><tr>`);
+        /* position:absolute → doğru kırpma garantisi */
+        allPagesHtml+=`<div style="width:${scaledW}px;height:${scaledH}px;overflow:hidden;position:relative;margin-bottom:8px;box-shadow:0 4px 16px rgba(0,0,0,0.4);flex-shrink:0;background:white;"><div style="position:absolute;top:0;left:0;width:${pxW}px;height:${pxH}px;transform:scale(${scale});transform-origin:top left;"><div class="label-grid-container"><table class="label-grid"><tr>${items.join('')}</tr></table></div></div></div>`;
     }
-    let gridHtml=`<div class="label-grid-container"><table class="label-grid"><tr>${items.join('')}</tr></table></div>`;
-    content.innerHTML=`<div style="width:${scaledW}px;height:${scaledH}px;margin:0 auto;overflow:auto;border-radius:6px;box-shadow:0 6px 24px rgba(0,0,0,0.45);"><div style="width:${pw}mm;height:${ph}mm;transform:scale(${scale});transform-origin:top left;">${gridHtml}</div></div>`;
+    content.innerHTML=`<div style="width:${scaledW}px;margin:0 auto;max-height:${Math.round(window.innerHeight*0.72)}px;overflow-y:auto;display:flex;flex-direction:column;">${allPagesHtml}</div>`;
     setTimeout(()=>{
-        for(let i=0;i<printQueue.length;i++){
-            let product=printQueue[i];
-            if(product){ JsBarcode(`#multipreview-barcode-${i}`,product.barcode,{format:"CODE128",width:1.8,height:20,displayValue:true,fontSize:7}); }
-        }
-    },50);
+        barcodeIds.forEach(({id,barcode})=>{
+            try{ JsBarcode(`#${id}`,barcode,{format:"CODE128",width:1.8,height:18,displayValue:true,fontSize:6}); }catch(e){}
+        });
+    },80);
     document.getElementById('angebotModal').style.display='none';
     modal.style.display='flex';
     let printBtn=document.getElementById('angebotPreviewPrintBtn');
@@ -233,46 +244,57 @@ function showMultiLabelPreview(){
 function printMultiLabelPoster(){
     if(!printQueue.length){ showToast("Etiket listesi boş!"); return; }
     let w=window.open('','_blank');
-    let items=[];
-    for(let i=0;i<21;i++){
-        let product=i<printQueue.length?printQueue[i]:null;
-        if(product){
-            let ip=Math.floor(product.price);
-            let ic=Math.round((product.price-ip)*100);
-            let cents=ic<10?'0'+ic:''+ic;
-            let imgTag=product.image?`<img src="${product.image}" style="max-width:100%;max-height:100%;object-fit:contain;">`:'';
-            items.push(`<td class="label-cell"><div class="label-card"><div class="label-image-area"><div class="label-image">${imgTag}</div></div><div class="label-content-area"><div class="label-product-name">${escapeHtml(product.name)}</div><div class="label-price">${ip}<span class="cents">,${cents}</span><span class="currency">€</span></div></div></div><div class="label-barcode"><svg class="barcode-svg" id="print-barcode-${i}"></svg></div></td>`);
-        } else {
-            items.push(`<td class="label-cell" style="visibility:hidden;"></td>`);
+    let totalPages=Math.ceil(printQueue.length/21);
+    let allPagesHtml='', barcodeInits='';
+    for(let page=0;page<totalPages;page++){
+        let startIdx=page*21;
+        let items=[];
+        for(let i=0;i<21;i++){
+            let qIdx=startIdx+i;
+            let product=qIdx<printQueue.length?printQueue[qIdx]:null;
+            let bId=`pb-${page}-${i}`;
+            if(product){
+                let ip=Math.floor(product.price);
+                let ic=Math.round((product.price-ip)*100);
+                let cents=ic<10?'0'+ic:''+ic;
+                let imgTag=product.image?`<img src="${product.image}" style="max-width:100%;max-height:100%;object-fit:contain;">`:'';
+                items.push(`<td class="label-cell"><div class="label-outer"><div class="label-card"><div class="label-image-area"><div class="label-image">${imgTag}</div></div><div class="label-content-area"><div class="label-product-name">${escapeHtml(product.name)}</div><div class="label-price">${ip}<span class="cents">,${cents}</span><span class="currency">€</span></div></div></div><div class="label-barcode"><svg class="barcode-svg" id="${bId}"></svg></div></div></td>`);
+                barcodeInits+=`try{JsBarcode("#${bId}","${product.barcode}",{format:"CODE128",width:1.8,height:18,displayValue:true,fontSize:6});}catch(e){}\n`;
+            } else {
+                items.push(`<td class="label-cell" style="visibility:hidden;"></td>`);
+            }
+            if((i+1)%3===0 && i!==20) items.push(`</tr><tr>`);
         }
-        if((i+1)%3===0 && i!==20) items.push(`</tr><tr>`);
+        let isLast=page===totalPages-1;
+        allPagesHtml+=`<div style="${isLast?'':'page-break-after:always;'}"><div class="label-grid-container"><table class="label-grid"><tr>${items.join('')}</tr></table></div></div>`;
     }
-    let html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>21'li Etiket</title>
+    let html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Etiket Poster</title>
 <style>
 @page{size:A4 portrait;margin:0;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{margin:0;padding:0;background:white;}
 .label-grid-container{width:210mm;margin:0 auto;}
 .label-grid{width:210mm;border-collapse:collapse;table-layout:fixed;margin:0 auto;}
-.label-cell{width:70mm;height:42.4mm;padding:0;margin:0;vertical-align:top;border:0.5px solid #000;overflow:hidden;}
-.label-card{width:100%;height:100%;display:table;table-layout:fixed;background:white;}
-.label-image-area{display:table-cell;width:25mm;height:42.4mm;vertical-align:middle;text-align:center;padding:1mm 0.5mm 1mm 2mm;}
-.label-image{width:21mm;height:34mm;display:flex;align-items:center;justify-content:center;margin:0 auto;overflow:hidden;}
+.label-cell{width:70mm;height:42.4mm;padding:1mm;border:none;vertical-align:top;overflow:hidden;}
+.label-outer{width:100%;height:100%;border:1px solid #000;border-radius:6px;overflow:hidden;box-sizing:border-box;display:flex;flex-direction:column;}
+.label-card{flex:1;display:table;table-layout:fixed;background:white;width:100%;}
+.label-image-area{display:table-cell;width:25mm;height:36mm;vertical-align:middle;text-align:center;padding:1mm 0.5mm 1mm 2mm;}
+.label-image{width:21mm;height:32mm;display:flex;align-items:center;justify-content:center;margin:0 auto;overflow:hidden;}
 .label-image img{max-width:100%;max-height:100%;object-fit:contain;}
-.label-content-area{display:table-cell;width:42mm;height:42.4mm;vertical-align:middle;padding:2mm 3mm 2mm 1.5mm;text-align:right;}
-.label-product-name{display:block;font-size:8pt;font-weight:900;color:#000;line-height:1.2;text-transform:uppercase;margin-bottom:2mm;overflow:hidden;word-wrap:break-word;}
-.label-price{font-size:24pt;font-weight:900;color:#000;letter-spacing:-1px;line-height:1;margin-top:0;}
-.label-price .cents{font-size:14pt;font-weight:900;}
-.label-price .currency{font-size:13pt;font-weight:900;margin-left:1px;}
-.label-barcode{text-align:center;margin-top:2px;border-top:1px dashed #ccc;padding-top:2px;}
-.barcode-svg{width:100%;height:16px;}
+.label-content-area{display:table-cell;width:42mm;height:36mm;vertical-align:middle;padding:1.5mm 3mm 1.5mm 1.5mm;text-align:right;}
+.label-product-name{display:block;font-size:9pt;font-weight:900;color:#000;line-height:1.2;text-transform:uppercase;margin-bottom:1.5mm;overflow:hidden;word-wrap:break-word;}
+.label-price{font-size:26pt;font-weight:900;color:#000;letter-spacing:-1px;line-height:1;margin-top:0;}
+.label-price .cents{font-size:13pt;font-weight:900;}
+.label-price .currency{font-size:12pt;font-weight:900;margin-left:1px;}
+.label-barcode{text-align:center;border-top:1px dashed #ccc;padding:1px 2px 1px;}
+.barcode-svg{width:100%;height:14px;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
 </head><body>
-<div class="label-grid-container"><table class="label-grid"><tr>${items.join('')}</tr></table></div>
+${allPagesHtml}
 <script>
-${printQueue.map((product,idx)=>`JsBarcode("#print-barcode-${idx}","${product.barcode}",{format:"CODE128",width:1.8,height:20,displayValue:true,fontSize:7});`).join('')}
-setTimeout(()=>{ window.print(); window.close(); },500);
+${barcodeInits}
+setTimeout(()=>{ window.print(); window.close(); },600);
 <\/script></body></html>`;
     w.document.write(html);
     w.document.close();
@@ -309,11 +331,12 @@ function _posterBlock(p,w,h,isLandscape,smaller,discountPrice){
         if(!smaller){
             /* ══ A4 YATAY — YENİ TASARIM: resim sol | ürün adı + fiyat sağ ══ */
             let imgW=Math.round(w*0.44);
-            let nPx=Math.round(w*0.028);
-            let prPx=Math.round(h*0.25);
-            let cPx=Math.round(prPx*0.5);
+            let nPx=Math.round(w*0.036);
+            let prPx=Math.round(h*0.32);
+            let centsPx=Math.round(prPx*0.38);
+            let cPx=Math.round(prPx*0.42);
             let oldPriceHtml=showDiscount?`<div style="font-family:Impact,'Arial Black',sans-serif;font-size:${Math.round(prPx*0.28)}px;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;margin-bottom:${Math.round(h*0.01)}px;">${oip},${ocents} €</div>`:'';
-            return `<div style="width:${w}px;height:${h}px;background:white;display:flex;flex-direction:row;align-items:stretch;overflow:hidden;"><div style="width:${imgW}px;display:flex;align-items:center;justify-content:center;padding:${pad}px;">${imgTag}</div><div style="width:3px;background:#cc0000;margin:${Math.round(h*0.10)}px 0;border-radius:2px;flex-shrink:0;"></div><div style="flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:${Math.round(h*0.07)}px ${Math.round(w*0.03)}px;"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:${nPx}px;font-weight:900;color:#cc0000;line-height:1.1;text-transform:uppercase;margin-bottom:${Math.round(h*0.04)}px;">${escapeHtml(p.name)}</div>${oldPriceHtml}<div style="display:flex;align-items:flex-end;line-height:1;"><span style="font-family:Impact,'Arial Black',sans-serif;font-size:${prPx}px;font-weight:900;color:#cc0000;line-height:1;">${ip},${centsStr}</span><span style="font-family:Impact,'Arial Black',sans-serif;font-size:${cPx}px;font-weight:900;color:#cc0000;padding-bottom:${Math.round(h*0.025)}px;margin-left:${Math.round(w*0.005)}px;">€</span></div></div></div>`;
+            return `<div style="width:${w}px;height:${h}px;background:white;display:flex;flex-direction:row;align-items:stretch;overflow:hidden;"><div style="width:${imgW}px;display:flex;align-items:center;justify-content:center;padding:${pad}px;">${imgTag}</div><div style="width:3px;background:#cc0000;margin:${Math.round(h*0.10)}px 0;border-radius:2px;flex-shrink:0;"></div><div style="flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:${Math.round(h*0.07)}px ${Math.round(w*0.03)}px;"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:${nPx}px;font-weight:900;color:#cc0000;line-height:1.1;text-transform:uppercase;margin-bottom:${Math.round(h*0.04)}px;-webkit-text-stroke:${Math.round(nPx*0.04)}px #cc0000;paint-order:stroke fill;">${escapeHtml(p.name)}</div>${oldPriceHtml}<div style="display:flex;align-items:flex-end;line-height:1;"><span style="font-family:Impact,'Arial Black',sans-serif;font-size:${prPx}px;font-weight:900;color:#cc0000;line-height:1;-webkit-text-stroke:${Math.round(prPx*0.03)}px #cc0000;paint-order:stroke fill;">${ip},<span style="font-size:${centsPx}px;vertical-align:bottom;line-height:1;">${centsStr}</span></span><span style="font-family:Impact,'Arial Black',sans-serif;font-size:${cPx}px;font-weight:900;color:#cc0000;padding-bottom:${Math.round(h*0.025)}px;margin-left:${Math.round(w*0.005)}px;">€</span></div></div></div>`;
         } else {
             /* A5 YATAY — orijinal tasarım */
             let tPx=Math.round(w*0.07),nPx=Math.round(w*0.022),prPx=Math.round(w*0.11),cPx=Math.round(w*0.06),imgW=Math.round(w*0.36);
@@ -323,13 +346,14 @@ function _posterBlock(p,w,h,isLandscape,smaller,discountPrice){
     } else {
         if(!smaller){
             /* ══ A4 DİKEY — YENİ TASARIM: ANGEBOT + resim + fiyat, grup ortada ══ */
-            let tPx=Math.round(w*0.15);
-            let imgH=Math.round(h*0.47);
-            let nPx=Math.round(w*0.024);
-            let prPx=Math.round(w*0.22);
-            let cPx=Math.round(prPx*0.5);
+            let tPx=Math.round(w*0.17);
+            let imgH=Math.round(h*0.43);
+            let nPx=Math.round(w*0.033);
+            let prPx=Math.round(w*0.26);
+            let centsPx=Math.round(prPx*0.36);
+            let cPx=Math.round(prPx*0.40);
             let oldPriceHtml=showDiscount?`<div style="font-family:Impact,'Arial Black',sans-serif;font-size:${Math.round(prPx*0.28)}px;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;margin-bottom:${Math.round(h*0.005)}px;">${oip},${ocents} €</div>`:'';
-            return `<div style="width:${w}px;height:${h}px;background:white;display:flex;align-items:center;justify-content:center;overflow:hidden;"><div style="display:flex;flex-direction:column;align-items:center;gap:0;"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:${tPx}px;font-weight:900;color:#cc0000;letter-spacing:${Math.round(w*0.006)}px;line-height:1;text-align:center;">ANGEBOT</div><div style="width:${Math.round(w*0.86)}px;height:${imgH}px;display:flex;align-items:center;justify-content:center;">${imgTag}</div><div style="font-size:${nPx}px;font-weight:900;color:#333;text-align:center;max-width:${Math.round(w*0.86)}px;line-height:1.3;margin-bottom:${Math.round(h*0.005)}px;">${escapeHtml(p.name)}</div>${oldPriceHtml}<div style="display:flex;align-items:flex-end;line-height:1;"><span style="font-family:Impact,'Arial Black',sans-serif;font-size:${prPx}px;font-weight:900;color:#cc0000;line-height:1;">${ip},${centsStr}</span><span style="font-family:Impact,'Arial Black',sans-serif;font-size:${cPx}px;font-weight:900;color:#cc0000;padding-bottom:${Math.round(h*0.018)}px;margin-left:${Math.round(w*0.005)}px;">€</span></div></div></div>`;
+            return `<div style="width:${w}px;height:${h}px;background:white;display:flex;align-items:center;justify-content:center;overflow:hidden;"><div style="display:flex;flex-direction:column;align-items:center;gap:0;"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:${tPx}px;font-weight:900;color:#cc0000;letter-spacing:${Math.round(w*0.006)}px;line-height:1;text-align:center;-webkit-text-stroke:${Math.round(tPx*0.05)}px #cc0000;paint-order:stroke fill;">ANGEBOT</div><div style="width:${Math.round(w*0.86)}px;height:${imgH}px;display:flex;align-items:center;justify-content:center;">${imgTag}</div><div style="font-size:${nPx}px;font-weight:900;color:#333;text-align:center;max-width:${Math.round(w*0.86)}px;line-height:1.3;margin-bottom:${Math.round(h*0.005)}px;">${escapeHtml(p.name)}</div>${oldPriceHtml}<div style="display:flex;align-items:flex-end;line-height:1;"><span style="font-family:Impact,'Arial Black',sans-serif;font-size:${prPx}px;font-weight:900;color:#cc0000;line-height:1;-webkit-text-stroke:${Math.round(prPx*0.04)}px #cc0000;paint-order:stroke fill;">${ip},<span style="font-size:${centsPx}px;vertical-align:bottom;line-height:1;">${centsStr}</span></span><span style="font-family:Impact,'Arial Black',sans-serif;font-size:${cPx}px;font-weight:900;color:#cc0000;padding-bottom:${Math.round(h*0.018)}px;margin-left:${Math.round(w*0.005)}px;">€</span></div></div></div>`;
         } else {
             /* A5/A6 DİKEY — orijinal tasarım */
             let tPx=Math.round(w*0.10),nPx=Math.round(w*0.022),prPx=Math.round(w*0.12),cPx=Math.round(w*0.07),imgH=Math.round(h*0.34);
@@ -393,29 +417,31 @@ body{display:flex;align-items:stretch;}
 .img-side img{max-width:100%;max-height:100%;object-fit:contain;}
 .sep{width:4px;background:#cc0000;margin:20mm 0;border-radius:2px;flex-shrink:0;}
 .text-side{flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:12mm 14mm 12mm 10mm;gap:8mm;}
-.pname{font-family:'Anton',Impact,'Arial Black',sans-serif;font-size:38pt;font-weight:900;color:#cc0000;line-height:1.05;text-transform:uppercase;margin:0;}
+.pname{font-family:'Anton',Impact,'Arial Black',sans-serif;font-size:46pt;font-weight:900;color:#cc0000;line-height:1.05;text-transform:uppercase;margin:0;-webkit-text-stroke:2px #cc0000;paint-order:stroke fill;}
 .old-price{font-family:'Anton',Impact,'Arial Black',sans-serif;font-size:18pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;margin:0;}
 .price-row{display:flex;align-items:flex-end;line-height:1;margin:0;}
-.price-num{font-family:'Anton',Impact,'Arial Black',sans-serif;font-size:76pt;font-weight:900;color:#cc0000;line-height:1;}
-.price-eur{font-family:'Anton',Impact,'Arial Black',sans-serif;font-size:38pt;font-weight:900;color:#cc0000;padding-bottom:8mm;margin-left:3mm;}`;
-            bodyHTML=`<div class="img-side">${imgSrc}</div><div class="sep"></div><div class="text-side"><div class="pname">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},${centsStr}</span><span class="price-eur">€</span></div></div>`;
+.price-num{font-family:'Anton',Impact,'Arial Black',sans-serif;font-size:96pt;font-weight:900;color:#cc0000;line-height:1;-webkit-text-stroke:5px #cc0000;paint-order:stroke fill;}
+.price-cents{font-size:38pt;vertical-align:bottom;line-height:1;}
+.price-eur{font-family:'Anton',Impact,'Arial Black',sans-serif;font-size:48pt;font-weight:900;color:#cc0000;padding-bottom:8mm;margin-left:3mm;}`;
+            bodyHTML=`<div class="img-side">${imgSrc}</div><div class="sep"></div><div class="text-side"><div class="pname">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},<span class="price-cents">${centsStr}</span></span><span class="price-eur">€</span></div></div>`;
 
         } else {
-            /* ── A4 DİKEY: ANGEBOT üstte, resim ortada, fiyat altta — hepsi birbirine yakın, grup sayfada ortalanmış ── */
+            /* ── A4 DİKEY: ANGEBOT üstte, resim ortada, fiyat altta ── */
             bodyCSS=`
 @page{size:A4 portrait;margin:0;}
 html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;background:white;}
 body{display:flex;align-items:center;justify-content:center;}
 .group{display:flex;flex-direction:column;align-items:center;gap:0;}
-.angebot{font-family:'Anton',Impact,'Arial Black',sans-serif;font-size:68pt;font-weight:900;color:#cc0000;letter-spacing:4px;line-height:1;text-align:center;margin:0;}
-.img-box{width:160mm;height:118mm;display:flex;align-items:center;justify-content:center;}
+.angebot{font-family:'Anton',Impact,'Arial Black',sans-serif;font-size:88pt;font-weight:900;color:#cc0000;letter-spacing:4px;line-height:1;text-align:center;margin:0;-webkit-text-stroke:3px #cc0000;paint-order:stroke fill;}
+.img-box{width:162mm;height:112mm;display:flex;align-items:center;justify-content:center;}
 .img-box img{max-width:100%;max-height:100%;object-fit:contain;}
-.pname{font-size:13pt;font-weight:900;color:#333;text-align:center;max-width:160mm;line-height:1.3;margin:0 0 4px 0;}
-.old-price{font-family:'Anton',Impact,'Arial Black',sans-serif;font-size:16pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;text-align:center;margin:0 0 4px 0;}
+.pname{font-size:17pt;font-weight:900;color:#333;text-align:center;max-width:162mm;line-height:1.3;margin:0 0 4px 0;}
+.old-price{font-family:'Anton',Impact,'Arial Black',sans-serif;font-size:18pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;text-align:center;margin:0 0 4px 0;}
 .price-row{display:flex;align-items:flex-end;justify-content:center;line-height:1;margin:0;}
-.price-num{font-family:'Anton',Impact,'Arial Black',sans-serif;font-size:86pt;font-weight:900;color:#cc0000;line-height:1;}
-.price-eur{font-family:'Anton',Impact,'Arial Black',sans-serif;font-size:43pt;font-weight:900;color:#cc0000;padding-bottom:10mm;margin-left:3mm;}`;
-            bodyHTML=`<div class="group"><div class="angebot">ANGEBOT</div><div class="img-box">${imgSrc}</div><div class="pname">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},${centsStr}</span><span class="price-eur">€</span></div></div>`;
+.price-num{font-family:'Anton',Impact,'Arial Black',sans-serif;font-size:112pt;font-weight:900;color:#cc0000;line-height:1;-webkit-text-stroke:5px #cc0000;paint-order:stroke fill;}
+.price-cents{font-size:42pt;vertical-align:bottom;line-height:1;}
+.price-eur{font-family:'Anton',Impact,'Arial Black',sans-serif;font-size:48pt;font-weight:900;color:#cc0000;padding-bottom:10mm;margin-left:3mm;}`;
+            bodyHTML=`<div class="group"><div class="angebot">ANGEBOT</div><div class="img-box">${imgSrc}</div><div class="pname">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},<span class="price-cents">${centsStr}</span></span><span class="price-eur">€</span></div></div>`;
         }
     }
     return `<!DOCTYPE html><html><head><meta charset="UTF-8">${fontLink}<style>${bodyCSS}</style></head><body>${bodyHTML}</body></html>`;
@@ -450,7 +476,7 @@ function openManualAddModal(){ let container=document.getElementById("manualAddF
 function closeManualAddModal(){ document.getElementById("manualAddModal").style.display="none"; tempImageData=null; }
 async function saveNewProductFromModal(){ let barcode=document.getElementById("addBarcode").value.trim(), name=document.getElementById("addName").value.trim().toUpperCase(), price=parseFloat(document.getElementById("addPrice").value), cost=parseFloat(document.getElementById("addCost").value)||null, category=document.getElementById("addCategory").value, quantity=parseInt(document.getElementById("addQuantity").value)||1, expiry=document.getElementById("addExpiry").value; if(!name||!barcode||isNaN(price)){ showToast("Eksik bilgi!"); return; } let existing=products.findIndex(p=>p.barcode===barcode); if(existing!==-1 && confirm("Barkod var, üzerine yazılsın mı?")) products[existing]={...products[existing], name, price, cost, category, quantity, expiry, image:tempImageData||products[existing].image}; else products.push({barcode, name, price, cost, category, quantity, expiry, image:tempImageData, id:Date.now()}); await saveProducts(); tempImageData=null; closeManualAddModal(); showToast(`Ürün kaydedildi: ${name}`); await updateUI(); }
 function openDrawer(){ document.getElementById("drawer").style.left="0"; document.getElementById("drawerOverlay").style.display="block"; }
-function closeDrawer(){ document.getElementById("drawer").style.left="-300px"; document.getElementById("drawerOverlay").style.display="none"; }
+function closeDrawer(){ document.getElementById("drawer").style.left="-255px"; document.getElementById("drawerOverlay").style.display="none"; }
 function backupData(){ let a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([JSON.stringify(products)])); a.download=`backup_${Date.now()}.json`; a.click(); showToast("Yedek alındı"); }
 async function restoreData(){ let inp=document.createElement("input"); inp.type="file"; inp.accept="application/json"; inp.onchange=async e=>{ let file=e.target.files[0]; let r=new FileReader(); r.onload=async ev=>{ try{ let d=JSON.parse(ev.target.result); if(Array.isArray(d)){ products=d; await saveProducts(false); showToast("Yedek yüklendi"); location.reload(); } else throw 0; } catch(err){ showToast("Hatalı dosya!"); } }; r.readAsText(file); }; inp.click(); }
 async function clearAllData(){ if(confirm("TÜM VERİLER SİLİNECEK!")){ products=[]; await saveProducts(false); showToast("Veriler silindi"); location.reload(); } }
