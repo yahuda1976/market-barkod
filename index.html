@@ -7,732 +7,155 @@
     <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-        :root {
-            --bg: #0f172a;
-            --bg2: #1e293b;
-            --bg3: #334155;
-            --text: #f1f5f9;
-            --text2: #94a3b8;
-            --border: rgba(255,255,255,0.08);
-            --primary: #6366f1;
-            --success: #22c55e;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --shadow: 0 8px 32px rgba(0,0,0,0.5);
-        }
-        body {
-            background: var(--bg);
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 12px;
-            color: var(--text);
-        }
-        .app {
-            max-width: 550px;
-            width: 100%;
-            background: var(--bg2);
-            border-radius: 40px;
-            padding: 16px 20px;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-        }
-
-        /* HEADER */
-        .header {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        .menu-btn {
-            background: var(--bg3);
-            border: none;
-            border-radius: 16px;
-            padding: 10px 16px;
-            font-size: 1.4rem;
-            color: var(--text);
-            cursor: pointer;
-        }
-        .logo {
-            text-align: center;
-            font-size: 1.2rem;
-            font-weight: 900;
-            color: #ff4444;
-            letter-spacing: 2px;
-        }
-        #liveClock {
-            background: #0d0d0d;
-            color: #00ff88;
-            padding: 6px 12px;
-            border-radius: 14px;
-            font-family: monospace;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-align: center;
-            border: 1px solid #00ff88;
-            min-width: 68px;
-            box-shadow: 0 0 12px rgba(0,255,136,0.15);
-        }
-        #liveClock .clock-date {
-            display: block;
-            font-size: 0.5rem;
-            color: #00cc77;
-            margin-top: 1px;
-        }
-
-        /* RESULT */
-        .result-area {
-            background: var(--bg3);
-            border-radius: 32px;
-            padding: 20px;
-            text-align: center;
-            min-height: 160px;
-            border: 1px solid var(--border);
-            position: relative;
-            margin-bottom: 12px;
-        }
-        .result-placeholder {
-            color: var(--text2);
-            font-size: 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-        .result-placeholder i {
-            font-size: 2.5rem;
-        }
-        .result-name {
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: #ffaa88;
-            text-transform: uppercase;
-        }
-        .result-price {
-            font-size: 2.4rem;
-            font-weight: 900;
-            color: #ff5555;
-        }
-        .result-meta {
-            color: var(--text2);
-            font-size: 0.85rem;
-        }
-        .product-image {
-            max-width: 100%;
-            max-height: 140px;
-            border-radius: 20px;
-            margin: 6px auto;
-            display: block;
-            object-fit: contain;
-        }
-        .close-result-btn {
-            position: absolute;
-            top: 6px;
-            right: 10px;
-            background: var(--danger);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        /* BUTTONS */
-        .btn {
-            border: none;
-            border-radius: 60px;
-            padding: 14px 12px;
-            color: white;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            transition: 0.15s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-        .btn:active { transform: scale(0.96); }
-        .btn-primary { background: linear-gradient(135deg, var(--primary), #4f46e5); }
-        .btn-success { background: linear-gradient(135deg, var(--success), #16a34a); }
-        .btn-warning { background: linear-gradient(135deg, var(--warning), #d97706); }
-        .btn-danger { background: linear-gradient(135deg, var(--danger), #dc2626); }
-        .btn-ghost { background: rgba(255,255,255,0.06); border: 1px solid var(--border); }
-        .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0; }
-
-        /* MODALS */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.92);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(4px);
-        }
-        .modal-content {
-            background: var(--bg2);
-            width: 92%;
-            max-width: 550px;
-            border-radius: 40px;
-            padding: 24px;
-            max-height: 88vh;
-            overflow-y: auto;
-            border: 1px solid var(--border);
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .modal-title {
-            color: #ff6666;
-            font-weight: 800;
-            font-size: 1.1rem;
-        }
-        .close-modal-btn {
-            background: var(--danger);
-            padding: 6px 16px;
-            border-radius: 40px;
-            font-size: 0.8rem;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-        /* INVENTORY */
-        .inventory-search input {
-            width: 100%;
-            padding: 12px 18px;
-            border-radius: 60px;
-            border: 1px solid var(--border);
-            background: var(--bg3);
-            color: var(--text);
-            font-size: 0.9rem;
-            margin-bottom: 12px;
-        }
-        .inventory-search input::placeholder { color: var(--text2); }
-        .product-list-simple {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            max-height: 45vh;
-            overflow-y: auto;
-        }
-        .envanter-item {
-            background: var(--bg3);
-            border-radius: 40px;
-            padding: 8px 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid var(--border);
-        }
-        .product-name-item {
-            flex: 1;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.8rem;
-        }
-        .btn-add-queue {
-            background: var(--warning);
-            border: none;
-            border-radius: 30px;
-            padding: 4px 12px;
-            color: white;
-            font-weight: 700;
-            font-size: 0.65rem;
-            cursor: pointer;
-        }
-        .inventory-stats {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 12px;
-        }
-        .stat-pill {
-            background: var(--bg3);
-            border-radius: 30px;
-            padding: 4px 14px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            border: 1px solid var(--border);
-        }
-        .stat-pill.success { background: rgba(34,197,94,0.2); border-color: var(--success); color: var(--success); }
-        .stat-pill.danger { background: rgba(239,68,68,0.2); border-color: var(--danger); color: var(--danger); }
-        .stat-pill.gray { background: rgba(148,163,184,0.15); border-color: var(--text2); color: var(--text2); }
-
-        /* FORMS */
-        input, select {
-            width: 100%;
-            padding: 14px 18px;
-            border-radius: 60px;
-            border: 1px solid var(--border);
-            background: var(--bg3);
-            color: var(--text);
-            font-size: 0.9rem;
-            margin: 6px 0;
-        }
-        input::placeholder { color: var(--text2); }
-        input:focus, select:focus { outline: 2px solid var(--primary); }
-        .edit-form-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .edit-form-buttons button {
-            flex: 1;
-            padding: 12px;
-            border-radius: 50px;
-            font-weight: 700;
-            border: none;
-            cursor: pointer;
-        }
-        .btn-save { background: var(--success); color: white; }
-        .btn-cancel { background: var(--text2); color: white; }
-        .image-buttons-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin: 6px 0;
-        }
-        .image-buttons-group button {
-            flex: 1;
-            background: var(--bg3);
-            border: 1px solid var(--border);
-            padding: 12px;
-            border-radius: 50px;
-            color: var(--text);
-            font-weight: 600;
-            cursor: pointer;
-            min-width: 80px;
-        }
-
-        /* PROFIT */
-        .profit-box {
-            background: rgba(34,197,94,0.08);
-            border-radius: 20px;
-            padding: 10px 14px;
-            margin: 6px 0;
-            border: 1px solid rgba(34,197,94,0.15);
-        }
-        .profit-suggested { font-size: 0.9rem; font-weight: 700; color: var(--success); }
-        .profit-margin { font-size: 0.75rem; color: var(--text2); margin-top: 4px; }
-        .profit-margin.good { color: var(--success); }
-        .profit-margin.ok { color: var(--warning); }
-        .profit-margin.bad { color: var(--danger); }
-
-        /* EXPIRY */
-        .expiry-red { background: rgba(239,68,68,0.2)!important; border-color: var(--danger)!important; }
-        .expiry-yellow { background: rgba(245,158,11,0.2)!important; border-color: var(--warning)!important; }
-        .expiry-green { background: rgba(34,197,94,0.12)!important; border-color: var(--success)!important; }
-        .expiry-zero-stock { background: rgba(148,163,184,0.1)!important; border-color: var(--text2)!important; opacity: 0.6; }
-        .expiry-no-date { background: var(--bg3)!important; border-color: var(--border)!important; }
-
-        /* PRODUCT DETAIL */
-        .product-detail-card {
-            border-radius: 32px;
-            padding: 20px;
-            text-align: center;
-        }
-        .detail-image {
-            max-width: 100%;
-            max-height: 150px;
-            border-radius: 20px;
-            margin: 8px auto;
-            display: block;
-            object-fit: contain;
-        }
-        .detail-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 12px;
-        }
-        .button-row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .button-row button {
-            flex: 1;
-            background: var(--bg3);
-            border: 1px solid var(--border);
-            border-radius: 40px;
-            padding: 8px 6px;
-            color: var(--text);
-            font-weight: 600;
-            font-size: 0.7rem;
-            cursor: pointer;
-            min-width: 60px;
-        }
-        .full-width-btn {
-            width: 100%;
-            background: linear-gradient(135deg, var(--warning), #d97706)!important;
-            padding: 10px!important;
-            font-size: 0.8rem!important;
-            border: none;
-            border-radius: 40px;
-            color: white;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 4px;
-        }
-
-        /* STOK SAYIM */
-        .sayim-item {
-            background: var(--bg3);
-            border-radius: 30px;
-            padding: 8px 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 4px;
-            border: 1px solid var(--border);
-            flex-wrap: wrap;
-        }
-        .sayim-name { flex: 1; font-size: 0.8rem; font-weight: 700; min-width: 70px; }
-        .sayim-mevcut { font-size: 0.7rem; color: var(--text2); white-space: nowrap; }
-        .sayim-input {
-            width: 60px!important;
-            padding: 6px 8px!important;
-            margin: 0!important;
-            text-align: center;
-            font-weight: 700;
-            font-size: 0.9rem;
-            border-radius: 30px!important;
-        }
-        .sayim-diff-pos { color: var(--success); font-weight: 700; font-size: 0.75rem; min-width: 28px; text-align: center; }
-        .sayim-diff-neg { color: var(--danger); font-weight: 700; font-size: 0.75rem; min-width: 28px; text-align: center; }
-        .sayim-diff-zero { color: var(--text2); font-size: 0.75rem; min-width: 28px; text-align: center; }
-
-        /* TOAST */
-        #toast-container {
-            position: fixed;
-            top: 16px;
-            right: 16px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            max-width: 320px;
-        }
-        .toast {
-            background: var(--bg2);
-            color: var(--text);
-            padding: 12px 18px;
-            border-radius: 30px;
-            box-shadow: var(--shadow);
-            font-size: 0.85rem;
-            animation: slideIn 0.3s ease;
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .toast.success { border-color: var(--success); }
-        .toast.error { border-color: var(--danger); }
-        .toast.warning { border-color: var(--warning); }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .toast.fade-out { animation: fadeOut 0.4s ease forwards; }
-        @keyframes fadeOut { to { opacity: 0; transform: translateX(50px); } }
-
-        /* DRAWER */
-        #drawerOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 500;
-            display: none;
-        }
-        #drawer {
-            position: fixed;
-            top: 0;
-            left: -265px;
-            width: 250px;
-            height: 100%;
-            background: var(--bg2);
-            z-index: 600;
-            transition: left 0.3s ease;
-            box-shadow: 4px 0 32px rgba(0,0,0,0.5);
-            border-radius: 0 28px 28px 0;
-            border-right: 1px solid var(--border);
-        }
-        .drawer-header {
-            background: var(--bg3);
-            padding: 40px 20px 16px;
-            border-radius: 0 28px 0 0;
-        }
-        .drawer-header .brand { font-size: 1.2rem; font-weight: 900; color: #ffaa88; }
-        .drawer-header .sub { font-size: 0.7rem; color: var(--text2); }
-        .drawer-body {
-            padding: 12px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            overflow-y: auto;
-            max-height: calc(100vh - 110px);
-        }
-        .drawer-group-title {
-            font-size: 0.6rem;
-            font-weight: 800;
-            color: var(--text2);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            padding: 6px 4px 2px;
-        }
-        .drawer-sep { height: 1px; background: var(--border); margin: 4px 0; }
-        .drawer-btn {
-            background: transparent;
-            border: none;
-            border-radius: 30px;
-            padding: 10px 14px;
-            color: var(--text);
-            font-weight: 600;
-            font-size: 0.8rem;
-            cursor: pointer;
-            text-align: left;
-            width: 100%;
-            transition: background 0.15s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .drawer-btn:hover { background: rgba(255,255,255,0.04); }
-        .drawer-btn:active { background: rgba(255,255,255,0.08); }
-        .drawer-btn-red { color: #ff6b6b!important; }
-        .drawer-btn-red:hover { background: rgba(239,68,68,0.12)!important; }
-        #urgentCount {
-            background: var(--danger);
-            border-radius: 20px;
-            padding: 1px 8px;
-            font-size: 0.7rem;
-            margin-left: auto;
-        }
-
-        /* LABELS */
-        .label-grid-container { background: #fff; padding: 0; margin: 0; box-sizing: border-box; page-break-after: always; width: 210mm; overflow: hidden; }
-        .label-grid { width: 210mm; margin: 0 auto; border-collapse: collapse; table-layout: fixed; }
-        .label-cell { width: 70mm; height: 42.4mm; padding: 1mm; border: none; vertical-align: top; overflow: hidden; }
-        .label-outer { width: 100%; height: 100%; border: 1px solid #000; border-radius: 4px; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; }
-        .label-card { flex: 1; display: table; table-layout: fixed; background: white; width: 100%; }
-        .label-image-area { display: table-cell; width: 25mm; height: 36mm; vertical-align: middle; text-align: center; padding: 1mm; }
-        .label-image { width: 21mm; height: 32mm; display: flex; align-items: center; justify-content: center; margin: 0 auto; overflow: hidden; }
-        .label-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .label-content-area { display: table-cell; width: 42mm; height: 36mm; vertical-align: middle; padding: 1.5mm 2mm; text-align: right; }
-        .label-product-name { display: block; font-size: 9pt; font-weight: 900; color: #cc0000; line-height: 1.2; text-transform: uppercase; margin-bottom: 1mm; overflow: hidden; word-wrap: break-word; }
-        .label-price { font-size: 24pt; font-weight: 900; color: #cc0000; letter-spacing: -1px; line-height: 1; }
-        .label-price .cents { font-size: 12pt; font-weight: 900; }
-        .label-price .currency { font-size: 11pt; font-weight: 900; margin-left: 1px; }
-        .label-barcode { text-align: center; border-top: 1px dashed #ccc; padding: 1px 2px; }
-        .barcode-svg { width: 100%; height: 12px; }
-
-        @media print { body * { visibility: hidden; } .print-modal, .print-modal * { visibility: visible; } .print-modal { position: absolute; top: 0; left: 0; width: 100%; background: white; } .label-grid-container { page-break-after: always; } }
-
-        /* SCROLL */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--text2); border-radius: 10px; }
-
-        /* EXTRA */
-        .hidden { display: none; }
-        .queue-item {
-            background: var(--bg3);
-            border-radius: 40px;
-            padding: 10px 14px;
-            margin-bottom: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid var(--border);
-        }
-        .queue-item span { font-weight: 600; font-size: 0.85rem; }
-        .queue-item button {
-            background: var(--danger);
-            border: none;
-            border-radius: 30px;
-            padding: 4px 12px;
-            color: white;
-            cursor: pointer;
-        }
-        .angebot-poster-btn {
-            background: var(--bg3);
-            border: 1px solid var(--border);
-            border-radius: 40px;
-            padding: 10px;
-            color: var(--text);
-            font-weight: 600;
-            font-size: 0.7rem;
-            cursor: pointer;
-            transition: 0.15s;
-        }
-        .angebot-poster-btn:hover { background: rgba(255,255,255,0.05); }
-        .angebot-poster-btn:active { transform: scale(0.96); }
-        .angebot-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-            margin: 4px 0;
-        }
-        .badge-link {
-            background: var(--bg3);
-            border-radius: 16px;
-            padding: 10px 16px;
-            cursor: pointer;
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 8px;
-        }
-        .badge-link .label { font-size: 0.8rem; font-weight: 700; }
-        .badge-link .count {
-            background: rgba(255,255,255,0.06);
-            border-radius: 20px;
-            padding: 2px 14px;
-            font-size: 0.75rem;
-            color: var(--text2);
-        }
-        .urgent-bar {
-            background: rgba(239,68,68,0.12);
-            border-radius: 16px;
-            padding: 8px 16px;
-            cursor: pointer;
-            border: 1px solid rgba(239,68,68,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 8px;
-        }
-        .urgent-bar .label { font-size: 0.7rem; font-weight: 700; color: var(--danger); }
-        .urgent-bar .value {
-            font-size: 0.7rem;
-            color: var(--text2);
-            font-weight: 600;
-            max-width: 65%;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-        }
-        .result-image-btn {
-            background: var(--bg3);
-            border: 1px solid var(--border);
-            border-radius: 40px;
-            padding: 6px 14px;
-            color: var(--text);
-            font-weight: 600;
-            font-size: 0.7rem;
-            cursor: pointer;
-        }
-        .result-image-btn:hover { background: rgba(255,255,255,0.05); }
-        .camera-container {
-            width: 92%;
-            max-width: 500px;
-            background: #000;
-            border-radius: 32px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-        }
-        .camera-container video { width: 100%; }
-        .camera-status { color: var(--text2); margin-top: 8px; font-size: 0.85rem; text-align: center; }
-        .camera-close-btn {
-            background: var(--danger);
-            margin-top: 16px;
-            padding: 12px 28px;
-            border-radius: 40px;
-            color: white;
-            font-weight: 700;
-            border: none;
-            cursor: pointer;
-        }
-        .modal-flex {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .angebot-product-name {
-            font-size: 1rem;
-            font-weight: 800;
-            color: #ffaa88;
-            text-align: center;
-            margin-bottom: 8px;
-        }
-        .angebot-price-box {
-            background: var(--bg3);
-            border-radius: 32px;
-            padding: 12px;
-            margin-bottom: 12px;
-            border: 1px solid var(--border);
-        }
-        .angebot-price-box .label { font-size: 0.85rem; color: var(--text2); }
-        .angebot-price-box .price { font-weight: 700; }
-        .angebot-error { color: var(--danger); font-size: 0.75rem; margin-top: 4px; }
-        .angebot-section-title {
-            color: var(--text2);
-            font-size: 0.7rem;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            margin-top: 4px;
-        }
-        #angebotPreviewContent {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            margin-bottom: 12px;
-            min-height: 200px;
-        }
-        #angebotPreviewContent iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        #sayimModListeBtn, #sayimModBarkodBtn {
-            padding: 12px;
-            font-size: 0.8rem;
-            border-radius: 40px;
-            border: none;
-            cursor: pointer;
-            font-weight: 700;
-            color: white;
-        }
-        .sayim-mod-active { background: linear-gradient(135deg, var(--primary), #4f46e5); }
-        .sayim-mod-inactive { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--text); }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}
+        body{background:#0f172a;display:flex;justify-content:center;min-height:100vh;padding:12px;color:#f1f5f9}
+        .app{max-width:550px;width:100%;background:#1e293b;border-radius:40px;padding:16px 20px;border:1px solid rgba(255,255,255,0.08)}
+        .header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;margin-bottom:12px}
+        .menu-btn{background:#334155;border:none;border-radius:16px;padding:10px 16px;font-size:1.4rem;color:#f1f5f9;cursor:pointer}
+        .logo{text-align:center;font-size:1.2rem;font-weight:900;color:#ff4444;letter-spacing:2px}
+        #liveClock{background:#0d0d0d;color:#00ff88;padding:6px 12px;border-radius:14px;font-family:monospace;font-size:0.75rem;font-weight:700;text-align:center;border:1px solid #00ff88;min-width:68px}
+        #liveClock .clock-date{display:block;font-size:0.5rem;color:#00cc77;margin-top:1px}
+        .result-area{background:#334155;border-radius:32px;padding:20px;text-align:center;min-height:160px;border:1px solid rgba(255,255,255,0.08);position:relative;margin-bottom:12px}
+        .result-placeholder{color:#94a3b8;font-size:1rem;display:flex;flex-direction:column;align-items:center;gap:8px}
+        .result-placeholder i{font-size:2.5rem}
+        .result-name{font-size:1.3rem;font-weight:800;color:#ffaa88;text-transform:uppercase}
+        .result-price{font-size:2.4rem;font-weight:900;color:#ff5555}
+        .result-meta{color:#94a3b8;font-size:0.85rem}
+        .product-image{max-width:100%;max-height:140px;border-radius:20px;margin:6px auto;display:block;object-fit:contain}
+        .close-result-btn{position:absolute;top:6px;right:10px;background:#ef4444;color:white;border:none;border-radius:50%;width:28px;height:28px;font-size:14px;cursor:pointer}
+        .btn{border:none;border-radius:60px;padding:14px 12px;color:white;font-weight:700;cursor:pointer;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.3px;transition:0.15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+        .btn:active{transform:scale(0.96)}
+        .btn-primary{background:linear-gradient(135deg,#6366f1,#4f46e5)}
+        .btn-success{background:linear-gradient(135deg,#22c55e,#16a34a)}
+        .btn-warning{background:linear-gradient(135deg,#f59e0b,#d97706)}
+        .btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626)}
+        .btn-ghost{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08)}
+        .button-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);justify-content:center;align-items:center;z-index:1000;backdrop-filter:blur(4px)}
+        .modal-content{background:#1e293b;width:92%;max-width:550px;border-radius:40px;padding:24px;max-height:88vh;overflow-y:auto;border:1px solid rgba(255,255,255,0.08)}
+        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+        .modal-title{color:#ff6666;font-weight:800;font-size:1.1rem}
+        .close-modal-btn{background:#ef4444;padding:6px 16px;border-radius:40px;font-size:0.8rem;color:white;border:none;cursor:pointer}
+        .inventory-search input{width:100%;padding:12px 18px;border-radius:60px;border:1px solid rgba(255,255,255,0.08);background:#334155;color:#f1f5f9;font-size:0.9rem;margin-bottom:12px}
+        .inventory-search input::placeholder{color:#94a3b8}
+        .product-list-simple{display:flex;flex-direction:column;gap:6px;max-height:45vh;overflow-y:auto}
+        .envanter-item{background:#334155;border-radius:40px;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid rgba(255,255,255,0.08)}
+        .product-name-item{flex:1;cursor:pointer;font-weight:600;font-size:0.8rem}
+        .btn-add-queue{background:#f59e0b;border:none;border-radius:30px;padding:4px 12px;color:white;font-weight:700;font-size:0.65rem;cursor:pointer}
+        .inventory-stats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+        .stat-pill{background:#334155;border-radius:30px;padding:4px 14px;font-size:0.7rem;font-weight:700;border:1px solid rgba(255,255,255,0.08)}
+        .stat-pill.success{background:rgba(34,197,94,0.2);border-color:#22c55e;color:#22c55e}
+        .stat-pill.danger{background:rgba(239,68,68,0.2);border-color:#ef4444;color:#ef4444}
+        .stat-pill.gray{background:rgba(148,163,184,0.15);border-color:#94a3b8;color:#94a3b8}
+        input,select{width:100%;padding:14px 18px;border-radius:60px;border:1px solid rgba(255,255,255,0.08);background:#334155;color:#f1f5f9;font-size:0.9rem;margin:6px 0}
+        input::placeholder{color:#94a3b8}
+        input:focus,select:focus{outline:2px solid #6366f1}
+        .edit-form-buttons{display:flex;gap:10px;margin-top:10px}
+        .edit-form-buttons button{flex:1;padding:12px;border-radius:50px;font-weight:700;border:none;cursor:pointer}
+        .btn-save{background:#22c55e;color:white}
+        .btn-cancel{background:#94a3b8;color:white}
+        .image-buttons-group{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0}
+        .image-buttons-group button{flex:1;background:#334155;border:1px solid rgba(255,255,255,0.08);padding:12px;border-radius:50px;color:#f1f5f9;font-weight:600;cursor:pointer;min-width:80px}
+        .profit-box{background:rgba(34,197,94,0.08);border-radius:20px;padding:10px 14px;margin:6px 0;border:1px solid rgba(34,197,94,0.15)}
+        .profit-suggested{font-size:0.9rem;font-weight:700;color:#22c55e}
+        .profit-margin{font-size:0.75rem;color:#94a3b8;margin-top:4px}
+        .profit-margin.good{color:#22c55e}
+        .profit-margin.ok{color:#f59e0b}
+        .profit-margin.bad{color:#ef4444}
+        .expiry-red{background:rgba(239,68,68,0.2)!important;border-color:#ef4444!important}
+        .expiry-yellow{background:rgba(245,158,11,0.2)!important;border-color:#f59e0b!important}
+        .expiry-green{background:rgba(34,197,94,0.12)!important;border-color:#22c55e!important}
+        .expiry-zero-stock{background:rgba(148,163,184,0.1)!important;border-color:#94a3b8!important;opacity:0.6}
+        .expiry-no-date{background:#334155!important;border-color:rgba(255,255,255,0.08)!important}
+        .product-detail-card{border-radius:32px;padding:20px;text-align:center}
+        .detail-image{max-width:100%;max-height:150px;border-radius:20px;margin:8px auto;display:block;object-fit:contain}
+        .detail-actions{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+        .button-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+        .button-row button{flex:1;background:#334155;border:1px solid rgba(255,255,255,0.08);border-radius:40px;padding:8px 6px;color:#f1f5f9;font-weight:600;font-size:0.7rem;cursor:pointer;min-width:60px}
+        .full-width-btn{width:100%;background:linear-gradient(135deg,#f59e0b,#d97706)!important;padding:10px!important;font-size:0.8rem!important;border:none;border-radius:40px;color:white;font-weight:700;cursor:pointer;margin-top:4px}
+        .sayim-item{background:#334155;border-radius:30px;padding:8px 12px;display:flex;align-items:center;gap:8px;margin-bottom:4px;border:1px solid rgba(255,255,255,0.08);flex-wrap:wrap}
+        .sayim-name{flex:1;font-size:0.8rem;font-weight:700;min-width:70px}
+        .sayim-mevcut{font-size:0.7rem;color:#94a3b8;white-space:nowrap}
+        .sayim-input{width:60px!important;padding:6px 8px!important;margin:0!important;text-align:center;font-weight:700;font-size:0.9rem;border-radius:30px!important}
+        .sayim-diff-pos{color:#22c55e;font-weight:700;font-size:0.75rem;min-width:28px;text-align:center}
+        .sayim-diff-neg{color:#ef4444;font-weight:700;font-size:0.75rem;min-width:28px;text-align:center}
+        .sayim-diff-zero{color:#94a3b8;font-size:0.75rem;min-width:28px;text-align:center}
+        #toast-container{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:320px}
+        .toast{background:#1e293b;color:#f1f5f9;padding:12px 18px;border-radius:30px;box-shadow:0 8px 32px rgba(0,0,0,0.5);font-size:0.85rem;animation:slideIn 0.3s ease;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:8px}
+        .toast.success{border-color:#22c55e}
+        .toast.error{border-color:#ef4444}
+        .toast.warning{border-color:#f59e0b}
+        @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+        .toast.fade-out{animation:fadeOut 0.4s ease forwards}
+        @keyframes fadeOut{to{opacity:0;transform:translateX(50px)}}
+        #drawerOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:500;display:none}
+        #drawer{position:fixed;top:0;left:-265px;width:250px;height:100%;background:#1e293b;z-index:600;transition:left 0.3s ease;box-shadow:4px 0 32px rgba(0,0,0,0.5);border-radius:0 28px 28px 0;border-right:1px solid rgba(255,255,255,0.08)}
+        .drawer-header{background:#334155;padding:40px 20px 16px;border-radius:0 28px 0 0}
+        .drawer-header .brand{font-size:1.2rem;font-weight:900;color:#ffaa88}
+        .drawer-header .sub{font-size:0.7rem;color:#94a3b8}
+        .drawer-body{padding:12px 16px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;max-height:calc(100vh - 110px)}
+        .drawer-group-title{font-size:0.6rem;font-weight:800;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;padding:6px 4px 2px}
+        .drawer-sep{height:1px;background:rgba(255,255,255,0.08);margin:4px 0}
+        .drawer-btn{background:transparent;border:none;border-radius:30px;padding:10px 14px;color:#f1f5f9;font-weight:600;font-size:0.8rem;cursor:pointer;text-align:left;width:100%;transition:background 0.15s;display:flex;align-items:center;gap:8px}
+        .drawer-btn:hover{background:rgba(255,255,255,0.04)}
+        .drawer-btn:active{background:rgba(255,255,255,0.08)}
+        .drawer-btn-red{color:#ff6b6b!important}
+        .drawer-btn-red:hover{background:rgba(239,68,68,0.12)!important}
+        #urgentCount{background:#ef4444;border-radius:20px;padding:1px 8px;font-size:0.7rem;margin-left:auto}
+        .label-grid-container{background:#fff;padding:0;margin:0;box-sizing:border-box;page-break-after:always;width:210mm;overflow:hidden}
+        .label-grid{width:210mm;margin:0 auto;border-collapse:collapse;table-layout:fixed}
+        .label-cell{width:70mm;height:42.4mm;padding:1mm;border:none;vertical-align:top;overflow:hidden}
+        .label-outer{width:100%;height:100%;border:1px solid #000;border-radius:4px;overflow:hidden;box-sizing:border-box;display:flex;flex-direction:column}
+        .label-card{flex:1;display:table;table-layout:fixed;background:white;width:100%}
+        .label-image-area{display:table-cell;width:25mm;height:36mm;vertical-align:middle;text-align:center;padding:1mm}
+        .label-image{width:21mm;height:32mm;display:flex;align-items:center;justify-content:center;margin:0 auto;overflow:hidden}
+        .label-image img{max-width:100%;max-height:100%;object-fit:contain}
+        .label-content-area{display:table-cell;width:42mm;height:36mm;vertical-align:middle;padding:1.5mm 2mm;text-align:right}
+        .label-product-name{display:block;font-size:9pt;font-weight:900;color:#cc0000;line-height:1.2;text-transform:uppercase;margin-bottom:1mm;overflow:hidden;word-wrap:break-word}
+        .label-price{font-size:24pt;font-weight:900;color:#cc0000;letter-spacing:-1px;line-height:1}
+        .label-price .cents{font-size:12pt;font-weight:900}
+        .label-price .currency{font-size:11pt;font-weight:900;margin-left:1px}
+        .label-barcode{text-align:center;border-top:1px dashed #ccc;padding:1px 2px}
+        .barcode-svg{width:100%;height:12px}
+        @media print{body *{visibility:hidden}.print-modal,.print-modal *{visibility:visible}.print-modal{position:absolute;top:0;left:0;width:100%;background:white}.label-grid-container{page-break-after:always}}
+        ::-webkit-scrollbar{width:4px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:10px}
+        .hidden{display:none}
+        .queue-item{background:#334155;border-radius:40px;padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,0.08)}
+        .queue-item span{font-weight:600;font-size:0.85rem}
+        .queue-item button{background:#ef4444;border:none;border-radius:30px;padding:4px 12px;color:white;cursor:pointer}
+        .badge-link{background:#334155;border-radius:16px;padding:10px 16px;cursor:pointer;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+        .badge-link .label{font-size:0.8rem;font-weight:700}
+        .badge-link .count{background:rgba(255,255,255,0.06);border-radius:20px;padding:2px 14px;font-size:0.75rem;color:#94a3b8}
+        .urgent-bar{background:rgba(239,68,68,0.12);border-radius:16px;padding:8px 16px;cursor:pointer;border:1px solid rgba(239,68,68,0.2);display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+        .urgent-bar .label{font-size:0.7rem;font-weight:700;color:#ef4444}
+        .urgent-bar .value{font-size:0.7rem;color:#94a3b8;font-weight:600;max-width:65%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+        .result-image-btn{background:#334155;border:1px solid rgba(255,255,255,0.08);border-radius:40px;padding:6px 14px;color:#f1f5f9;font-weight:600;font-size:0.7rem;cursor:pointer}
+        .result-image-btn:hover{background:rgba(255,255,255,0.05)}
+        .camera-container{width:92%;max-width:500px;background:#000;border-radius:32px;overflow:hidden;border:1px solid rgba(255,255,255,0.08)}
+        .camera-container video{width:100%}
+        .camera-status{color:#94a3b8;margin-top:8px;font-size:0.85rem;text-align:center}
+        .camera-close-btn{background:#ef4444;margin-top:16px;padding:12px 28px;border-radius:40px;color:white;font-weight:700;border:none;cursor:pointer}
+        .modal-flex{display:flex;flex-direction:column;align-items:center;justify-content:center}
+        #sayimModListeBtn,#sayimModBarkodBtn{padding:12px;font-size:0.8rem;border-radius:40px;border:none;cursor:pointer;font-weight:700;color:white}
+        .sayim-mod-active{background:linear-gradient(135deg,#6366f1,#4f46e5)}
+        .sayim-mod-inactive{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#f1f5f9}
+        .angebot-poster-btn{background:#334155;border:1px solid rgba(255,255,255,0.08);border-radius:40px;padding:10px;color:#f1f5f9;font-weight:600;font-size:0.7rem;cursor:pointer;transition:0.15s}
+        .angebot-poster-btn:hover{background:rgba(255,255,255,0.05)}
+        .angebot-poster-btn:active{transform:scale(0.96)}
+        .angebot-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:4px 0}
+        .angebot-section-title{color:#94a3b8;font-size:0.7rem;font-weight:800;letter-spacing:0.5px;margin-top:4px}
+        #angebotPreviewContent{background:white;border-radius:16px;overflow:hidden;margin-bottom:12px;min-height:200px}
+        #angebotPreviewContent iframe{width:100%;height:100%;border:none}
     </style>
 </head>
 <body>
 
-<!-- TOAST -->
 <div id="toast-container"></div>
 
-<!-- DRAWER OVERLAY -->
 <div id="drawerOverlay" onclick="closeDrawer()"></div>
 
-<!-- DRAWER -->
 <div id="drawer">
     <div class="drawer-header">
         <div class="brand">🛒 MARKET PRO</div>
@@ -740,9 +163,7 @@
     </div>
     <div class="drawer-body">
         <div class="drawer-group-title">📦 ENVANTER</div>
-        <button class="drawer-btn drawer-btn-red" onclick="closeDrawer();openUrgentModal();">
-            ⚠️ 7 GÜN KALAN <span id="urgentCount">0</span>
-        </button>
+        <button class="drawer-btn drawer-btn-red" onclick="closeDrawer();openUrgentModal();">⚠️ 7 GÜN KALAN <span id="urgentCount">0</span></button>
         <button class="drawer-btn" onclick="closeDrawer();openStokSayimModal();">🔢 STOK SAYIM MODU</button>
         <button class="drawer-btn" onclick="closeDrawer();openInventoryModal();">📋 TÜM ENVANTER</button>
         <div class="drawer-sep"></div>
@@ -764,7 +185,6 @@
     </div>
 </div>
 
-<!-- MAIN APP -->
 <div class="app">
     <div class="header">
         <button class="menu-btn" onclick="openDrawer()">☰</button>
@@ -805,8 +225,6 @@
 </div>
 
 <!-- MODALS -->
-
-<!-- CAMERA -->
 <div id="cameraModal" class="modal modal-flex">
     <div class="camera-container">
         <video id="cameraVideo" autoplay muted playsinline></video>
@@ -815,7 +233,6 @@
     <div class="camera-status" id="cameraModalStatus">📷 KAMERA BAŞLATILIYOR...</div>
 </div>
 
-<!-- INVENTORY -->
 <div id="inventoryModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -830,12 +247,10 @@
     </div>
 </div>
 
-<!-- PRODUCT DETAIL -->
 <div id="productDetailModal" class="modal">
     <div class="modal-content" id="productDetailContent"></div>
 </div>
 
-<!-- URGENT -->
 <div id="urgentModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -846,7 +261,6 @@
     </div>
 </div>
 
-<!-- MANUAL ADD -->
 <div id="manualAddModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -857,7 +271,6 @@
     </div>
 </div>
 
-<!-- PRINT REPORT -->
 <div id="printModal" class="modal print-modal">
     <div class="modal-content" style="max-width:95%">
         <div class="modal-header">
@@ -869,7 +282,6 @@
     </div>
 </div>
 
-<!-- PRINT QUEUE -->
 <div id="queueModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -883,7 +295,6 @@
     </div>
 </div>
 
-<!-- STOK SAYIM -->
 <div id="stokSayimModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -895,7 +306,7 @@
             <button id="sayimModBarkodBtn" onclick="setSayimMod('barkod')" class="sayim-mod-inactive">📷 BARKOD MODU</button>
         </div>
         <div id="sayimListeContainer">
-            <div style="font-size:0.75rem;color:var(--text2);margin-bottom:6px;">Sayılan miktarı girin, fark otomatik hesaplanır.</div>
+            <div style="font-size:0.75rem;color:#94a3b8;margin-bottom:6px;">Sayılan miktarı girin, fark otomatik hesaplanır.</div>
             <input type="text" id="sayimSearchInput" placeholder="🔍 Ürün ara..." style="margin-bottom:6px;" oninput="renderSayimListe()">
             <div id="sayimListeItems" style="max-height:40vh;overflow-y:auto;"></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
@@ -904,7 +315,7 @@
             </div>
         </div>
         <div id="sayimBarkodContainer" style="display:none;">
-            <div style="font-size:0.75rem;color:var(--text2);margin-bottom:6px;">Barkodu okut → adet gir → tekrar tara. Bitince Kaydet.</div>
+            <div style="font-size:0.75rem;color:#94a3b8;margin-bottom:6px;">Barkodu okut → adet gir → tekrar tara. Bitince Kaydet.</div>
             <button class="btn btn-primary" style="width:100%;margin-bottom:10px;" onclick="openSayimKamera()">📷 KAMERA İLE TARA</button>
             <div id="sayimBarkodListesi" style="max-height:35vh;overflow-y:auto;"></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
@@ -915,18 +326,17 @@
     </div>
 </div>
 
-<!-- ANGEBOT -->
 <div id="angebotModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
             <span class="modal-title">🏷️ ANGEBOT HAZIRLA</span>
             <button class="close-modal-btn" onclick="document.getElementById('angebotModal').style.display='none'">✖ KAPAT</button>
         </div>
-        <div class="angebot-product-name" id="angebotProductName"></div>
-        <div class="angebot-price-box">
-            <div class="label">💰 Normal fiyat: <strong id="angebotOriginalPrice"></strong> €</div>
+        <div id="angebotProductName" style="font-size:1rem;font-weight:800;color:#ffaa88;text-align:center;margin-bottom:8px;"></div>
+        <div style="background:#334155;border-radius:32px;padding:12px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.08);">
+            <div style="font-size:0.85rem;color:#94a3b8;">💰 Normal fiyat: <strong id="angebotOriginalPrice"></strong> €</div>
             <input type="number" id="angebotDiscountPrice" step="0.01" placeholder="İndirimli fiyat (€)" style="margin-top:8px;">
-            <div class="angebot-error" id="angebotError"></div>
+            <div id="angebotError" style="color:#ef4444;font-size:0.75rem;margin-top:4px;"></div>
         </div>
         <div>
             <div class="angebot-section-title">📄 A4</div>
@@ -957,7 +367,6 @@
     </div>
 </div>
 
-<!-- ANGEBOT PREVIEW -->
 <div id="angebotPreviewModal" class="modal" style="z-index:2000;">
     <div class="modal-content" style="max-width:600px;max-height:95vh;">
         <div class="modal-header">
@@ -971,8 +380,8 @@
 
 <script>
 // ============================================================
-//  MARKET PRO v2.1 - TAM ÇALIŞIR, HATASIZ
-//  IndexedDB, Barkod, Etiket, Angebot, Sayım, Yedekleme
+//  MARKET PRO v2.2 - TAM ÇALIŞIR, HATASIZ
+//  Tüm özellikler dahil: Barkod, Etiket, Angebot, Sayım, Yedek
 // ============================================================
 
 // ---- GLOBAL ----
@@ -1334,7 +743,7 @@ function renderInventoryList() {
         return a.name.localeCompare(b.name);
     });
     if (!sorted.length) {
-        container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);">Ürün yok</div>';
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;">Ürün yok</div>';
         return;
     }
     container.innerHTML = sorted.map((p, idx) => {
@@ -1357,7 +766,7 @@ function openProductDetailModal(idx) {
     let emoji = getCategoryEmoji(p.category);
     let modal = document.getElementById('productDetailModal');
     let content = document.getElementById('productDetailContent');
-    let imgHtml = p.image ? `<img src="${validateImageSrc(p.image)}" class="detail-image" onerror="this.style.display='none'">` : '<div style="color:var(--text2);font-size:2.5rem;margin:10px 0;">📷</div>';
+    let imgHtml = p.image ? `<img src="${validateImageSrc(p.image)}" class="detail-image" onerror="this.style.display='none'">` : '<div style="color:#94a3b8;font-size:2.5rem;margin:10px 0;">📷</div>';
     content.innerHTML = `
         <div class="modal-header">
             <span class="modal-title">📄 ÜRÜN DETAYI</span>
@@ -1366,7 +775,7 @@ function openProductDetailModal(idx) {
         <div class="product-detail-card ${color}">
             ${imgHtml}
             <div style="font-weight:800;font-size:1.1rem;margin:6px 0;">${escapeHtml(p.name)} ${emoji}</div>
-            <div style="color:var(--text2);line-height:1.8;font-size:0.9rem;">
+            <div style="color:#94a3b8;line-height:1.8;font-size:0.9rem;">
                 Barkod: ${p.barcode}<br>
                 Fiyat: ${p.price.toFixed(2)} €<br>
                 Maliyet: ${p.cost ? p.cost.toFixed(2) : '-'} €<br>
@@ -1376,11 +785,11 @@ function openProductDetailModal(idx) {
             </div>
             <div class="detail-actions">
                 <div class="button-row">
-                    <button onclick="toggleEditMode()" style="background:linear-gradient(135deg,var(--warning),#d97706);">✏️ DÜZENLE</button>
-                    <button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,var(--danger),#dc2626);">🗑️ SİL</button>
+                    <button onclick="toggleEditMode()" style="background:linear-gradient(135deg,#f59e0b,#d97706);">✏️ DÜZENLE</button>
+                    <button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);">🗑️ SİL</button>
                 </div>
                 <div class="button-row">
-                    <button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,var(--warning),#d97706);">🛒 SATILDI</button>
+                    <button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f59e0b,#d97706);">🛒 SATILDI</button>
                     <button onclick="addImageToCurrentProduct('gallery')">🖼️ GALERİ</button>
                 </div>
                 <div class="button-row">
@@ -1621,7 +1030,7 @@ function showAddFormForBarcode(barcode) {
     let c = document.getElementById('addFormContainer');
     c.classList.remove('hidden');
     c.innerHTML = `
-        <div style="background:var(--bg3);padding:20px;border-radius:40px;margin-top:8px;border:1px solid var(--border);">
+        <div style="background:#334155;padding:20px;border-radius:40px;margin-top:8px;border:1px solid rgba(255,255,255,0.08);">
             <strong style="display:block;margin-bottom:8px;">➕ YENİ ÜRÜN</strong>
             <input id="addBarcode" value="${barcode}">
             <input id="addName" placeholder="Ürün adı (max 35)" maxlength="35">
@@ -1778,7 +1187,7 @@ function addToPrintQueue(product) {
 function managePrintQueue() {
     let c = document.getElementById('queueListContainer');
     if (!printQueue.length) {
-        c.innerHTML = '<div style="text-align:center;color:var(--text2);padding:20px;">Liste boş</div>';
+        c.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;">Liste boş</div>';
         return;
     }
     c.innerHTML = printQueue.map((p, i) => `
@@ -1806,7 +1215,7 @@ function closeQueueModal() {
     document.getElementById('queueModal').style.display = 'none';
 }
 
-// ---- MULTI LABEL (21'li) ----
+// ---- MULTI LABEL ----
 function showMultiLabelPreview() {
     if (!printQueue.length) {
         showToast('Etiket listesi boş! Önce "➕ ETİKET" butonuyla ürün ekleyin.', 'warning');
@@ -2049,13 +1458,13 @@ function openUrgentModal() {
     }).sort((a,b) => new Date(a.expiry) - new Date(b.expiry));
     let c = document.getElementById('urgentProductList');
     if (urgent.length === 0) {
-        c.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text2);">7 gün içinde SKT\'si geçecek ve stokta olan ürün yok.</div>';
+        c.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;">7 gün içinde SKT\'si geçecek ve stokta olan ürün yok.</div>';
     } else {
         c.innerHTML = urgent.map(p => {
             let exp = new Date(p.expiry); exp.setHours(0,0,0,0);
             let d = Math.ceil((exp - today) / 86400000);
             let cl = getProductColorClass(p);
-            return `<div class="${cl}" style="border-radius:28px;padding:12px;margin-bottom:8px;border:1px solid var(--border);">
+            return `<div class="${cl}" style="border-radius:28px;padding:12px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.08);">
                 <strong>${escapeHtml(p.name)}</strong><br>
                 SKT: ${p.expiry} (${d} gün)<br>
                 Stok: ${p.quantity}
@@ -2092,7 +1501,7 @@ function renderSayimListe() {
     let sorted = [...f].sort((a,b) => a.name.localeCompare(b.name));
     let c = document.getElementById('sayimListeItems');
     if (!sorted.length) {
-        c.innerHTML = '<div style="color:var(--text2);text-align:center;padding:16px;">Ürün bulunamadı</div>';
+        c.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:16px;">Ürün bulunamadı</div>';
         return;
     }
     c.innerHTML = sorted.map(p => {
@@ -2144,7 +1553,7 @@ function renderSayimBarkodListe() {
     let c = document.getElementById('sayimBarkodListesi');
     let keys = Object.keys(sayimBarkodMap);
     if (!keys.length) {
-        c.innerHTML = '<div style="color:var(--text2);text-align:center;padding:16px;">Henüz ürün taranmadı</div>';
+        c.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:16px;">Henüz ürün taranmadı</div>';
         return;
     }
     c.innerHTML = keys.map(bc => {
@@ -2159,7 +1568,7 @@ function renderSayimBarkodListe() {
             <div class="sayim-mevcut">Şu an: ${mev}</div>
             <div style="font-weight:900;color:#ffaa88;min-width:28px;text-align:center;">${say}x</div>
             ${dh}
-            <button onclick="removeSayimBarkod('${bc}')" style="background:var(--danger);border:none;border-radius:20px;padding:2px 10px;color:white;font-size:0.7rem;cursor:pointer;">✖</button>
+            <button onclick="removeSayimBarkod('${bc}')" style="background:#ef4444;border:none;border-radius:20px;padding:2px 10px;color:white;font-size:0.7rem;cursor:pointer;">✖</button>
         </div>`;
     }).join('');
 }
@@ -2208,54 +1617,72 @@ async function openCameraModal(mode) {
     sayimKameraMode = false;
     modal.style.display = 'flex';
     status.innerHTML = '📷 BAŞLATILIYOR...';
+    
     try {
-        let stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        let stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } } 
+        });
         video.srcObject = stream;
         currentStream = stream;
-        video.play();
+        await video.play();
+        
         Quagga.init({
-            inputStream: { name: 'LiveStream', type: 'LiveStream', target: video },
-            decoder: { readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'code_128_reader'] }
-        }, err => {
-            if (err) { status.innerHTML = 'HATA'; return; }
+            inputStream: {
+                name: "LiveStream",
+                type: "LiveStream",
+                target: video,
+                constraints: {
+                    width: { min: 640 },
+                    height: { min: 480 },
+                    facingMode: "environment"
+                }
+            },
+            decoder: {
+                readers: ["ean_reader", "ean_8_reader", "upc_reader", "code_128_reader"]
+            },
+            locate: true,
+            frequency: 10
+        }, function(err) {
+            if (err) {
+                console.error("Quagga init error:", err);
+                status.innerHTML = '❌ HATA: ' + err.message;
+                return;
+            }
             Quagga.start();
             quaggaActive = true;
             status.innerHTML = '🎥 BARKODU GÖSTER...';
         });
-        let scanCounts = {}, locked = false;
-        Quagga.onDetected(data => {
+
+        let scanCounts = {};
+        let locked = false;
+        
+        Quagga.offDetected();
+        
+        Quagga.onDetected(function(data) {
             if (locked) return;
             let code = data.codeResult.code;
             if (!code || code.length < 4) return;
+            
             scanCounts[code] = (scanCounts[code] || 0) + 1;
             status.innerHTML = '🎯 OKUNUYOR... (' + scanCounts[code] + '/2)';
+            
             if (scanCounts[code] < 2) return;
             locked = true;
+            
             playBeep();
             cleanupQuagga();
             modal.style.display = 'none';
+            
             if (mode === 'search') {
                 let found = findByBarcode(code);
                 if (found) {
                     showResult(found);
                 } else {
-                    let cn = normBarcode(code);
-                    let pref = cn.replace(/^0+/, '').slice(0, 7);
-                    let benzer = products.filter(p => {
-                        let pb = normBarcode(p.barcode).replace(/^0+/, '');
-                        return pref.length >= 5 && (pb.startsWith(pref.slice(0, 6)) || cn.slice(0, 6) === pb.slice(0, 6));
-                    }).slice(0, 5);
-                    let benzerHtml = benzer.length ? '<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px;"><div style="color:#fca5a8;font-size:0.8rem;margin-bottom:6px;">🔎 Benzer ürünler (yanlış okuma olabilir):</div>' +
-                        benzer.map(p => {
-                            let i = products.findIndex(x => x.id === p.id);
-                            return `<button onclick="closeResultAndOpenDetail(${i})" style="display:block;width:100%;text-align:left;background:var(--bg3);border:1px solid var(--border);border-radius:30px;padding:8px 12px;color:white;font-size:0.78rem;margin-bottom:5px;cursor:pointer;">${escapeHtml(p.name)} — ${p.barcode}</button>`;
-                        }).join('') + '</div>' : '';
                     document.getElementById('resultArea').innerHTML = `
                         <div style="color:white;padding:10px;">
                             ❌ "${escapeHtml(code)}" BULUNAMADI
                             <br>
                             <button class="btn btn-primary" onclick="showAddFormForBarcode('${code}')" style="margin-top:10px;width:100%;">➕ EKLE</button>
-                            ${benzerHtml}
                         </div>
                     `;
                 }
@@ -2263,9 +1690,11 @@ async function openCameraModal(mode) {
                 showAddFormForBarcode(code);
             }
         });
+        
     } catch(e) {
-        status.innerHTML = '❌ KAMERA İZNİ GEREKLİ';
-        setTimeout(() => { cleanupQuagga(); modal.style.display = 'none'; }, 2000);
+        console.error("Kamera hatası:", e);
+        status.innerHTML = '❌ KAMERA AÇILAMADI: ' + e.message;
+        setTimeout(() => { cleanupQuagga(); modal.style.display = 'none'; }, 3000);
     }
 }
 async function openSayimKamera() {
@@ -2337,7 +1766,7 @@ function closeCameraModal() {
     }
 }
 
-// ---- YEDEKLEME (DÜZELTİLDİ) ----
+// ---- YEDEKLEME ----
 async function backupData() {
     try {
         let backup = { products: products, printQueue: printQueue, tarih: new Date().toISOString() };
@@ -2376,64 +1805,78 @@ function backupToGoogleDrive() {
 async function restoreData() {
     let inp = document.createElement('input');
     inp.type = 'file';
-    inp.accept = 'application/json';
-    inp.onchange = async e => {
+    inp.accept = '.json,application/json';
+    inp.onchange = async function(e) {
         let file = e.target.files[0];
-        if (!file) return;
-        let r = new FileReader();
-        r.onload = async ev => {
+        if (!file) {
+            showToast('Dosya seçilmedi!', 'warning');
+            return;
+        }
+        
+        let reader = new FileReader();
+        reader.onload = async function(ev) {
             try {
-                let d = JSON.parse(ev.target.result);
+                let text = ev.target.result;
+                let d = JSON.parse(text);
+                
                 console.log('📂 Yedek içeriği:', d);
+                console.log('📂 Yedek tipi:', typeof d);
+                console.log('📂 Dizi mi?', Array.isArray(d));
+                console.log('📂 products var mı?', d && d.products);
                 
                 // FORMAT 1: Direkt ürün dizisi
-                if (Array.isArray(d)) {
+                if (Array.isArray(d) && d.length > 0 && d[0].barcode) {
                     products = d;
                     await saveProductsToIDB(products);
-                    showToast('✅ Yedek yüklendi (Format 1)', 'success');
-                    location.reload();
+                    showToast('✅ Yedek yüklendi (Format: Ürün Dizisi)', 'success');
+                    setTimeout(() => location.reload(), 500);
                     return;
                 }
                 
                 // FORMAT 2: { products: [...], printQueue: [...] }
-                if (d && Array.isArray(d.products)) {
+                if (d && Array.isArray(d.products) && d.products.length > 0) {
                     products = d.products;
                     if (Array.isArray(d.printQueue)) {
                         printQueue = d.printQueue;
                         savePrintQueue();
                     }
                     await saveProductsToIDB(products);
-                    showToast('✅ Yedek yüklendi (Format 2)', 'success');
-                    location.reload();
+                    showToast('✅ Yedek yüklendi (Format: {products})', 'success');
+                    setTimeout(() => location.reload(), 500);
                     return;
                 }
                 
-                // FORMAT 3: { data: [...], ... }
-                if (d && Array.isArray(d.data)) {
+                // FORMAT 3: { data: [...] }
+                if (d && Array.isArray(d.data) && d.data.length > 0) {
                     products = d.data;
                     await saveProductsToIDB(products);
-                    showToast('✅ Yedek yüklendi (Format 3)', 'success');
-                    location.reload();
+                    showToast('✅ Yedek yüklendi (Format: {data})', 'success');
+                    setTimeout(() => location.reload(), 500);
                     return;
                 }
                 
-                // FORMAT 4: { items: [...], ... }
-                if (d && Array.isArray(d.items)) {
+                // FORMAT 4: { items: [...] }
+                if (d && Array.isArray(d.items) && d.items.length > 0) {
                     products = d.items;
                     await saveProductsToIDB(products);
-                    showToast('✅ Yedek yüklendi (Format 4)', 'success');
-                    location.reload();
+                    showToast('✅ Yedek yüklendi (Format: {items})', 'success');
+                    setTimeout(() => location.reload(), 500);
                     return;
                 }
                 
-                showToast('❌ Hatalı dosya formatı!', 'error');
+                showToast('❌ Desteklenmeyen dosya formatı!', 'error');
                 
             } catch(err) {
                 console.error('❌ Yedek yükleme hatası:', err);
                 showToast('❌ Hatalı dosya! ' + err.message, 'error');
             }
         };
-        r.readAsText(file);
+        
+        reader.onerror = function() {
+            showToast('❌ Dosya okunamadı!', 'error');
+        };
+        
+        reader.readAsText(file);
     };
     inp.click();
 }
@@ -2503,19 +1946,23 @@ function closeDrawer() {
 
 // ---- CLOCK ----
 function updateClock() {
-    let now = new Date();
-    let h = String(now.getHours()).padStart(2, '0');
-    let m = String(now.getMinutes()).padStart(2, '0');
-    let s = String(now.getSeconds()).padStart(2, '0');
-    let dd = String(now.getDate()).padStart(2, '0');
-    let mo = String(now.getMonth() + 1).padStart(2, '0');
-    let y = String(now.getFullYear()).slice(2);
-    
-    let timeEl = document.getElementById('clockTime');
-    let dateEl = document.getElementById('clockDate');
-    
-    if (timeEl) timeEl.textContent = h + ':' + m + ':' + s;
-    if (dateEl) dateEl.textContent = dd + '/' + mo + '/' + y;
+    try {
+        let now = new Date();
+        let h = String(now.getHours()).padStart(2, '0');
+        let m = String(now.getMinutes()).padStart(2, '0');
+        let s = String(now.getSeconds()).padStart(2, '0');
+        let dd = String(now.getDate()).padStart(2, '0');
+        let mo = String(now.getMonth() + 1).padStart(2, '0');
+        let y = String(now.getFullYear()).slice(2);
+        
+        let timeEl = document.getElementById('clockTime');
+        let dateEl = document.getElementById('clockDate');
+        
+        if (timeEl) timeEl.textContent = h + ':' + m + ':' + s;
+        if (dateEl) dateEl.textContent = dd + '/' + mo + '/' + y;
+    } catch(e) {
+        console.error('Saat hatası:', e);
+    }
 }
 
 // ---- INIT ----
@@ -2526,14 +1973,21 @@ document.getElementById('manualAddBtn').onclick = openManualAddModal;
 document.getElementById('closeCameraModalBtn').onclick = closeCameraModal;
 
 (async function init() {
-    await openIndexedDB();
-    await migrateFromLocalStorage();
-    await loadProducts();
-    await loadPrintQueue();
-    await updateUI();
-    showToast('✅ Market Pro Hazır! (IndexedDB modu)', 'success');
-    updateClock();
-    setInterval(updateClock, 1000);
+    try {
+        await openIndexedDB();
+        await migrateFromLocalStorage();
+        await loadProducts();
+        await loadPrintQueue();
+        await updateUI();
+        
+        updateClock();
+        setInterval(updateClock, 1000);
+        
+        showToast('✅ Market Pro Hazır!', 'success');
+    } catch(e) {
+        console.error('Başlangıç hatası:', e);
+        showToast('❌ Başlangıç hatası: ' + e.message, 'error');
+    }
 })();
 </script>
 </body>
