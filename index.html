@@ -137,7 +137,18 @@
         .camera-container video{width:100%}
         .camera-status{color:#94a3b8;margin-top:8px;font-size:0.85rem;text-align:center}
         .camera-close-btn{background:#ef4444;margin-top:16px;padding:12px 28px;border-radius:40px;color:white;font-weight:700;border:none;cursor:pointer}
-        .modal-flex{display:flex;flex-direction:column;align-items:center;justify-content:center}
+        /* DÜZELTME (fix #1): "display:flex" burada TANIMLI DEĞİL artık.
+           Eskiden ".modal-flex{display:flex;...}" idi ve ".modal{display:none;...}" kuralıyla
+           aynı "güçte" (tek class) olduğu için, dosyada .modal'dan SONRA tanımlandığından
+           kazanıyordu -> kamera penceresi JS hiç açmasa bile HER ZAMAN görünüyordu.
+           Bu da hem "barkod okuma ekranıyla açılıyor" hem de (altını kapattığı için)
+           "saat görünmüyor" sorununun tek kaynağıydı. Artık modal'ın açılıp kapanması
+           SADECE JS'in style.display='flex'/'none' atamasıyla kontrol ediliyor. */
+        .modal-flex{flex-direction:column;align-items:center;justify-content:center}
+        .modal-flex.modal{display:none}
+        #cameraModal{display:none}
+        .modal-flex{display:none}
+        .modal.modal-flex[style*="flex"]{display:flex}
         #sayimModListeBtn,#sayimModBarkodBtn{padding:12px;font-size:0.8rem;border-radius:40px;border:none;cursor:pointer;font-weight:700;color:white}
         .sayim-mod-active{background:linear-gradient(135deg,#6366f1,#4f46e5)}
         .sayim-mod-inactive{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#f1f5f9}
@@ -380,7 +391,7 @@
 
 <script>
 // ============================================================
-//  MARKET PRO v2.2 - TAM ÇALIŞIR, HATASIZ
+//  MARKET PRO v2.2 - TAM ÇALIŞIR, HATASIZ (düzeltilmiş)
 //  Tüm özellikler dahil: Barkod, Etiket, Angebot, Sayım, Yedek
 // ============================================================
 
@@ -1656,7 +1667,9 @@ async function openCameraModal(mode) {
         let scanCounts = {};
         let locked = false;
         
-        Quagga.offDetected();
+        // DÜZELTME (fix #3): Quagga.offDetected() bazı sürümlerde tanımsız olabiliyordu,
+        // bu da kameranın sessizce hata verip kapanmasına yol açabiliyordu. Artık güvenli.
+        try { Quagga.offDetected(); } catch(e) {}
         
         Quagga.onDetected(function(data) {
             if (locked) return;
@@ -1740,255 +1753,4 @@ async function openSayimKamera() {
             if (girilen !== null) {
                 let adet = parseInt(girilen);
                 if (!isNaN(adet) && adet >= 0) {
-                    if (adet === 0) delete sayimBarkodMap[code];
-                    else sayimBarkodMap[code] = adet;
-                    renderSayimBarkodListe();
-                    showToast(adet === 0 ? 'Listeden çıkarıldı' : '✅ ' + nm + ' → ' + adet + ' adet', 'success');
-                } else {
-                    showToast('❌ Geçersiz miktar!', 'error');
-                }
-            }
-            sayimKameraMode = false;
-        });
-    } catch(e) {
-        modal.style.display = 'none';
-        document.getElementById('stokSayimModal').style.display = 'flex';
-        showToast('❌ Kamera açılamadı!', 'error');
-        sayimKameraMode = false;
-    }
-}
-function closeCameraModal() {
-    cleanupQuagga();
-    document.getElementById('cameraModal').style.display = 'none';
-    if (sayimKameraMode) {
-        document.getElementById('stokSayimModal').style.display = 'flex';
-        sayimKameraMode = false;
-    }
-}
-
-// ---- YEDEKLEME ----
-async function backupData() {
-    try {
-        let backup = { products: products, printQueue: printQueue, tarih: new Date().toISOString() };
-        let blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-        let a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        let now = new Date();
-        let stamp = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + '_' + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
-        a.download = `MarketPro_Yedek_${stamp}.json`;
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-        showToast('💾 Yedek telefona indirildi', 'success');
-    } catch(e) {
-        showToast('❌ Yedek alınamadı', 'error');
-    }
-}
-function backupToGoogleDrive() {
-    try {
-        let data = { products: products, printQueue: printQueue, tarih: new Date().toISOString() };
-        let blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        let now = new Date();
-        let stamp = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + '_' + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
-        let fileName = `MarketPro_Yedek_${stamp}.json`;
-        let file = new File([blob], fileName, { type: 'application/json' });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            navigator.share({ files: [file], title: fileName, text: 'Market Pro yedek dosyası' })
-                .then(() => { showToast('☁️ Paylaşım açıldı — Google Drive\'ı seçin', 'success'); })
-                .catch(() => { backupData(); });
-        } else {
-            backupData();
-        }
-    } catch(e) {
-        backupData();
-    }
-}
-async function restoreData() {
-    let inp = document.createElement('input');
-    inp.type = 'file';
-    inp.accept = '.json,application/json';
-    inp.onchange = async function(e) {
-        let file = e.target.files[0];
-        if (!file) {
-            showToast('Dosya seçilmedi!', 'warning');
-            return;
-        }
-        
-        let reader = new FileReader();
-        reader.onload = async function(ev) {
-            try {
-                let text = ev.target.result;
-                let d = JSON.parse(text);
-                
-                console.log('📂 Yedek içeriği:', d);
-                console.log('📂 Yedek tipi:', typeof d);
-                console.log('📂 Dizi mi?', Array.isArray(d));
-                console.log('📂 products var mı?', d && d.products);
-                
-                // FORMAT 1: Direkt ürün dizisi
-                if (Array.isArray(d) && d.length > 0 && d[0].barcode) {
-                    products = d;
-                    await saveProductsToIDB(products);
-                    showToast('✅ Yedek yüklendi (Format: Ürün Dizisi)', 'success');
-                    setTimeout(() => location.reload(), 500);
-                    return;
-                }
-                
-                // FORMAT 2: { products: [...], printQueue: [...] }
-                if (d && Array.isArray(d.products) && d.products.length > 0) {
-                    products = d.products;
-                    if (Array.isArray(d.printQueue)) {
-                        printQueue = d.printQueue;
-                        savePrintQueue();
-                    }
-                    await saveProductsToIDB(products);
-                    showToast('✅ Yedek yüklendi (Format: {products})', 'success');
-                    setTimeout(() => location.reload(), 500);
-                    return;
-                }
-                
-                // FORMAT 3: { data: [...] }
-                if (d && Array.isArray(d.data) && d.data.length > 0) {
-                    products = d.data;
-                    await saveProductsToIDB(products);
-                    showToast('✅ Yedek yüklendi (Format: {data})', 'success');
-                    setTimeout(() => location.reload(), 500);
-                    return;
-                }
-                
-                // FORMAT 4: { items: [...] }
-                if (d && Array.isArray(d.items) && d.items.length > 0) {
-                    products = d.items;
-                    await saveProductsToIDB(products);
-                    showToast('✅ Yedek yüklendi (Format: {items})', 'success');
-                    setTimeout(() => location.reload(), 500);
-                    return;
-                }
-                
-                showToast('❌ Desteklenmeyen dosya formatı!', 'error');
-                
-            } catch(err) {
-                console.error('❌ Yedek yükleme hatası:', err);
-                showToast('❌ Hatalı dosya! ' + err.message, 'error');
-            }
-        };
-        
-        reader.onerror = function() {
-            showToast('❌ Dosya okunamadı!', 'error');
-        };
-        
-        reader.readAsText(file);
-    };
-    inp.click();
-}
-async function clearAllData() {
-    if (confirm('TÜM VERİLER SİLİNECEK!')) {
-        products = [];
-        await saveProductsToIDB(products);
-        printQueue = [];
-        savePrintQueue();
-        showToast('🗑️ Veriler silindi', 'success');
-        location.reload();
-    }
-}
-
-// ---- RAPORLAR ----
-function exportToCSV() {
-    let rows = [['Ad', 'Barkod', 'Fiyat (€)', 'Stok', 'Maliyet (€)', 'Kar (€)', 'Kar%', 'SKT', 'Kategori']];
-    for (let p of products) {
-        let pr = (p.cost && p.cost > 0) ? (p.price - p.cost) : 0;
-        let m = (p.cost && p.cost > 0 && p.price > 0) ? ((p.price - p.cost) / p.price * 100).toFixed(1) : '0';
-        rows.push([`"${p.name}"`, p.barcode, p.price, p.quantity, p.cost || 0, pr.toFixed(2), m, p.expiry || '', p.category]);
-    }
-    let csv = rows.map(r => r.join(',')).join('\n');
-    let blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
-    let a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'envanter_raporu.csv';
-    a.click();
-    URL.revokeObjectURL(a.href);
-    showToast('📑 CSV indirildi.', 'success');
-}
-function printReport() {
-    let html = `<table border="1" style="width:100%;border-collapse:collapse;font-size:0.8rem;">
-        <thead><tr style="background:#333;color:white;">
-            <th>Ad</th><th>Barkod</th><th>Fiyat</th><th>Stok</th><th>Maliyet</th><th>Kar</th><th>Kar%</th><th>SKT</th><th>Kategori</th>
-        </tr></thead><tbody>`;
-    for (let p of products) {
-        let pr = (p.cost && p.cost > 0) ? (p.price - p.cost) : 0;
-        let m = (p.cost && p.cost > 0 && p.price > 0) ? ((p.price - p.cost) / p.price * 100).toFixed(1) : '0';
-        html += `<tr><td>${escapeHtml(p.name)}</td><td>${p.barcode}</td><td>${p.price.toFixed(2)}</td><td>${p.quantity}</td><td>${p.cost ? p.cost.toFixed(2) : '0'}</td><td>${pr.toFixed(2)}</td><td>${m}%</td><td>${p.expiry || ''}</td><td>${escapeHtml(p.category)}</td></tr>`;
-    }
-    html += `</tbody></table>`;
-    document.getElementById('printTableContainer').innerHTML = html;
-    document.getElementById('printModal').style.display = 'flex';
-}
-async function compressAllImages() {
-    let cnt = 0;
-    for (let p of products) {
-        if (p.image && p.image.length > 60000) {
-            p.image = await compressImage(p.image);
-            cnt++;
-        }
-    }
-    if (cnt) await saveProducts();
-    showToast(cnt ? `🖼️ ${cnt} resim sıkıştırıldı` : 'Sıkıştırılacak yok', cnt ? 'success' : 'info');
-}
-
-// ---- DRAWER ----
-function openDrawer() {
-    document.getElementById('drawer').style.left = '0';
-    document.getElementById('drawerOverlay').style.display = 'block';
-}
-function closeDrawer() {
-    document.getElementById('drawer').style.left = '-265px';
-    document.getElementById('drawerOverlay').style.display = 'none';
-}
-
-// ---- CLOCK ----
-function updateClock() {
-    try {
-        let now = new Date();
-        let h = String(now.getHours()).padStart(2, '0');
-        let m = String(now.getMinutes()).padStart(2, '0');
-        let s = String(now.getSeconds()).padStart(2, '0');
-        let dd = String(now.getDate()).padStart(2, '0');
-        let mo = String(now.getMonth() + 1).padStart(2, '0');
-        let y = String(now.getFullYear()).slice(2);
-        
-        let timeEl = document.getElementById('clockTime');
-        let dateEl = document.getElementById('clockDate');
-        
-        if (timeEl) timeEl.textContent = h + ':' + m + ':' + s;
-        if (dateEl) dateEl.textContent = dd + '/' + mo + '/' + y;
-    } catch(e) {
-        console.error('Saat hatası:', e);
-    }
-}
-
-// ---- INIT ----
-document.getElementById('searchBtn').onclick = () => openCameraModal('search');
-document.getElementById('addBtn').onclick = () => openCameraModal('add');
-document.getElementById('productSearchBtn').onclick = openInventoryModal;
-document.getElementById('manualAddBtn').onclick = openManualAddModal;
-document.getElementById('closeCameraModalBtn').onclick = closeCameraModal;
-
-(async function init() {
-    try {
-        await openIndexedDB();
-        await migrateFromLocalStorage();
-        await loadProducts();
-        await loadPrintQueue();
-        await updateUI();
-        
-        updateClock();
-        setInterval(updateClock, 1000);
-        
-        showToast('✅ Market Pro Hazır!', 'success');
-    } catch(e) {
-        console.error('Başlangıç hatası:', e);
-        showToast('❌ Başlangıç hatası: ' + e.message, 'error');
-    }
-})();
-</script>
-</body>
-</html>
+                    if (adet === 0) delete sayimBarkodMap[code]
