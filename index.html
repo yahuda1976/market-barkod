@@ -90,6 +90,7 @@
         #liveClock{background:linear-gradient(145deg,#0d0d0d,#1a1a1a);color:#00ff88;padding:8px 12px;border-radius:14px;font-family:'Courier New',monospace;font-weight:800;font-size:0.9rem;letter-spacing:1.5px;border:1px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,0.35);text-shadow:0 0 6px rgba(0,255,136,0.8);min-width:78px;text-align:center;white-space:nowrap}
         #liveClock .clock-date{display:block;font-size:0.55rem;color:#00cc77;letter-spacing:0.8px;margin-top:1px}
         .result-image-btn{background:#f39c12;border:none;border-radius:40px;padding:8px 16px;color:white;font-weight:700;font-size:0.8rem;cursor:pointer;margin:6px 4px}
+        .internet-btn{background:#2980b9!important}
     </style>
 </head>
 <body>
@@ -138,6 +139,7 @@
 <script>
 // ============================================================
 //  INDEXEDDB KULLANIMI - SONSUZ DEPOLAMA
+//  İNTERNETTEN RESİM ARAMA ÖZELLİĞİ EKLENDİ
 // ============================================================
 let db = null;
 let products = [];
@@ -147,7 +149,7 @@ let tempImageData = null, currentEditingProductId = null, angebotProduct = null,
 let currentAngebotSize = 'a4', currentAngebotOrientation = 'portrait';
 let currentDiscountPrice = null;
 
-// ---- SES - TEK BİR CONTEXT - HER ZAMAN ÇALIŞIR ----
+// ---- SES ----
 let audioCtx = null;
 function initAudio() {
     if (!audioCtx) {
@@ -283,17 +285,102 @@ function openInventoryModal(){ document.getElementById("inventoryModal").style.d
 function closeInventoryModal(){ document.getElementById("inventoryModal").style.display="none"; }
 function renderInventoryList(){ let statsEl=document.getElementById("inventoryStats"); if(statsEl){ let total=products.length,active=products.filter(p=>p.quantity>0).length,zero=products.filter(p=>p.quantity===0).length,urgent=products.filter(p=>p.expiry&&Math.ceil((new Date(p.expiry)-new Date())/86400000)<=7&&p.quantity>0).length; statsEl.innerHTML=`<div style="background:#3498db;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;">📦 TOPLAM: ${total}</div><div style="background:#2ecc71;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;">✅ AKTİF: ${active}</div>`+(zero>0?`<div style="background:#7f8c8d;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;">⬜ STOKSUZ: ${zero}</div>`:'')+(urgent>0?`<div style="background:#e74c3c;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;">⚠️ ACİL: ${urgent}</div>`:''); } let container=document.getElementById("modalProductList"); let sv=(document.getElementById("inventorySearchInput")?.value||'').trim().toLowerCase(); let filtered=sv?products.filter(p=>p.name.toLowerCase().includes(sv)||p.barcode.includes(sv)):products; let sorted=[...filtered].sort((a,b)=>{ let today=new Date(); let getPriority=(p)=>{ if(p.quantity===0) return 4; if(!p.expiry) return 5; let d=Math.ceil((new Date(p.expiry)-today)/86400000); if(d<=7) return 0; if(d<=14) return 1; return 2; }; let pa=getPriority(a), pb=getPriority(b); if(pa!==pb) return pa-pb; if(pa===0||pa===1||pa===2) return new Date(a.expiry)-new Date(b.expiry); return a.name.localeCompare(b.name); }); if(!sorted.length){ container.innerHTML="<div style='text-align:center;padding:20px;'>Ürün yok</div>"; return; } container.innerHTML=sorted.map(p=>{ let idx=products.findIndex(pr=>pr.id===p.id),cc=getProductColorClass(p); return `<div class="envanter-item ${cc}"><div class="product-name-item" onclick="openProductDetailModal(${idx})">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)} (${p.quantity})</div><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])">➕ ETİKET</button></div>`; }).join(''); }
 
-function openProductDetailModal(idx){ let p=products[idx];currentEditingProductId=idx;let color=getProductColorClass(p);let modal=document.getElementById("productDetailModal"),content=document.getElementById("productDetailContent");content.innerHTML=`<div class="modal-header"><span class="modal-title">📄 ÜRÜN DETAYI</span><button class="close-modal-btn" onclick="closeProductDetailModal()">✖ KAPAT</button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.src='';">`:'<div>📷 RESİM YOK</div>'}<div><strong>${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<br>Barkod: ${p.barcode}<br>Fiyat: ${p.price.toFixed(2)} €<br>Stok: ${p.quantity}<br>SKT: ${p.expiry||"YOK"}</div><div class="detail-actions"><div class="button-row"><button onclick="toggleEditMode()" style="background:#f39c12;">✏️ DÜZENLE</button><button onclick="deleteCurrentProduct()" style="background:#c0392b;">🗑️ SİL</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:#e67e22;">🛒 SATILDI</button><button onclick="addImageToCurrentProduct('gallery')">🖼️ GALERİ</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')">📷 KAMERA</button><button onclick="openGoogleSearchForCurrent()">🔍 İNTERNET</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])">➕ ETİKET LİSTESİNE EKLE</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:#8e44ad!important;margin-top:6px;">🏷️ ANGEBOT HAZIRLA</button></div><div id="editFields" style="display:none;margin-top:10px;"></div></div>`;modal.style.display="flex"; }
-function closeProductDetailModal(){ document.getElementById("productDetailModal").style.display="none";currentEditingProductId=null; }
+// ---- ÜRÜN DETAYI (İNTERNET BUTONU EKLENDİ) ----
+function openProductDetailModal(idx){
+    let p=products[idx];
+    currentEditingProductId=idx;
+    let color=getProductColorClass(p);
+    let modal=document.getElementById("productDetailModal");
+    let content=document.getElementById("productDetailContent");
+    
+    content.innerHTML=`
+        <div class="modal-header">
+            <span class="modal-title">📄 ÜRÜN DETAYI</span>
+            <button class="close-modal-btn" onclick="closeProductDetailModal()">✖ KAPAT</button>
+        </div>
+        <div class="product-detail-card ${color}">
+            ${p.image?`<img src="${p.image}" class="detail-image" onerror="this.src='';">`:'<div>📷 RESİM YOK</div>'}
+            <div>
+                <strong>${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}
+                <br>Barkod: ${p.barcode}
+                <br>Fiyat: ${p.price.toFixed(2)} €
+                <br>Stok: ${p.quantity}
+                <br>SKT: ${p.expiry||"YOK"}
+            </div>
+            <div class="detail-actions">
+                <div class="button-row">
+                    <button onclick="toggleEditMode()" style="background:#f39c12;">✏️ DÜZENLE</button>
+                    <button onclick="deleteCurrentProduct()" style="background:#c0392b;">🗑️ SİL</button>
+                </div>
+                <div class="button-row">
+                    <button onclick="sellProduct(products[${idx}],${idx})" style="background:#e67e22;">🛒 SATILDI</button>
+                    <button onclick="addImageToCurrentProduct('gallery')">🖼️ GALERİ</button>
+                </div>
+                <div class="button-row">
+                    <button onclick="addImageToCurrentProduct('camera')">📷 KAMERA</button>
+                    <button onclick="openGoogleSearchForCurrent()" style="background:#2980b9;">🔍 İNTERNET</button>
+                </div>
+                <button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])">➕ ETİKET LİSTESİNE EKLE</button>
+                <button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:#8e44ad!important;margin-top:6px;">🏷️ ANGEBOT HAZIRLA</button>
+            </div>
+            <div id="editFields" style="display:none;margin-top:10px;"></div>
+        </div>
+    `;
+    modal.style.display="flex";
+}
+function closeProductDetailModal(){ document.getElementById("productDetailModal").style.display="none"; currentEditingProductId=null; }
 function toggleEditMode(){ let editDiv=document.getElementById("editFields"),p=products[currentEditingProductId];if(editDiv.style.display==="none"){editDiv.style.display="block";editDiv.innerHTML=`<input id="editName" value="${escapeHtml(p.name)}" maxlength="35"><input id="editBarcode" value="${p.barcode}"><input id="editPrice" value="${p.price}" placeholder="Fiyat (€)"><input id="editCost" value="${p.cost||''}" placeholder="Maliyet (€)"><div id="editProfitBox" class="profit-box"></div><select id="editCategory">${p.category=="Dolap Ürünleri"?"<option selected>Dolap Ürünleri</option><option>Kuru Gıda</option>":"<option>Dolap Ürünleri</option><option selected>Kuru Gıda</option>"}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}"><input id="editExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveProductEdit()">💾 KAYDET</button><button class="btn-cancel" onclick="toggleEditMode()">İPTAL</button></div>`;setupPriceFields('editCost','editPrice','editProfitBox');}else{editDiv.style.display="none";editDiv.innerHTML="";} }
 async function saveProductEdit(){ let idx=currentEditingProductId;products[idx].name=document.getElementById("editName").value.trim().toUpperCase();products[idx].barcode=normBarcode(document.getElementById("editBarcode").value);products[idx].price=parseFloat(document.getElementById("editPrice").value);products[idx].cost=parseFloat(document.getElementById("editCost").value)||null;products[idx].category=document.getElementById("editCategory").value;let _q=parseInt(document.getElementById("editQuantity").value);if(isNaN(_q)||_q<=0)_q=1;products[idx].quantity=_q;products[idx].expiry=document.getElementById("editExpiry").value;await saveProducts();await updateUI();openProductDetailModal(idx);playBeep(); }
 async function deleteCurrentProduct(){ if(confirm(`${products[currentEditingProductId].name} silinsin mi?`)){products.splice(currentEditingProductId,1);await saveProducts();await updateUI();closeProductDetailModal();closeInventoryModal();openInventoryModal();playBeep();} }
 async function addImageToCurrentProduct(source){ let input=document.createElement("input");input.type="file";input.accept="image/*";if(source==='camera')input.capture="environment";input.onchange=async(e)=>{let file=e.target.files[0];if(file){let reader=new FileReader();reader.onload=async(ev)=>{products[currentEditingProductId].image=await compressImage(ev.target.result);await saveProducts();openProductDetailModal(currentEditingProductId);playBeep();};reader.readAsDataURL(file);}};input.click(); }
-function openGoogleSearchForCurrent(){ let name=products[currentEditingProductId]?.name;if(name)window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank'); }
+
+// ---- İNTERNETTEN RESİM ARAMA (DÜZELTİLDİ) ----
+function openGoogleSearchForCurrent(){
+    let p = products.find(pr => pr.id === currentEditingProductId);
+    if(!p) p = lastScannedProduct;
+    if(p && p.name){
+        let searchTerm = encodeURIComponent(p.name + " ürün görsel");
+        window.open(`https://www.google.com/search?q=${searchTerm}&tbm=isch`, '_blank');
+    } else {
+        showToast("Önce bir ürün seçin!");
+    }
+}
+
 async function compressImage(dataUrl,w=400,q=0.4){ return new Promise(r=>{let img=new Image();img.onload=()=>{let cnv=document.createElement('canvas'),ww=img.width,hh=img.height;if(ww>w){hh=hh*w/ww;ww=w;}cnv.width=ww;cnv.height=hh;cnv.getContext('2d').drawImage(img,0,0,ww,hh);r(cnv.toDataURL('image/jpeg',q));};img.src=dataUrl;}); }
 async function sellProduct(product,index){ if (!product) return; if (product.quantity <= 0) { showToast(`${product.name} zaten stoksuz`); return; } product.quantity--; await saveProducts(); await updateUI(); if (lastScannedProduct && lastScannedProduct.id === product.id) { showResult(products.find(pr => pr.id === product.id)); } if (product.quantity === 0) { showToast(`⚠️ ${product.name} STOK SIFIRLANDI`); } else { showToast(`${product.name} stok: ${product.quantity}`); playBeep(); } }
 
-// ---- RESULT EKRANINA RESİM EKLEME BUTONU ----
+// ---- SONUÇ EKRANI (İNTERNET BUTONU EKLENDİ) ----
+function showResult(p){
+    if(!p) return;
+    lastScannedProduct=p;
+    let idx=products.findIndex(pr=>pr.id===p.id);
+    
+    document.getElementById("resultArea").innerHTML=`
+        <button class="close-result-btn" onclick="clearResult()">✖</button>
+        ${p.image?`<img src="${p.image}" class="product-image" onerror="this.src='';">`:'<div style="color:#aaa;">📷 RESİM YOK</div>'}
+        <div class="result-name">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)}</div>
+        <div class="result-price">${p.price.toFixed(2)} €</div>
+        <div style="color:#aaa;">STOK: ${p.quantity} | SKT: ${p.expiry||"YOK"}</div>
+        <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+            <button class="btn-primary btn" onclick="showInlineEdit()" style="background:#c0392b;padding:10px;font-size:0.7rem;">📝 DÜZENLE</button>
+            <button class="btn-primary btn" onclick="sellProduct(products[${idx}],${idx})" style="background:#e67e22;padding:10px;font-size:0.7rem;">🛒 SATILDI</button>
+            <button class="result-image-btn" onclick="addImageToResult('gallery')">🖼️ RESİM EKLE</button>
+            <button class="result-image-btn" onclick="addImageToResult('camera')" style="background:#27ae60;">📷 KAMERA</button>
+            <button class="result-image-btn" onclick="openGoogleSearchForResult()" style="background:#2980b9;">🔍 İNTERNET</button>
+        </div>
+    `;
+}
+
+// ---- SONUÇ EKRANINDAN İNTERNET ARAMA ----
+function openGoogleSearchForResult(){
+    if(lastScannedProduct && lastScannedProduct.name){
+        let searchTerm = encodeURIComponent(lastScannedProduct.name + " ürün görsel");
+        window.open(`https://www.google.com/search?q=${searchTerm}&tbm=isch`, '_blank');
+    } else {
+        showToast("Önce bir ürün okutun!");
+    }
+}
+
 async function addImageToResult(source) {
     if (!lastScannedProduct) { showToast("Önce bir ürün okut!"); return; }
     let input = document.createElement("input");
@@ -317,6 +404,11 @@ async function addImageToResult(source) {
     };
     input.click();
 }
+
+function clearResult(){ document.getElementById("resultArea").innerHTML=`<div class="result-placeholder">📷 BARKOD OKUTUN</div>`; lastScannedProduct=null; }
+function closeResultAndOpenDetail(idx){ clearResult(); openProductDetailModal(idx); }
+function showInlineEdit(){ let p=lastScannedProduct; document.getElementById("resultArea").innerHTML=`<button class="close-result-btn" onclick="clearResult()">✖</button><div><input id="editName" value="${escapeHtml(p.name)}" maxlength="35"><input id="editBarcode" value="${p.barcode}"><input id="editPrice" value="${p.price}"><input id="editCost" value="${p.cost||''}"><div id="inlineProfitBox" class="profit-box"></div><select id="editCategory">${p.category=="Dolap Ürünleri"?"<option selected>Dolap Ürünleri</option><option>Kuru Gıda</option>":"<option>Dolap Ürünleri</option><option selected>Kuru Gıda</option>"}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}"><input id="editExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveInlineEdit()">💾 KAYDET</button><button class="btn-cancel" onclick="showResult(lastScannedProduct)">İPTAL</button></div></div>`; setupPriceFields('editCost','editPrice','inlineProfitBox'); }
+async function saveInlineEdit(){ let idx=findIdxByBarcode(lastScannedProduct.barcode); if(idx===-1) idx=products.findIndex(p=>p.id===lastScannedProduct.id); if(idx!==-1){ products[idx].name=document.getElementById("editName").value.trim().toUpperCase(); products[idx].barcode=normBarcode(document.getElementById("editBarcode").value); products[idx].price=parseFloat(document.getElementById("editPrice").value); products[idx].cost=parseFloat(document.getElementById("editCost").value)||null; products[idx].category=document.getElementById("editCategory").value; let _q=parseInt(document.getElementById("editQuantity").value); if(isNaN(_q)||_q<=0)_q=1; products[idx].quantity=_q; products[idx].expiry=document.getElementById("editExpiry").value; await saveProducts(); await updateUI(); showResult(products[idx]); playBeep(); } }
 
 function addToPrintQueue(product){ if(!product)return;printQueue.push(JSON.parse(JSON.stringify(product)));savePrintQueue();showToast(`${product.name} etiket listesine eklendi.`); }
 function managePrintQueue(){ let c=document.getElementById("queueListContainer");c.innerHTML=!printQueue.length?"<div>Liste boş</div>":printQueue.map((p,i)=>`<div style="background:#3a3a3a;border-radius:40px;padding:10px;margin-bottom:8px;display:flex;justify-content:space-between;"><span>${escapeHtml(p.name)} (${p.price.toFixed(2)}€)</span><button onclick="removeFromQueue(${i})" style="background:#c0392b;border:none;border-radius:30px;padding:6px 12px;color:white;">ÇIKAR</button></div>`).join('');document.getElementById("queueModal").style.display="flex"; }
@@ -485,10 +577,8 @@ function buildAngebotPrintHTML(size,orientation,p,discountPrice){
 function openUrgentModal(){ let today=new Date(); let urgent=products.filter(p=>p.expiry && p.quantity>0 && Math.ceil((new Date(p.expiry)-today)/86400000)<=7 && Math.ceil((new Date(p.expiry)-today)/86400000)>=0); urgent.sort((a,b)=>new Date(a.expiry)-new Date(b.expiry)); let c=document.getElementById("urgentProductList"); if(urgent.length===0){ c.innerHTML="<div>7 gün içinde SKT'si geçecek ve stokta olan ürün yok.</div>"; } else { c.innerHTML=urgent.map(p=>{ let d=Math.ceil((new Date(p.expiry)-today)/86400000); let cl=getProductColorClass(p); return `<div class="${cl}" style="border-radius:28px;padding:12px;margin-bottom:10px;"><strong>${escapeHtml(p.name)}</strong><br>SKT: ${p.expiry} (${d} gün)<br>Stok: ${p.quantity}</div>`; }).join(''); } document.getElementById("urgentModal").style.display="flex"; }
 function closeUrgentModal(){ document.getElementById("urgentModal").style.display="none"; }
 async function openCameraModal(mode){
-    // Kamera modal'ını temizle
     if(quaggaActive){ Quagga.stop(); Quagga.offDetected(); quaggaActive=false; }
     if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-    
     let modal=document.getElementById("cameraModal"), video=document.getElementById("cameraVideo"), status=document.getElementById("cameraModalStatus");
     sayimKameraMode=false;
     modal.style.display="flex";
@@ -498,19 +588,12 @@ async function openCameraModal(mode){
         video.srcObject=stream;
         currentStream=stream;
         await video.play();
-        
-        Quagga.init({
-            inputStream:{name:"LiveStream",type:"LiveStream",target:video},
-            decoder:{readers:["ean_reader","ean_8_reader","upc_reader","code_128_reader"]},
-            locate: true,
-            frequency: 10
-        }, err=>{
+        Quagga.init({inputStream:{name:"LiveStream",type:"LiveStream",target:video},decoder:{readers:["ean_reader","ean_8_reader","upc_reader","code_128_reader"]},locate:true,frequency:10}, err=>{
             if(err){ status.innerHTML="HATA"; return; }
             Quagga.start();
             quaggaActive=true;
             status.innerHTML="🎥 BARKODU GÖSTER...";
         });
-        
         let scanCounts={}, locked=false;
         Quagga.offDetected();
         Quagga.onDetected(data=>{
@@ -522,11 +605,9 @@ async function openCameraModal(mode){
             if(scanCounts[code]<2) return;
             locked=true;
             playBeep();
-            // Temizle ve kapat
             if(quaggaActive){ Quagga.stop(); Quagga.offDetected(); quaggaActive=false; }
             if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
             modal.style.display="none";
-            
             if(mode==='search'){
                 let found=findByBarcode(code);
                 if(found) showResult(found);
@@ -557,7 +638,6 @@ async function openCameraModal(mode){
 async function openSayimKamera(){
     if(quaggaActive){ Quagga.stop(); Quagga.offDetected(); quaggaActive=false; }
     if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-    
     let modal=document.getElementById("cameraModal"), video=document.getElementById("cameraVideo"), status=document.getElementById("cameraModalStatus");
     sayimKameraMode=true;
     document.getElementById("stokSayimModal").style.display="none";
@@ -568,12 +648,7 @@ async function openSayimKamera(){
         video.srcObject=stream;
         currentStream=stream;
         video.play();
-        Quagga.init({
-            inputStream:{name:"LiveStream",type:"LiveStream",target:video},
-            decoder:{readers:["ean_reader","ean_8_reader","upc_reader","code_128_reader"]},
-            locate: true,
-            frequency: 10
-        }, err=>{
+        Quagga.init({inputStream:{name:"LiveStream",type:"LiveStream",target:video},decoder:{readers:["ean_reader","ean_8_reader","upc_reader","code_128_reader"]},locate:true,frequency:10}, err=>{
             if(err){ status.innerHTML="HATA"; return; }
             Quagga.start();
             quaggaActive=true;
@@ -638,30 +713,6 @@ async function saveNewProduct(){ let barcode=normBarcode(document.getElementById
 function closeAddForm(){ document.getElementById("addFormContainer").classList.add("hidden"); document.getElementById("addFormContainer").innerHTML=""; tempImageData=null; }
 async function captureImageForAdd(source){ let input=document.createElement("input"); input.type="file"; input.accept="image/*"; if(source==='camera') input.capture="environment"; input.onchange=async(e)=>{ let file=e.target.files[0]; if(file){ let reader=new FileReader(); reader.onload=async(ev)=>{ tempImageData=await compressImage(ev.target.result); showToast("Resim hazır!"); }; reader.readAsDataURL(file); } }; input.click(); }
 function openGoogleSearchForAdd(){ let name=(document.getElementById("addName")?.value||'').trim(); if(name) window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank'); else showToast("Önce ürün adı girin!"); }
-
-// ---- RESULT EKRANI ----
-function showResult(p){
-    if(!p) return;
-    lastScannedProduct=p;
-    let idx=products.findIndex(pr=>pr.id===p.id);
-    document.getElementById("resultArea").innerHTML=`
-        <button class="close-result-btn" onclick="clearResult()">✖</button>
-        ${p.image?`<img src="${p.image}" class="product-image" onerror="this.src='';">`:'<div style="color:#aaa;">📷 RESİM YOK</div>'}
-        <div class="result-name">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)}</div>
-        <div class="result-price">${p.price.toFixed(2)} €</div>
-        <div style="color:#aaa;">STOK: ${p.quantity} | SKT: ${p.expiry||"YOK"}</div>
-        <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-            <button class="btn-primary btn" onclick="showInlineEdit()" style="background:#c0392b;padding:10px;font-size:0.7rem;">📝 DÜZENLE</button>
-            <button class="btn-primary btn" onclick="sellProduct(products[${idx}],${idx})" style="background:#e67e22;padding:10px;font-size:0.7rem;">🛒 SATILDI</button>
-            <button class="result-image-btn" onclick="addImageToResult('gallery')">🖼️ RESİM EKLE</button>
-            <button class="result-image-btn" onclick="addImageToResult('camera')" style="background:#27ae60;">📷 KAMERA</button>
-        </div>
-    `;
-}
-function clearResult(){ document.getElementById("resultArea").innerHTML=`<div class="result-placeholder">📷 BARKOD OKUTUN</div>`; lastScannedProduct=null; }
-function closeResultAndOpenDetail(idx){ clearResult(); openProductDetailModal(idx); }
-function showInlineEdit(){ let p=lastScannedProduct; document.getElementById("resultArea").innerHTML=`<button class="close-result-btn" onclick="clearResult()">✖</button><div><input id="editName" value="${escapeHtml(p.name)}" maxlength="35"><input id="editBarcode" value="${p.barcode}"><input id="editPrice" value="${p.price}"><input id="editCost" value="${p.cost||''}"><div id="inlineProfitBox" class="profit-box"></div><select id="editCategory">${p.category=="Dolap Ürünleri"?"<option selected>Dolap Ürünleri</option><option>Kuru Gıda</option>":"<option>Dolap Ürünleri</option><option selected>Kuru Gıda</option>"}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}"><input id="editExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveInlineEdit()">💾 KAYDET</button><button class="btn-cancel" onclick="showResult(lastScannedProduct)">İPTAL</button></div></div>`; setupPriceFields('editCost','editPrice','inlineProfitBox'); }
-async function saveInlineEdit(){ let idx=findIdxByBarcode(lastScannedProduct.barcode); if(idx===-1) idx=products.findIndex(p=>p.id===lastScannedProduct.id); if(idx!==-1){ products[idx].name=document.getElementById("editName").value.trim().toUpperCase(); products[idx].barcode=normBarcode(document.getElementById("editBarcode").value); products[idx].price=parseFloat(document.getElementById("editPrice").value); products[idx].cost=parseFloat(document.getElementById("editCost").value)||null; products[idx].category=document.getElementById("editCategory").value; let _q=parseInt(document.getElementById("editQuantity").value); if(isNaN(_q)||_q<=0)_q=1; products[idx].quantity=_q; products[idx].expiry=document.getElementById("editExpiry").value; await saveProducts(); await updateUI(); showResult(products[idx]); playBeep(); } }
 function openManualAddModal(){ let container=document.getElementById("manualAddFormContainer"); container.innerHTML=`<div><input id="addBarcode" placeholder="Barkod (manuel gir)"><input id="addName" placeholder="Ürün adı (max 35)" maxlength="35"><input id="addPrice" placeholder="Fiyat (€) — 549 → 5.49 otomatik"><input id="addCost" placeholder="Maliyet (€) — 349 → 3.49 otomatik"><div id="addProfitBox" class="profit-box"></div><select id="addCategory"><option selected>Dolap Ürünleri</option><option>Kuru Gıda</option></select><input id="addQuantity" placeholder="Stok" value="1" type="number"><input id="addExpiry" type="date"><div class="image-buttons-group"><button onclick="openGoogleSearchForAdd()" style="background:#27ae60;flex:unset;width:100%;">🔍 İNTERNET'TEN GÖRSEL ARA</button></div><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')">🖼️ GALERİ</button><button onclick="captureImageForAdd('camera')">📷 KAMERA</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProductFromModal()">💾 KAYDET</button><button class="btn-cancel" onclick="closeManualAddModal()">İPTAL</button></div></div>`; setupPriceFields('addCost','addPrice','addProfitBox'); document.getElementById("manualAddModal").style.display="flex"; }
 function closeManualAddModal(){ document.getElementById("manualAddModal").style.display="none"; tempImageData=null; }
 async function saveNewProductFromModal(){ let barcode=normBarcode(document.getElementById("addBarcode").value), name=document.getElementById("addName").value.trim().toUpperCase(), price=parseFloat(document.getElementById("addPrice").value), cost=parseFloat(document.getElementById("addCost").value)||null, category=document.getElementById("addCategory").value, quantity=parseInt(document.getElementById("addQuantity").value)||1, expiry=document.getElementById("addExpiry").value; if(!name||!barcode||isNaN(price)){ showToast("Eksik bilgi!"); return; } let existing=findIdxByBarcode(barcode); if(existing!==-1 && confirm("Barkod var, üzerine yazılsın mı?")) products[existing]={...products[existing], barcode, name, price, cost, category, quantity, expiry, image:tempImageData||products[existing].image}; else products.push({barcode, name, price, cost, category, quantity, expiry, image:tempImageData, id:Date.now()}); await saveProducts(); tempImageData=null; closeManualAddModal(); showToast(`✅ Ürün kaydedildi: ${name}`); await updateUI(); }
