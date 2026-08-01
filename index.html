@@ -90,7 +90,6 @@
         #liveClock{background:linear-gradient(145deg,#0d0d0d,#1a1a1a);color:#00ff88;padding:8px 12px;border-radius:14px;font-family:'Courier New',monospace;font-weight:800;font-size:0.9rem;letter-spacing:1.5px;border:1px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,0.35);text-shadow:0 0 6px rgba(0,255,136,0.8);min-width:78px;text-align:center;white-space:nowrap}
         #liveClock .clock-date{display:block;font-size:0.55rem;color:#00cc77;letter-spacing:0.8px;margin-top:1px}
         .result-image-btn{background:#f39c12;border:none;border-radius:40px;padding:8px 16px;color:white;font-weight:700;font-size:0.8rem;cursor:pointer;margin:6px 4px}
-        .internet-btn{background:#2980b9!important}
     </style>
 </head>
 <body>
@@ -138,19 +137,29 @@
 
 <script>
 // ============================================================
-//  INDEXEDDB KULLANIMI - SONSUZ DEPOLAMA
-//  İNTERNETTEN RESİM ARAMA ÖZELLİĞİ EKLENDİ
+//  MARKET PRO v2.0 - TAM ÇALIŞIR, YEDEKLEME DÜZELTİLDİ
+//  IndexedDB, Barkod, Etiket, Angebot, Sayım, Yedekleme
 // ============================================================
+
 let db = null;
 let products = [];
 let printQueue = [];
-let currentStream = null, lastScannedProduct = null, quaggaActive = false;
-let tempImageData = null, currentEditingProductId = null, angebotProduct = null, sayimMod = 'liste', sayimBarkodMap = {}, sayimKameraMode = false;
-let currentAngebotSize = 'a4', currentAngebotOrientation = 'portrait';
+let receipts = [];
+let currentStream = null;
+let lastScannedProduct = null;
+let quaggaActive = false;
+let tempImageData = null;
+let currentEditingProductId = null;
+let angebotProduct = null;
+let sayimMod = 'liste';
+let sayimBarkodMap = {};
+let sayimKameraMode = false;
+let currentAngebotSize = 'a4';
+let currentAngebotOrientation = 'portrait';
 let currentDiscountPrice = null;
-
-// ---- SES ----
 let audioCtx = null;
+
+// ---- AUDIO ----
 function initAudio() {
     if (!audioCtx) {
         try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
@@ -173,33 +182,179 @@ function playBeep() {
     } catch(e) {}
 }
 
+// ---- TOAST ----
+function showToast(msg, type) {
+    type = type || 'info';
+    let c = document.getElementById('toast-container');
+    let t = document.createElement('div');
+    t.className = 'toast ' + type;
+    let icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-times-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+    t.innerHTML = '<i class="fas ' + icon + '"></i> ' + msg;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+}
+
+// ---- UTILITY ----
+function escapeHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;').replace(/\//g, '&#x2F;');
+}
+function validateImageSrc(src) {
+    if (!src) return '';
+    if (src.startsWith('data:image/')) return src;
+    if (src.startsWith('blob:')) return src;
+    return '';
+}
+function normBarcode(b) {
+    return (b === null || b === undefined) ? '' : String(b).replace(/\s/g, '').trim();
+}
+function getCategoryEmoji(cat) {
+    if (!cat) return '📦';
+    let map = { 'Dolap Ürünleri': '🥫', 'Kuru Gıda': '🌾', 'İçecek': '🥤', 'Temizlik': '🧼', 'Diğer': '📦' };
+    return map[cat] || '📦';
+}
+function getProductColorClass(p) {
+    if (p.quantity === 0) return 'expiry-zero-stock';
+    if (!p.expiry) return 'expiry-no-date';
+    let today = new Date(); today.setHours(0,0,0,0);
+    let exp = new Date(p.expiry); exp.setHours(0,0,0,0);
+    let d = Math.ceil((exp - today) / 86400000);
+    if (d <= 7) return 'expiry-red';
+    if (d <= 14) return 'expiry-yellow';
+    return 'expiry-green';
+}
+function findByBarcode(code) {
+    let c = normBarcode(code);
+    if (!c) return null;
+    let f = products.find(p => normBarcode(p.barcode) === c);
+    if (f) return f;
+    let cNoZero = c.replace(/^0+/, '');
+    f = products.find(p => normBarcode(p.barcode).replace(/^0+/, '') === cNoZero);
+    return f || null;
+}
+function findIdxByBarcode(code) {
+    let c = normBarcode(code);
+    if (!c) return -1;
+    let i = products.findIndex(p => normBarcode(p.barcode) === c);
+    if (i !== -1) return i;
+    let cNoZero = c.replace(/^0+/, '');
+    return products.findIndex(p => normBarcode(p.barcode).replace(/^0+/, '') === cNoZero);
+}
+async function compressImage(dataUrl, w, q) {
+    w = w || 400; q = q || 0.4;
+    return new Promise(r => {
+        let img = new Image();
+        img.onload = () => {
+            let cnv = document.createElement('canvas');
+            let ww = img.width, hh = img.height;
+            if (ww > w) { hh = hh * w / ww; ww = w; }
+            cnv.width = ww; cnv.height = hh;
+            cnv.getContext('2d').drawImage(img, 0, 0, ww, hh);
+            r(cnv.toDataURL('image/jpeg', q));
+        };
+        img.src = dataUrl;
+    });
+}
+
+// ---- PRICE FIELDS ----
+function setupPriceFields(costId, priceId, boxId) {
+    let costEl = document.getElementById(costId);
+    let priceEl = document.getElementById(priceId);
+    let boxEl = document.getElementById(boxId);
+    if (!costEl || !priceEl || !boxEl) return;
+    let manual = false;
+    function recalc() {
+        let c = parseFloat(costEl.value);
+        let p = parseFloat(priceEl.value);
+        if (isNaN(c) || c <= 0) {
+            boxEl.innerHTML = '<div class="profit-suggested">💰 Maliyet gir, fiyat önerilsin</div>';
+            return;
+        }
+        let sug = (c / 0.53).toFixed(2);
+        if (isNaN(p) || p <= 0) {
+            boxEl.innerHTML = '<div class="profit-suggested">💡 Önerilen: ' + sug + ' €</div><div class="profit-margin">(%47 kâr)</div>';
+            return;
+        }
+        let m = ((p - c) / p * 100);
+        let cls = m >= 45 ? 'good' : m >= 30 ? 'ok' : 'bad';
+        let emoji = m >= 45 ? '✅' : m >= 30 ? '⚠️' : '❌';
+        boxEl.innerHTML = '<div class="profit-suggested">💰 Satış: ' + p.toFixed(2) + ' € | Kâr: ' + (p - c).toFixed(2) + ' €</div><div class="profit-margin ' + cls + '">' + emoji + ' Marj: %' + m.toFixed(1) + ' | Öneri: ' + sug + ' €</div>';
+    }
+    function autoDecimal(el) {
+        let v = (el.value || '').trim().replace(',', '.');
+        if (v === '' || v.includes('.')) return;
+        if (/^\d+$/.test(v)) {
+            let n = parseInt(v, 10);
+            if (v.length >= 3) { el.value = (n / 100).toFixed(2); }
+            else if (v.length === 2 || v.length === 1) { el.value = parseFloat(v).toFixed(2); }
+        }
+    }
+    costEl.addEventListener('input', () => {
+        if (!manual) { let c = parseFloat(costEl.value); if (!isNaN(c) && c > 0) priceEl.value = (c / 0.53).toFixed(2); }
+        recalc();
+    });
+    costEl.addEventListener('blur', () => { autoDecimal(costEl); recalc(); });
+    priceEl.addEventListener('input', () => { manual = true; recalc(); });
+    priceEl.addEventListener('focus', () => { manual = true; });
+    priceEl.addEventListener('blur', () => { autoDecimal(priceEl); recalc(); });
+    recalc();
+}
+
+// ---- INDEXEDDB ----
 function openIndexedDB() {
     return new Promise((resolve, reject) => {
-        const request = indexedDB.open("MarketProDB", 1);
+        const request = indexedDB.open('MarketProDB', 2);
         request.onerror = () => reject(request.error);
         request.onsuccess = () => { db = request.result; resolve(db); };
         request.onupgradeneeded = (event) => {
             const dbRef = event.target.result;
-            if (!dbRef.objectStoreNames.contains("products")) dbRef.createObjectStore("products", { keyPath: "id" });
-            if (!dbRef.objectStoreNames.contains("metadata")) dbRef.createObjectStore("metadata", { keyPath: "key" });
+            if (!dbRef.objectStoreNames.contains('products')) {
+                dbRef.createObjectStore('products', { keyPath: 'id' });
+            }
+            if (!dbRef.objectStoreNames.contains('metadata')) {
+                dbRef.createObjectStore('metadata', { keyPath: 'key' });
+            }
+            if (!dbRef.objectStoreNames.contains('receipts')) {
+                dbRef.createObjectStore('receipts', { keyPath: 'id', autoIncrement: true });
+            }
         };
     });
 }
 async function loadProductsFromIDB() {
     if (!db) await openIndexedDB();
     return new Promise((resolve, reject) => {
-        const tx = db.transaction(["products"], "readonly");
-        const store = tx.objectStore("products");
-        const request = store.getAll();
-        request.onsuccess = () => resolve(request.result || []);
-        request.onerror = () => reject(request.error);
+        const tx = db.transaction(['products'], 'readonly');
+        const store = tx.objectStore('products');
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+    });
+}
+async function saveProductToIDB(product) {
+    if (!db) await openIndexedDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(['products'], 'readwrite');
+        const store = tx.objectStore('products');
+        store.put(product);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+async function deleteProductFromIDB(id) {
+    if (!db) await openIndexedDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(['products'], 'readwrite');
+        const store = tx.objectStore('products');
+        store.delete(id);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
     });
 }
 async function saveProductsToIDB(prods) {
     if (!db) await openIndexedDB();
     return new Promise((resolve, reject) => {
-        const tx = db.transaction(["products"], "readwrite");
-        const store = tx.objectStore("products");
+        const tx = db.transaction(['products'], 'readwrite');
+        const store = tx.objectStore('products');
         store.clear();
         for (let p of prods) store.put(p);
         tx.oncomplete = () => resolve();
@@ -209,8 +364,8 @@ async function saveProductsToIDB(prods) {
 async function saveMetadata(key, value) {
     if (!db) await openIndexedDB();
     return new Promise((resolve, reject) => {
-        const tx = db.transaction(["metadata"], "readwrite");
-        const store = tx.objectStore("metadata");
+        const tx = db.transaction(['metadata'], 'readwrite');
+        const store = tx.objectStore('metadata');
         store.put({ key: key, value: value });
         tx.oncomplete = () => resolve();
         tx.onerror = () => reject(tx.error);
@@ -219,10 +374,30 @@ async function saveMetadata(key, value) {
 async function loadMetadata(key) {
     if (!db) await openIndexedDB();
     return new Promise((resolve, reject) => {
-        const tx = db.transaction(["metadata"], "readonly");
-        const store = tx.objectStore("metadata");
+        const tx = db.transaction(['metadata'], 'readonly');
+        const store = tx.objectStore('metadata');
         const req = store.get(key);
         req.onsuccess = () => resolve(req.result ? req.result.value : null);
+        req.onerror = () => reject(req.error);
+    });
+}
+async function addReceipt(receipt) {
+    if (!db) await openIndexedDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(['receipts'], 'readwrite');
+        const store = tx.objectStore('receipts');
+        store.put(receipt);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+async function getReceipts() {
+    if (!db) await openIndexedDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(['receipts'], 'readonly');
+        const store = tx.objectStore('receipts');
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
         req.onerror = () => reject(req.error);
     });
 }
@@ -234,7 +409,7 @@ async function migrateFromLocalStorage() {
             if (oldProducts && oldProducts.length) {
                 await saveProductsToIDB(oldProducts);
                 localStorage.removeItem('marketpro_products');
-                showToast("✅ Eski verileriniz IndexedDB'ye taşındı!");
+                showToast('✅ Eski veriler IndexedDB\'ye taşındı!', 'success');
             }
         }
         const oldQueue = localStorage.getItem('market_print_queue');
@@ -245,19 +420,22 @@ async function migrateFromLocalStorage() {
                 localStorage.removeItem('market_print_queue');
             }
         }
-    } catch(e) { console.warn("Migration error", e); }
+    } catch(e) { console.warn('Migration error', e); }
 }
+
+// ---- LOAD / SAVE ----
 async function loadProducts() {
     let prods = await loadProductsFromIDB();
     if (!prods.length) {
         prods = [
-            {barcode:"4003998000470",name:"ÇAYKUR RİZE ÇAYI",price:4.99,cost:3.40,quantity:12,expiry:"2025-12-15",image:null,id:Date.now()+1,category:"Dolap Ürünleri"},
-            {barcode:"8690504003016",name:"ÜLKER ÇİKOLATA",price:1.29,cost:0.88,quantity:30,expiry:"2025-10-20",image:null,id:Date.now()+2,category:"Kuru Gıda"},
-            {barcode:"4006381333948",name:"FRITZ COLA 0.33L",price:1.19,cost:0.75,quantity:24,expiry:"2026-06-01",image:null,id:Date.now()+3,category:"Dolap Ürünleri"}
+            { barcode: '4003998000470', name: 'ÇAYKUR RİZE ÇAYI', price: 4.99, cost: 3.40, quantity: 12, expiry: '2025-12-15', image: null, id: Date.now() + 1, category: 'Dolap Ürünleri' },
+            { barcode: '8690504003016', name: 'ÜLKER ÇİKOLATA', price: 1.29, cost: 0.88, quantity: 30, expiry: '2025-10-20', image: null, id: Date.now() + 2, category: 'Kuru Gıda' },
+            { barcode: '4006381333948', name: 'FRITZ COLA 0.33L', price: 1.19, cost: 0.75, quantity: 24, expiry: '2026-06-01', image: null, id: Date.now() + 3, category: 'İçecek' }
         ];
         await saveProductsToIDB(prods);
     }
     products = prods;
+    receipts = await getReceipts();
     await updateUI();
 }
 async function saveProducts() {
@@ -269,124 +447,357 @@ async function loadPrintQueue() {
     const q = await loadMetadata('printQueue');
     printQueue = Array.isArray(q) ? q : [];
 }
-function savePrintQueue() { saveMetadata('printQueue', printQueue); }
+function savePrintQueue() {
+    saveMetadata('printQueue', printQueue);
+}
 
-function showToast(msg){ let c=document.getElementById("toast-container"),t=document.createElement("div");t.className="toast";t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3000); }
-function escapeHtml(s){ if(!s)return'';return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-function getProductColorClass(p){ if(p.quantity===0) return "expiry-zero-stock"; if(!p.expiry) return "expiry-no-date"; let d=Math.ceil((new Date(p.expiry)-new Date())/86400000); if(d<=7) return "expiry-red"; if(d<=14) return "expiry-yellow"; return "expiry-green"; }
-function getCategoryEmoji(cat){ return cat==="Dolap Ürünleri"?"🥫":(cat==="Kuru Gıda"?"🌾":"📦"); }
-function setupPriceFields(costId, priceId, boxId){ let costEl=document.getElementById(costId),priceEl=document.getElementById(priceId),boxEl=document.getElementById(boxId); if(!costEl||!priceEl||!boxEl)return; let manual=false; function recalc(){ let c=parseFloat(costEl.value),p=parseFloat(priceEl.value); if(isNaN(c)||c<=0){ boxEl.innerHTML='<div class="profit-suggested">💰 Maliyet gir, fiyat önerilsin</div>';return; } let sug=(c/0.53).toFixed(2); if(isNaN(p)||p<=0){ boxEl.innerHTML=`<div class="profit-suggested">💡 Önerilen: €${sug}</div><div class="profit-margin">(%47 kâr)</div>`;return; } let m=((p-c)/p*100),cls=m>=45?'good':m>=30?'ok':'bad',emoji=m>=45?'✅':m>=30?'⚠️':'❌'; boxEl.innerHTML=`<div class="profit-suggested">💰 Satış: ${p.toFixed(2)}€ | Kâr: ${(p-c).toFixed(2)}€</div><div class="profit-margin ${cls}">${emoji} Marj: %${m.toFixed(1)} | Öneri: €${sug}</div>`; } function autoDecimal(el){ let v=(el.value||'').trim().replace(',','.'); if(v===''||v.includes('.')) return; if(/^\d+$/.test(v)){ let n=parseInt(v,10); if(v.length>=3){ el.value=(n/100).toFixed(2); } else if(v.length===2||v.length===1){ el.value=parseFloat(v).toFixed(2); } } } costEl.addEventListener('input',()=>{ if(!manual){ let c=parseFloat(costEl.value); if(!isNaN(c)&&c>0)priceEl.value=(c/0.53).toFixed(2); } recalc(); }); costEl.addEventListener('blur',()=>{ autoDecimal(costEl); if(!manual){ let c=parseFloat(costEl.value); if(!isNaN(c)&&c>0)priceEl.value=(c/0.53).toFixed(2); } recalc(); }); priceEl.addEventListener('input',()=>{ manual=true; recalc(); }); priceEl.addEventListener('focus',()=>{ manual=true; }); priceEl.addEventListener('blur',()=>{ autoDecimal(priceEl); recalc(); }); recalc(); }
-function normBarcode(b){ return (b===null||b===undefined)?'':String(b).replace(/\s/g,'').trim(); }
-function findByBarcode(code){ let c=normBarcode(code); if(!c) return null; let f=products.find(p=>normBarcode(p.barcode)===c); if(f) return f; let cNoZero=c.replace(/^0+/,''); f=products.find(p=>{ let pb=normBarcode(p.barcode).replace(/^0+/,''); return pb===cNoZero; }); return f||null; }
-function findIdxByBarcode(code){ let c=normBarcode(code); if(!c) return -1; let i=products.findIndex(p=>normBarcode(p.barcode)===c); if(i!==-1) return i; let cNoZero=c.replace(/^0+/,''); return products.findIndex(p=>normBarcode(p.barcode).replace(/^0+/,'')===cNoZero); }
-async function updateUI(){ let today=new Date(); let urgent=products.filter(p=>p.expiry&&Math.ceil((new Date(p.expiry)-today)/86400000)<=7&&p.quantity>0); document.getElementById('urgentCount').innerText=urgent.length; document.getElementById('productCountBadge').innerText=products.length+' çeşit'; let allExp=products.filter(p=>p.expiry&&p.quantity>0).sort((a,b)=>new Date(a.expiry)-new Date(b.expiry)); let sktEl=document.getElementById('sktBarContent'); if(sktEl){ if(allExp.length){let p=allExp[0];sktEl.innerText=p.name+' · '+Math.ceil((new Date(p.expiry)-today)/86400000)+' gün';}else sktEl.innerText='Yaklaşan SKT yok'; } }
+// ---- UI UPDATE ----
+async function updateUI() {
+    let today = new Date(); today.setHours(0,0,0,0);
+    let urgent = products.filter(p => {
+        if (!p.expiry || p.quantity <= 0) return false;
+        let exp = new Date(p.expiry); exp.setHours(0,0,0,0);
+        return Math.ceil((exp - today) / 86400000) <= 7;
+    });
+    document.getElementById('urgentCount').innerText = urgent.length;
+    document.getElementById('productCountBadge').innerText = products.length + ' çeşit';
+    let allExp = products.filter(p => p.expiry && p.quantity > 0).sort((a,b) => new Date(a.expiry) - new Date(b.expiry));
+    let sktEl = document.getElementById('sktBarContent');
+    if (sktEl) {
+        if (allExp.length) {
+            let p = allExp[0];
+            let exp = new Date(p.expiry); exp.setHours(0,0,0,0);
+            sktEl.innerText = p.name + ' · ' + Math.ceil((exp - today) / 86400000) + ' gün';
+        } else {
+            sktEl.innerText = 'Yaklaşan SKT yok';
+        }
+    }
+}
 
-function openInventoryModal(){ document.getElementById("inventoryModal").style.display="flex"; let inp=document.getElementById("inventorySearchInput"); if(inp){inp.value="";inp.oninput=()=>renderInventoryList();} renderInventoryList(); }
-function closeInventoryModal(){ document.getElementById("inventoryModal").style.display="none"; }
-function renderInventoryList(){ let statsEl=document.getElementById("inventoryStats"); if(statsEl){ let total=products.length,active=products.filter(p=>p.quantity>0).length,zero=products.filter(p=>p.quantity===0).length,urgent=products.filter(p=>p.expiry&&Math.ceil((new Date(p.expiry)-new Date())/86400000)<=7&&p.quantity>0).length; statsEl.innerHTML=`<div style="background:#3498db;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;">📦 TOPLAM: ${total}</div><div style="background:#2ecc71;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;">✅ AKTİF: ${active}</div>`+(zero>0?`<div style="background:#7f8c8d;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;">⬜ STOKSUZ: ${zero}</div>`:'')+(urgent>0?`<div style="background:#e74c3c;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;">⚠️ ACİL: ${urgent}</div>`:''); } let container=document.getElementById("modalProductList"); let sv=(document.getElementById("inventorySearchInput")?.value||'').trim().toLowerCase(); let filtered=sv?products.filter(p=>p.name.toLowerCase().includes(sv)||p.barcode.includes(sv)):products; let sorted=[...filtered].sort((a,b)=>{ let today=new Date(); let getPriority=(p)=>{ if(p.quantity===0) return 4; if(!p.expiry) return 5; let d=Math.ceil((new Date(p.expiry)-today)/86400000); if(d<=7) return 0; if(d<=14) return 1; return 2; }; let pa=getPriority(a), pb=getPriority(b); if(pa!==pb) return pa-pb; if(pa===0||pa===1||pa===2) return new Date(a.expiry)-new Date(b.expiry); return a.name.localeCompare(b.name); }); if(!sorted.length){ container.innerHTML="<div style='text-align:center;padding:20px;'>Ürün yok</div>"; return; } container.innerHTML=sorted.map(p=>{ let idx=products.findIndex(pr=>pr.id===p.id),cc=getProductColorClass(p); return `<div class="envanter-item ${cc}"><div class="product-name-item" onclick="openProductDetailModal(${idx})">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)} (${p.quantity})</div><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])">➕ ETİKET</button></div>`; }).join(''); }
+// ---- INVENTORY ----
+function openInventoryModal() {
+    document.getElementById('inventoryModal').style.display = 'flex';
+    let inp = document.getElementById('inventorySearchInput');
+    if (inp) { inp.value = ''; inp.oninput = () => renderInventoryList(); }
+    renderInventoryList();
+}
+function closeInventoryModal() {
+    document.getElementById('inventoryModal').style.display = 'none';
+}
+function renderInventoryList() {
+    let statsEl = document.getElementById('inventoryStats');
+    if (statsEl) {
+        let total = products.length;
+        let active = products.filter(p => p.quantity > 0).length;
+        let zero = products.filter(p => p.quantity === 0).length;
+        let today = new Date(); today.setHours(0,0,0,0);
+        let urgent = products.filter(p => {
+            if (!p.expiry || p.quantity <= 0) return false;
+            let exp = new Date(p.expiry); exp.setHours(0,0,0,0);
+            return Math.ceil((exp - today) / 86400000) <= 7;
+        }).length;
+        statsEl.innerHTML = `
+            <div style="background:#3498db;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;">📦 TOPLAM: ${total}</div>
+            <div style="background:#2ecc71;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;">✅ AKTİF: ${active}</div>
+            ${zero > 0 ? `<div style="background:#7f8c8d;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;">⬜ STOKSUZ: ${zero}</div>` : ''}
+            ${urgent > 0 ? `<div style="background:#e74c3c;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;">⚠️ ACİL: ${urgent}</div>` : ''}
+        `;
+    }
+    let container = document.getElementById('modalProductList');
+    let sv = (document.getElementById('inventorySearchInput')?.value || '').trim().toLowerCase();
+    let filtered = sv ? products.filter(p => p.name.toLowerCase().includes(sv) || p.barcode.includes(sv)) : products;
+    let today = new Date(); today.setHours(0,0,0,0);
+    let sorted = [...filtered].sort((a,b) => {
+        let getPriority = (p) => {
+            if (p.quantity === 0) return 4;
+            if (!p.expiry) return 5;
+            let exp = new Date(p.expiry); exp.setHours(0,0,0,0);
+            let d = Math.ceil((exp - today) / 86400000);
+            if (d <= 7) return 0;
+            if (d <= 14) return 1;
+            return 2;
+        };
+        let pa = getPriority(a), pb = getPriority(b);
+        if (pa !== pb) return pa - pb;
+        if (pa === 0 || pa === 1 || pa === 2) return new Date(a.expiry) - new Date(b.expiry);
+        return a.name.localeCompare(b.name);
+    });
+    if (!sorted.length) {
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;">Ürün yok</div>';
+        return;
+    }
+    container.innerHTML = sorted.map((p, idx) => {
+        let realIdx = products.findIndex(pr => pr.id === p.id);
+        let cc = getProductColorClass(p);
+        let emoji = getCategoryEmoji(p.category);
+        return `<div class="envanter-item ${cc}">
+            <div class="product-name-item" onclick="openProductDetailModal(${realIdx})">${escapeHtml(p.name)} ${emoji} (${p.quantity})</div>
+            <button class="btn-add-queue-list" onclick="addToPrintQueue(products[${realIdx}])">➕ ETİKET</button>
+        </div>`;
+    }).join('');
+}
 
-// ---- ÜRÜN DETAYI (İNTERNET BUTONU EKLENDİ) ----
-function openProductDetailModal(idx){
-    let p=products[idx];
-    currentEditingProductId=idx;
-    let color=getProductColorClass(p);
-    let modal=document.getElementById("productDetailModal");
-    let content=document.getElementById("productDetailContent");
-    
-    content.innerHTML=`
+// ---- PRODUCT DETAIL ----
+function openProductDetailModal(idx) {
+    let p = products[idx];
+    if (!p) return;
+    currentEditingProductId = p.id;
+    let color = getProductColorClass(p);
+    let emoji = getCategoryEmoji(p.category);
+    let modal = document.getElementById('productDetailModal');
+    let content = document.getElementById('productDetailContent');
+    let imgHtml = p.image ? `<img src="${validateImageSrc(p.image)}" class="detail-image" onerror="this.style.display='none'">` : '<div style="color:#94a3b8;font-size:2.5rem;margin:10px 0;">📷</div>';
+    content.innerHTML = `
         <div class="modal-header">
             <span class="modal-title">📄 ÜRÜN DETAYI</span>
             <button class="close-modal-btn" onclick="closeProductDetailModal()">✖ KAPAT</button>
         </div>
         <div class="product-detail-card ${color}">
-            ${p.image?`<img src="${p.image}" class="detail-image" onerror="this.src='';">`:'<div>📷 RESİM YOK</div>'}
-            <div>
-                <strong>${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}
-                <br>Barkod: ${p.barcode}
-                <br>Fiyat: ${p.price.toFixed(2)} €
-                <br>Stok: ${p.quantity}
-                <br>SKT: ${p.expiry||"YOK"}
+            ${imgHtml}
+            <div style="font-weight:800;font-size:1.1rem;margin:6px 0;">${escapeHtml(p.name)} ${emoji}</div>
+            <div style="color:#94a3b8;line-height:1.8;font-size:0.9rem;">
+                Barkod: ${p.barcode}<br>
+                Fiyat: ${p.price.toFixed(2)} €<br>
+                Maliyet: ${p.cost ? p.cost.toFixed(2) : '-'} €<br>
+                Stok: ${p.quantity}<br>
+                SKT: ${p.expiry || 'YOK'}<br>
+                Kategori: ${escapeHtml(p.category)}
             </div>
             <div class="detail-actions">
                 <div class="button-row">
-                    <button onclick="toggleEditMode()" style="background:#f39c12;">✏️ DÜZENLE</button>
-                    <button onclick="deleteCurrentProduct()" style="background:#c0392b;">🗑️ SİL</button>
+                    <button onclick="toggleEditMode()" style="background:linear-gradient(135deg,#f59e0b,#d97706);">✏️ DÜZENLE</button>
+                    <button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);">🗑️ SİL</button>
                 </div>
                 <div class="button-row">
-                    <button onclick="sellProduct(products[${idx}],${idx})" style="background:#e67e22;">🛒 SATILDI</button>
+                    <button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f59e0b,#d97706);">🛒 SATILDI</button>
                     <button onclick="addImageToCurrentProduct('gallery')">🖼️ GALERİ</button>
                 </div>
                 <div class="button-row">
                     <button onclick="addImageToCurrentProduct('camera')">📷 KAMERA</button>
-                    <button onclick="openGoogleSearchForCurrent()" style="background:#2980b9;">🔍 İNTERNET</button>
+                    <button onclick="openGoogleSearchForCurrent()">🔍 İNTERNET</button>
                 </div>
                 <button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])">➕ ETİKET LİSTESİNE EKLE</button>
-                <button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:#8e44ad!important;margin-top:6px;">🏷️ ANGEBOT HAZIRLA</button>
+                <button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:4px;">🏷️ ANGEBOT HAZIRLA</button>
             </div>
             <div id="editFields" style="display:none;margin-top:10px;"></div>
         </div>
     `;
-    modal.style.display="flex";
+    modal.style.display = 'flex';
 }
-function closeProductDetailModal(){ document.getElementById("productDetailModal").style.display="none"; currentEditingProductId=null; }
-function toggleEditMode(){ let editDiv=document.getElementById("editFields"),p=products[currentEditingProductId];if(editDiv.style.display==="none"){editDiv.style.display="block";editDiv.innerHTML=`<input id="editName" value="${escapeHtml(p.name)}" maxlength="35"><input id="editBarcode" value="${p.barcode}"><input id="editPrice" value="${p.price}" placeholder="Fiyat (€)"><input id="editCost" value="${p.cost||''}" placeholder="Maliyet (€)"><div id="editProfitBox" class="profit-box"></div><select id="editCategory">${p.category=="Dolap Ürünleri"?"<option selected>Dolap Ürünleri</option><option>Kuru Gıda</option>":"<option>Dolap Ürünleri</option><option selected>Kuru Gıda</option>"}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}"><input id="editExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveProductEdit()">💾 KAYDET</button><button class="btn-cancel" onclick="toggleEditMode()">İPTAL</button></div>`;setupPriceFields('editCost','editPrice','editProfitBox');}else{editDiv.style.display="none";editDiv.innerHTML="";} }
-async function saveProductEdit(){ let idx=currentEditingProductId;products[idx].name=document.getElementById("editName").value.trim().toUpperCase();products[idx].barcode=normBarcode(document.getElementById("editBarcode").value);products[idx].price=parseFloat(document.getElementById("editPrice").value);products[idx].cost=parseFloat(document.getElementById("editCost").value)||null;products[idx].category=document.getElementById("editCategory").value;let _q=parseInt(document.getElementById("editQuantity").value);if(isNaN(_q)||_q<=0)_q=1;products[idx].quantity=_q;products[idx].expiry=document.getElementById("editExpiry").value;await saveProducts();await updateUI();openProductDetailModal(idx);playBeep(); }
-async function deleteCurrentProduct(){ if(confirm(`${products[currentEditingProductId].name} silinsin mi?`)){products.splice(currentEditingProductId,1);await saveProducts();await updateUI();closeProductDetailModal();closeInventoryModal();openInventoryModal();playBeep();} }
-async function addImageToCurrentProduct(source){ let input=document.createElement("input");input.type="file";input.accept="image/*";if(source==='camera')input.capture="environment";input.onchange=async(e)=>{let file=e.target.files[0];if(file){let reader=new FileReader();reader.onload=async(ev)=>{products[currentEditingProductId].image=await compressImage(ev.target.result);await saveProducts();openProductDetailModal(currentEditingProductId);playBeep();};reader.readAsDataURL(file);}};input.click(); }
-
-// ---- İNTERNETTEN RESİM ARAMA (DÜZELTİLDİ) ----
-function openGoogleSearchForCurrent(){
+function closeProductDetailModal() {
+    document.getElementById('productDetailModal').style.display = 'none';
+    currentEditingProductId = null;
+}
+function toggleEditMode() {
+    let editDiv = document.getElementById('editFields');
     let p = products.find(pr => pr.id === currentEditingProductId);
-    if(!p) p = lastScannedProduct;
-    if(p && p.name){
-        let searchTerm = encodeURIComponent(p.name + " ürün görsel");
-        window.open(`https://www.google.com/search?q=${searchTerm}&tbm=isch`, '_blank');
+    if (!p) return;
+    if (editDiv.style.display === 'none') {
+        editDiv.style.display = 'block';
+        editDiv.innerHTML = `
+            <input id="editName" value="${escapeHtml(p.name)}" maxlength="35">
+            <input id="editBarcode" value="${p.barcode}">
+            <input id="editPrice" value="${p.price}" placeholder="Fiyat (€)">
+            <input id="editCost" value="${p.cost || ''}" placeholder="Maliyet (€)">
+            <div id="editProfitBox" class="profit-box"></div>
+            <select id="editCategory">
+                <option ${p.category === 'Dolap Ürünleri' ? 'selected' : ''}>Dolap Ürünleri</option>
+                <option ${p.category === 'Kuru Gıda' ? 'selected' : ''}>Kuru Gıda</option>
+                <option ${p.category === 'İçecek' ? 'selected' : ''}>İçecek</option>
+                <option ${p.category === 'Temizlik' ? 'selected' : ''}>Temizlik</option>
+                <option ${p.category === 'Diğer' ? 'selected' : ''}>Diğer</option>
+            </select>
+            <input id="editQuantity" value="${parseInt(p.quantity) > 0 ? parseInt(p.quantity) : 1}">
+            <input id="editExpiry" type="date" value="${p.expiry || ''}">
+            <div class="edit-form-buttons">
+                <button class="btn-save" onclick="saveProductEdit()">💾 KAYDET</button>
+                <button class="btn-cancel" onclick="toggleEditMode()">İPTAL</button>
+            </div>
+        `;
+        setupPriceFields('editCost', 'editPrice', 'editProfitBox');
     } else {
-        showToast("Önce bir ürün seçin!");
+        editDiv.style.display = 'none';
+        editDiv.innerHTML = '';
+    }
+}
+async function saveProductEdit() {
+    let p = products.find(pr => pr.id === currentEditingProductId);
+    if (!p) return;
+    p.name = document.getElementById('editName').value.trim().toUpperCase();
+    p.barcode = normBarcode(document.getElementById('editBarcode').value);
+    p.price = parseFloat(document.getElementById('editPrice').value);
+    p.cost = parseFloat(document.getElementById('editCost').value) || null;
+    p.category = document.getElementById('editCategory').value;
+    let _q = parseInt(document.getElementById('editQuantity').value);
+    if (isNaN(_q) || _q <= 0) _q = 1;
+    p.quantity = _q;
+    p.expiry = document.getElementById('editExpiry').value;
+    await saveProductToIDB(p);
+    await updateUI();
+    let idx = products.findIndex(pr => pr.id === currentEditingProductId);
+    openProductDetailModal(idx);
+    playBeep();
+}
+async function deleteCurrentProduct() {
+    let p = products.find(pr => pr.id === currentEditingProductId);
+    if (!p) return;
+    if (confirm(`${p.name} silinsin mi?`)) {
+        let idx = products.findIndex(pr => pr.id === currentEditingProductId);
+        await deleteProductFromIDB(p.id);
+        products.splice(idx, 1);
+        await updateUI();
+        closeProductDetailModal();
+        closeInventoryModal();
+        openInventoryModal();
+        playBeep();
+    }
+}
+async function addImageToCurrentProduct(source) {
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    if (source === 'camera') input.capture = 'environment';
+    input.onchange = async (e) => {
+        let file = e.target.files[0];
+        if (!file) return;
+        let reader = new FileReader();
+        reader.onload = async (ev) => {
+            let p = products.find(pr => pr.id === currentEditingProductId);
+            if (p) {
+                p.image = await compressImage(ev.target.result);
+                await saveProductToIDB(p);
+                let idx = products.findIndex(pr => pr.id === currentEditingProductId);
+                openProductDetailModal(idx);
+                playBeep();
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+    input.click();
+}
+function openGoogleSearchForCurrent() {
+    let p = products.find(pr => pr.id === currentEditingProductId);
+    if (p && p.name) window.open(`https://www.google.com/search?q=${encodeURIComponent(p.name)}&tbm=isch`, '_blank');
+}
+
+// ---- SELL PRODUCT ----
+async function sellProduct(product, index) {
+    if (!product) return;
+    if (product.quantity <= 0) {
+        showToast(`${product.name} zaten stoksuz`, 'warning');
+        return;
+    }
+    product.quantity--;
+    await saveProductToIDB(product);
+    await updateUI();
+    if (lastScannedProduct && lastScannedProduct.id === product.id) {
+        showResult(products.find(pr => pr.id === product.id));
+    }
+    const receipt = {
+        id: Date.now(),
+        items: [{ name: product.name, barcode: product.barcode, price: product.price, quantity: 1 }],
+        total: product.price,
+        paymentMethod: 'Nakit',
+        date: new Date().toISOString(),
+        timestamp: Date.now()
+    };
+    await addReceipt(receipt);
+    receipts.push(receipt);
+    if (product.quantity === 0) {
+        showToast(`⚠️ ${product.name} STOK SIFIRLANDI`, 'warning');
+    } else {
+        showToast(`${product.name} stok: ${product.quantity}`, 'success');
+        playBeep();
     }
 }
 
-async function compressImage(dataUrl,w=400,q=0.4){ return new Promise(r=>{let img=new Image();img.onload=()=>{let cnv=document.createElement('canvas'),ww=img.width,hh=img.height;if(ww>w){hh=hh*w/ww;ww=w;}cnv.width=ww;cnv.height=hh;cnv.getContext('2d').drawImage(img,0,0,ww,hh);r(cnv.toDataURL('image/jpeg',q));};img.src=dataUrl;}); }
-async function sellProduct(product,index){ if (!product) return; if (product.quantity <= 0) { showToast(`${product.name} zaten stoksuz`); return; } product.quantity--; await saveProducts(); await updateUI(); if (lastScannedProduct && lastScannedProduct.id === product.id) { showResult(products.find(pr => pr.id === product.id)); } if (product.quantity === 0) { showToast(`⚠️ ${product.name} STOK SIFIRLANDI`); } else { showToast(`${product.name} stok: ${product.quantity}`); playBeep(); } }
-
-// ---- SONUÇ EKRANI (İNTERNET BUTONU EKLENDİ) ----
-function showResult(p){
-    if(!p) return;
-    lastScannedProduct=p;
-    let idx=products.findIndex(pr=>pr.id===p.id);
-    
-    document.getElementById("resultArea").innerHTML=`
+// ---- RESULT ----
+function showResult(p) {
+    if (!p) return;
+    lastScannedProduct = p;
+    let idx = products.findIndex(pr => pr.id === p.id);
+    let emoji = getCategoryEmoji(p.category);
+    let imgHtml = p.image ? `<img src="${validateImageSrc(p.image)}" class="product-image" onerror="this.style.display='none'">` : '';
+    document.getElementById('resultArea').innerHTML = `
         <button class="close-result-btn" onclick="clearResult()">✖</button>
-        ${p.image?`<img src="${p.image}" class="product-image" onerror="this.src='';">`:'<div style="color:#aaa;">📷 RESİM YOK</div>'}
-        <div class="result-name">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)}</div>
+        ${imgHtml}
+        <div class="result-name">${escapeHtml(p.name)} ${emoji}</div>
         <div class="result-price">${p.price.toFixed(2)} €</div>
-        <div style="color:#aaa;">STOK: ${p.quantity} | SKT: ${p.expiry||"YOK"}</div>
+        <div class="result-meta">STOK: ${p.quantity} | SKT: ${p.expiry || 'YOK'}</div>
         <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-            <button class="btn-primary btn" onclick="showInlineEdit()" style="background:#c0392b;padding:10px;font-size:0.7rem;">📝 DÜZENLE</button>
-            <button class="btn-primary btn" onclick="sellProduct(products[${idx}],${idx})" style="background:#e67e22;padding:10px;font-size:0.7rem;">🛒 SATILDI</button>
+            <button class="btn btn-ghost" onclick="showInlineEdit()" style="padding:6px 14px;font-size:0.7rem;">📝 DÜZENLE</button>
+            <button class="btn btn-warning" onclick="sellProduct(products[${idx}],${idx})" style="padding:6px 14px;font-size:0.7rem;">🛒 SATILDI</button>
             <button class="result-image-btn" onclick="addImageToResult('gallery')">🖼️ RESİM EKLE</button>
-            <button class="result-image-btn" onclick="addImageToResult('camera')" style="background:#27ae60;">📷 KAMERA</button>
-            <button class="result-image-btn" onclick="openGoogleSearchForResult()" style="background:#2980b9;">🔍 İNTERNET</button>
+            <button class="result-image-btn" onclick="addImageToResult('camera')" style="background:linear-gradient(135deg,#10b981,#059669);">📷 KAMERA</button>
         </div>
     `;
 }
-
-// ---- SONUÇ EKRANINDAN İNTERNET ARAMA ----
-function openGoogleSearchForResult(){
-    if(lastScannedProduct && lastScannedProduct.name){
-        let searchTerm = encodeURIComponent(lastScannedProduct.name + " ürün görsel");
-        window.open(`https://www.google.com/search?q=${searchTerm}&tbm=isch`, '_blank');
-    } else {
-        showToast("Önce bir ürün okutun!");
+function clearResult() {
+    document.getElementById('resultArea').innerHTML = '<div class="result-placeholder">📷 BARKOD OKUTUN</div>';
+    lastScannedProduct = null;
+}
+function closeResultAndOpenDetail(idx) {
+    clearResult();
+    openProductDetailModal(idx);
+}
+function showInlineEdit() {
+    let p = lastScannedProduct;
+    if (!p) return;
+    document.getElementById('resultArea').innerHTML = `
+        <button class="close-result-btn" onclick="clearResult()">✖</button>
+        <div>
+            <input id="editName" value="${escapeHtml(p.name)}" maxlength="35">
+            <input id="editBarcode" value="${p.barcode}">
+            <input id="editPrice" value="${p.price}">
+            <input id="editCost" value="${p.cost || ''}">
+            <div id="inlineProfitBox" class="profit-box"></div>
+            <select id="editCategory">
+                <option ${p.category === 'Dolap Ürünleri' ? 'selected' : ''}>Dolap Ürünleri</option>
+                <option ${p.category === 'Kuru Gıda' ? 'selected' : ''}>Kuru Gıda</option>
+                <option ${p.category === 'İçecek' ? 'selected' : ''}>İçecek</option>
+                <option ${p.category === 'Temizlik' ? 'selected' : ''}>Temizlik</option>
+                <option ${p.category === 'Diğer' ? 'selected' : ''}>Diğer</option>
+            </select>
+            <input id="editQuantity" value="${parseInt(p.quantity) > 0 ? parseInt(p.quantity) : 1}">
+            <input id="editExpiry" type="date" value="${p.expiry || ''}">
+            <div class="edit-form-buttons">
+                <button class="btn-save" onclick="saveInlineEdit()">💾 KAYDET</button>
+                <button class="btn-cancel" onclick="showResult(lastScannedProduct)">İPTAL</button>
+            </div>
+        </div>
+    `;
+    setupPriceFields('editCost', 'editPrice', 'inlineProfitBox');
+}
+async function saveInlineEdit() {
+    let p = lastScannedProduct;
+    if (!p) return;
+    let idx = products.findIndex(pr => pr.id === p.id);
+    if (idx === -1) idx = findIdxByBarcode(p.barcode);
+    if (idx !== -1) {
+        products[idx].name = document.getElementById('editName').value.trim().toUpperCase();
+        products[idx].barcode = normBarcode(document.getElementById('editBarcode').value);
+        products[idx].price = parseFloat(document.getElementById('editPrice').value);
+        products[idx].cost = parseFloat(document.getElementById('editCost').value) || null;
+        products[idx].category = document.getElementById('editCategory').value;
+        let _q = parseInt(document.getElementById('editQuantity').value);
+        if (isNaN(_q) || _q <= 0) _q = 1;
+        products[idx].quantity = _q;
+        products[idx].expiry = document.getElementById('editExpiry').value;
+        await saveProductToIDB(products[idx]);
+        await updateUI();
+        showResult(products[idx]);
+        playBeep();
     }
 }
-
 async function addImageToResult(source) {
-    if (!lastScannedProduct) { showToast("Önce bir ürün okut!"); return; }
-    let input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    if (source === 'camera') input.capture = "environment";
+    if (!lastScannedProduct) {
+        showToast('Önce bir ürün okut!', 'warning');
+        return;
+    }
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    if (source === 'camera') input.capture = 'environment';
     input.onchange = async (e) => {
         let file = e.target.files[0];
         if (!file) return;
@@ -395,7 +806,7 @@ async function addImageToResult(source) {
             let idx = products.findIndex(p => p.id === lastScannedProduct.id);
             if (idx !== -1) {
                 products[idx].image = await compressImage(ev.target.result);
-                await saveProducts();
+                await saveProductToIDB(products[idx]);
                 showResult(products[idx]);
                 playBeep();
             }
@@ -405,90 +816,123 @@ async function addImageToResult(source) {
     input.click();
 }
 
-function clearResult(){ document.getElementById("resultArea").innerHTML=`<div class="result-placeholder">📷 BARKOD OKUTUN</div>`; lastScannedProduct=null; }
-function closeResultAndOpenDetail(idx){ clearResult(); openProductDetailModal(idx); }
-function showInlineEdit(){ let p=lastScannedProduct; document.getElementById("resultArea").innerHTML=`<button class="close-result-btn" onclick="clearResult()">✖</button><div><input id="editName" value="${escapeHtml(p.name)}" maxlength="35"><input id="editBarcode" value="${p.barcode}"><input id="editPrice" value="${p.price}"><input id="editCost" value="${p.cost||''}"><div id="inlineProfitBox" class="profit-box"></div><select id="editCategory">${p.category=="Dolap Ürünleri"?"<option selected>Dolap Ürünleri</option><option>Kuru Gıda</option>":"<option>Dolap Ürünleri</option><option selected>Kuru Gıda</option>"}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}"><input id="editExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveInlineEdit()">💾 KAYDET</button><button class="btn-cancel" onclick="showResult(lastScannedProduct)">İPTAL</button></div></div>`; setupPriceFields('editCost','editPrice','inlineProfitBox'); }
-async function saveInlineEdit(){ let idx=findIdxByBarcode(lastScannedProduct.barcode); if(idx===-1) idx=products.findIndex(p=>p.id===lastScannedProduct.id); if(idx!==-1){ products[idx].name=document.getElementById("editName").value.trim().toUpperCase(); products[idx].barcode=normBarcode(document.getElementById("editBarcode").value); products[idx].price=parseFloat(document.getElementById("editPrice").value); products[idx].cost=parseFloat(document.getElementById("editCost").value)||null; products[idx].category=document.getElementById("editCategory").value; let _q=parseInt(document.getElementById("editQuantity").value); if(isNaN(_q)||_q<=0)_q=1; products[idx].quantity=_q; products[idx].expiry=document.getElementById("editExpiry").value; await saveProducts(); await updateUI(); showResult(products[idx]); playBeep(); } }
-
-function addToPrintQueue(product){ if(!product)return;printQueue.push(JSON.parse(JSON.stringify(product)));savePrintQueue();showToast(`${product.name} etiket listesine eklendi.`); }
-function managePrintQueue(){ let c=document.getElementById("queueListContainer");c.innerHTML=!printQueue.length?"<div>Liste boş</div>":printQueue.map((p,i)=>`<div style="background:#3a3a3a;border-radius:40px;padding:10px;margin-bottom:8px;display:flex;justify-content:space-between;"><span>${escapeHtml(p.name)} (${p.price.toFixed(2)}€)</span><button onclick="removeFromQueue(${i})" style="background:#c0392b;border:none;border-radius:30px;padding:6px 12px;color:white;">ÇIKAR</button></div>`).join('');document.getElementById("queueModal").style.display="flex"; }
-function removeFromQueue(i){ printQueue.splice(i,1);savePrintQueue();managePrintQueue(); }
-function clearPrintQueue(){ if(confirm("Etiket listesi tamamen temizlensin mi?")){ printQueue=[];savePrintQueue();managePrintQueue();showToast("Liste temizlendi"); } }
-function closeQueueModal(){ document.getElementById("queueModal").style.display="none"; }
-
-function showMultiLabelPreview(){
-    if(!printQueue.length){ showToast("Etiket listesi boş! Önce '➕ ETİKET' butonuyla ürün ekleyin."); return; }
-    let modal=document.getElementById('angebotPreviewModal');
-    let content=document.getElementById('angebotPreviewContent');
-    let title=document.getElementById('angebotPreviewTitle');
-    let totalPages=Math.ceil(printQueue.length/21);
-    title.innerText=`👁️ ${printQueue.length} Etiket — ${totalPages} Sayfa`;
-    let pw=210, ph=297;
-    let pxW=Math.round(pw*3.779527), pxH=Math.round(ph*3.779527);
-    let scale=Math.min((window.innerWidth*0.85-48)/pxW,(window.innerHeight*0.72)/pxH,1);
-    let scaledW=Math.round(pxW*scale), scaledH=Math.round(pxH*scale);
-    let allPagesHtml='', barcodeIds=[];
-    for(let page=0;page<totalPages;page++){
-        let startIdx=page*21;
-        let items=[];
-        for(let i=0;i<21;i++){
-            let qIdx=startIdx+i;
-            let product=qIdx<printQueue.length?printQueue[qIdx]:null;
-            let bId=`mpr-bc-${page}-${i}`;
-            if(product){
-                let ip=Math.floor(product.price);
-                let ic=Math.round((product.price-ip)*100);
-                let cents=ic<10?'0'+ic:''+ic;
-                let imgTag=product.image?`<img src="${product.image}" style="max-width:100%;max-height:100%;object-fit:contain;">`:'<span style="font-size:1.2rem;">📷</span>';
-                items.push(`<td class="label-cell"><div class="label-outer"><div class="label-card"><div class="label-image-area"><div class="label-image">${imgTag}</div></div><div class="label-content-area"><div class="label-product-name">${escapeHtml(product.name)}</div><div class="label-price">${ip}<span class="cents">,${cents}</span><span class="currency">€</span></div></div></div><div class="label-barcode"><svg class="barcode-svg" id="${bId}"></svg></div></div></td>`);
-                barcodeIds.push({id:bId,barcode:product.barcode});
-            } else {
-                items.push(`<td class="label-cell" style="visibility:hidden;"></td>`);
-            }
-            if((i+1)%3===0 && i!==20) items.push(`</tr><tr>`);
-        }
-        allPagesHtml+=`<div style="width:${scaledW}px;height:${scaledH}px;overflow:hidden;position:relative;margin-bottom:8px;box-shadow:0 4px 16px rgba(0,0,0,0.4);flex-shrink:0;background:white;"><div style="position:absolute;top:0;left:0;width:${pxW}px;height:${pxH}px;transform:scale(${scale});transform-origin:top left;"><div class="label-grid-container"><table class="label-grid"><tr>${items.join('')}</tr></table></div></div></div>`;
-    }
-    content.innerHTML=`<div style="width:${scaledW}px;margin:0 auto;max-height:${Math.round(window.innerHeight*0.72)}px;overflow-y:auto;display:flex;flex-direction:column;">${allPagesHtml}</div>`;
-    setTimeout(()=>{
-        barcodeIds.forEach(({id,barcode})=>{
-            try{ JsBarcode(`#${id}`,barcode,{format:"CODE128",width:1.8,height:18,displayValue:true,fontSize:6}); }catch(e){}
-        });
-    },80);
-    document.getElementById('angebotModal').style.display='none';
-    modal.style.display='flex';
-    let printBtn=document.getElementById('angebotPreviewPrintBtn');
-    printBtn.onclick=()=>{ printMultiLabelPoster(); };
+// ---- PRINT QUEUE ----
+function addToPrintQueue(product) {
+    if (!product) return;
+    printQueue.push(JSON.parse(JSON.stringify(product)));
+    savePrintQueue();
+    showToast(`${product.name} etiket listesine eklendi.`, 'success');
 }
-function printMultiLabelPoster(){
-    if(!printQueue.length){ showToast("Etiket listesi boş!"); return; }
-    let w=window.open('','_blank');
-    if(!w){ showToast("⚠️ Açılır pencere engellendi! Tarayıcı ayarlarından izin verin."); return; }
-    let totalPages=Math.ceil(printQueue.length/21);
-    let allPagesHtml='', barcodeInits='';
-    for(let page=0;page<totalPages;page++){
-        let startIdx=page*21;
-        let items=[];
-        for(let i=0;i<21;i++){
-            let qIdx=startIdx+i;
-            let product=qIdx<printQueue.length?printQueue[qIdx]:null;
-            let bId=`pb-${page}-${i}`;
-            if(product){
-                let ip=Math.floor(product.price);
-                let ic=Math.round((product.price-ip)*100);
-                let cents=ic<10?'0'+ic:''+ic;
-                let imgTag=product.image?`<img src="${product.image}" style="max-width:100%;max-height:100%;object-fit:contain;">`:'';
+function managePrintQueue() {
+    let c = document.getElementById('queueListContainer');
+    c.innerHTML = !printQueue.length ? '<div style="text-align:center;color:#94a3b8;padding:20px;">Liste boş</div>' :
+        printQueue.map((p, i) => `
+            <div style="background:#3a3a3a;border-radius:40px;padding:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,0.08);">
+                <span style="font-weight:600;font-size:0.85rem;">${escapeHtml(p.name)} (${p.price.toFixed(2)} €)</span>
+                <button onclick="removeFromQueue(${i})" style="background:#ef4444;border:none;border-radius:30px;padding:4px 12px;color:white;cursor:pointer;">✖</button>
+            </div>
+        `).join('');
+    document.getElementById('queueModal').style.display = 'flex';
+}
+function removeFromQueue(i) {
+    printQueue.splice(i, 1);
+    savePrintQueue();
+    managePrintQueue();
+}
+function clearPrintQueue() {
+    if (confirm('Etiket listesi tamamen temizlensin mi?')) {
+        printQueue = [];
+        savePrintQueue();
+        managePrintQueue();
+        showToast('Liste temizlendi', 'success');
+    }
+}
+function closeQueueModal() {
+    document.getElementById('queueModal').style.display = 'none';
+}
+
+// ---- MULTI LABEL ----
+function showMultiLabelPreview() {
+    if (!printQueue.length) {
+        showToast('Etiket listesi boş! Önce "➕ ETİKET" butonuyla ürün ekleyin.', 'warning');
+        return;
+    }
+    let modal = document.getElementById('angebotPreviewModal');
+    let content = document.getElementById('angebotPreviewContent');
+    let title = document.getElementById('angebotPreviewTitle');
+    let totalPages = Math.ceil(printQueue.length / 21);
+    title.innerText = `👁️ ${printQueue.length} Etiket — ${totalPages} Sayfa`;
+    let pw = 210, ph = 297;
+    let pxW = Math.round(pw * 3.779527), pxH = Math.round(ph * 3.779527);
+    let scale = Math.min((window.innerWidth * 0.85 - 48) / pxW, (window.innerHeight * 0.72) / pxH, 1);
+    let scaledW = Math.round(pxW * scale), scaledH = Math.round(pxH * scale);
+    let allPagesHtml = '', barcodeIds = [];
+    for (let page = 0; page < totalPages; page++) {
+        let startIdx = page * 21;
+        let items = [];
+        for (let i = 0; i < 21; i++) {
+            let qIdx = startIdx + i;
+            let product = qIdx < printQueue.length ? printQueue[qIdx] : null;
+            let bId = `mpr-bc-${page}-${i}`;
+            if (product) {
+                let ip = Math.floor(product.price);
+                let ic = Math.round((product.price - ip) * 100);
+                let cents = ic < 10 ? '0' + ic : '' + ic;
+                let imgTag = product.image ? `<img src="${validateImageSrc(product.image)}" style="max-width:100%;max-height:100%;object-fit:contain;">` : '<span style="font-size:1.2rem;">📷</span>';
                 items.push(`<td class="label-cell"><div class="label-outer"><div class="label-card"><div class="label-image-area"><div class="label-image">${imgTag}</div></div><div class="label-content-area"><div class="label-product-name">${escapeHtml(product.name)}</div><div class="label-price">${ip}<span class="cents">,${cents}</span><span class="currency">€</span></div></div></div><div class="label-barcode"><svg class="barcode-svg" id="${bId}"></svg></div></div></td>`);
-                barcodeInits+=`try{JsBarcode("#${bId}","${product.barcode}",{format:"CODE128",width:1.8,height:18,displayValue:true,fontSize:6});}catch(e){}\n`;
+                barcodeIds.push({ id: bId, barcode: product.barcode });
             } else {
                 items.push(`<td class="label-cell" style="visibility:hidden;"></td>`);
             }
-            if((i+1)%3===0 && i!==20) items.push(`</tr><tr>`);
+            if ((i + 1) % 3 === 0 && i !== 20) items.push(`</tr><tr>`);
         }
-        let isLast=page===totalPages-1;
-        allPagesHtml+=`<div style="${isLast?'':'page-break-after:always;'}"><div class="label-grid-container"><table class="label-grid"><tr>${items.join('')}</tr></table></div></div>`;
+        allPagesHtml += `<div style="width:${scaledW}px;height:${scaledH}px;overflow:hidden;position:relative;margin-bottom:8px;box-shadow:0 4px 16px rgba(0,0,0,0.4);flex-shrink:0;background:white;"><div style="position:absolute;top:0;left:0;width:${pxW}px;height:${pxH}px;transform:scale(${scale});transform-origin:top left;"><div class="label-grid-container"><table class="label-grid"><tr>${items.join('')}</tr></table></div></div></div>`;
     }
-    let html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Etiket Poster</title>
+    content.innerHTML = `<div style="width:${scaledW}px;margin:0 auto;max-height:${Math.round(window.innerHeight * 0.72)}px;overflow-y:auto;display:flex;flex-direction:column;">${allPagesHtml}</div>`;
+    setTimeout(() => {
+        barcodeIds.forEach(({ id, barcode }) => {
+            try { JsBarcode(`#${id}`, barcode, { format: 'CODE128', width: 1.8, height: 18, displayValue: true, fontSize: 6 }); } catch(e) {}
+        });
+    }, 100);
+    document.getElementById('angebotModal').style.display = 'none';
+    modal.style.display = 'flex';
+    document.getElementById('angebotPreviewPrintBtn').onclick = () => { printMultiLabelPoster(); };
+}
+function printMultiLabelPoster() {
+    if (!printQueue.length) {
+        showToast('Etiket listesi boş!', 'warning');
+        return;
+    }
+    let w = window.open('', '_blank');
+    if (!w) {
+        showToast('⚠️ Açılır pencere engellendi! Tarayıcı ayarlarından izin verin.', 'error');
+        return;
+    }
+    let totalPages = Math.ceil(printQueue.length / 21);
+    let allPagesHtml = '', barcodeInits = '';
+    for (let page = 0; page < totalPages; page++) {
+        let startIdx = page * 21;
+        let items = [];
+        for (let i = 0; i < 21; i++) {
+            let qIdx = startIdx + i;
+            let product = qIdx < printQueue.length ? printQueue[qIdx] : null;
+            let bId = `pb-${page}-${i}`;
+            if (product) {
+                let ip = Math.floor(product.price);
+                let ic = Math.round((product.price - ip) * 100);
+                let cents = ic < 10 ? '0' + ic : '' + ic;
+                let imgTag = product.image ? `<img src="${validateImageSrc(product.image)}" style="max-width:100%;max-height:100%;object-fit:contain;">` : '';
+                items.push(`<td class="label-cell"><div class="label-outer"><div class="label-card"><div class="label-image-area"><div class="label-image">${imgTag}</div></div><div class="label-content-area"><div class="label-product-name">${escapeHtml(product.name)}</div><div class="label-price">${ip}<span class="cents">,${cents}</span><span class="currency">€</span></div></div></div><div class="label-barcode"><svg class="barcode-svg" id="${bId}"></svg></div></div></td>`);
+                barcodeInits += `try{JsBarcode("#${bId}","${product.barcode}",{format:"CODE128",width:1.8,height:18,displayValue:true,fontSize:6});}catch(e){}\n`;
+            } else {
+                items.push(`<td class="label-cell" style="visibility:hidden;"></td>`);
+            }
+            if ((i + 1) % 3 === 0 && i !== 20) items.push(`</tr><tr>`);
+        }
+        let isLast = page === totalPages - 1;
+        allPagesHtml += `<div style="${isLast ? '' : 'page-break-after:always;'}"><div class="label-grid-container"><table class="label-grid"><tr>${items.join('')}</tr></table></div></div>`;
+    }
+    let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Etiket Poster</title>
 <style>
 @page{size:A4 portrait;margin:0;}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -525,214 +969,812 @@ setTimeout(function(){ try{window.focus();}catch(e){} window.print(); }, 800);
 <\/script></body></html>`;
     w.document.write(html);
     w.document.close();
-    showToast("🖨️ Yazdırma penceresi açıldı. Liste korunuyor.");
+    showToast('🖨️ Yazdırma penceresi açıldı. Liste korunuyor.', 'success');
 }
 
-function openAngebotModal(p){ angebotProduct=p; document.getElementById('angebotProductName').innerHTML=`${escapeHtml(p.name)} — ${p.price.toFixed(2)} €`; document.getElementById('angebotOriginalPrice').innerHTML=p.price.toFixed(2); document.getElementById('angebotDiscountPrice').value=''; document.getElementById('angebotError').innerHTML=''; document.getElementById('angebotModal').style.display='flex'; }
-function validateDiscountPrice(originalPrice, discountPrice){ if(discountPrice===null || discountPrice===undefined || isNaN(discountPrice)) return false; if(discountPrice>=originalPrice){ document.getElementById('angebotError').innerHTML='❌ İndirimli fiyat, normal fiyattan küçük olmalıdır!'; return false; } if(discountPrice<=0){ document.getElementById('angebotError').innerHTML='❌ Geçerli bir indirimli fiyat girin.'; return false; } document.getElementById('angebotError').innerHTML=''; return true; }
-function generateAngebotWithDiscount(size, orientation){ if(!angebotProduct) return; let discountVal=parseFloat(document.getElementById('angebotDiscountPrice').value); if(!validateDiscountPrice(angebotProduct.price, discountVal)) return; currentDiscountPrice=discountVal; currentAngebotSize=size; currentAngebotOrientation=orientation; let modal=document.getElementById('angebotPreviewModal'); let content=document.getElementById('angebotPreviewContent'); let title=document.getElementById('angebotPreviewTitle'); let labelMap={a4:'A4',a5:'A5',a6:"A6 (4'LÜ)"}; title.innerText=`👁️ ${labelMap[size]} ${size==='a6'?'':(orientation==='portrait'?'DİKEY':'YATAY')}`; let printHTML=buildAngebotPrintHTML(size, orientation, angebotProduct, currentDiscountPrice); printHTML=printHTML.replace('<div class="toolbar"><button onclick="window.print()">🖨️ YAZDIR</button></div>',''); let escaped=printHTML.replace(/"/g,'&quot;'); let pwMM=210, phMM=297; if(size==='a4' && orientation==='landscape'){ pwMM=297; phMM=210; } let pxW=Math.round(pwMM*3.779527), pxH=Math.round(phMM*3.779527); let scale=Math.min((window.innerWidth*0.85-48)/pxW,(window.innerHeight*0.70)/pxH,1); let scaledW=Math.round(pxW*scale), scaledH=Math.round(pxH*scale); content.innerHTML=`<div style="width:${scaledW}px;height:${scaledH}px;margin:0 auto;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.45);background:white;"><iframe srcdoc="${escaped}" style="width:${pxW}px;height:${pxH}px;border:none;transform:scale(${scale});transform-origin:top left;" scrolling="no"></iframe></div>`; document.getElementById('angebotModal').style.display='none'; modal.style.display='flex'; document.getElementById('angebotPreviewPrintBtn').onclick=()=>{ printAngebotDirectWithDiscount(size, orientation); }; }
-function printAngebotDirectWithDiscount(size, orientation){ if(!angebotProduct) return; let discountVal=parseFloat(document.getElementById('angebotDiscountPrice').value); if(!validateDiscountPrice(angebotProduct.price, discountVal)) return; currentDiscountPrice=discountVal; let w=window.open('', '_blank'); if(!w){ showToast("⚠️ Açılır pencere engellendi! İzin verin."); return; } w.document.write(buildAngebotPrintHTML(size, orientation, angebotProduct, currentDiscountPrice)); w.document.close(); }
-function printCurrentAngebot(){ printAngebotDirectWithDiscount(currentAngebotSize, currentAngebotOrientation); }
-function closeAngebotPreview(){ document.getElementById('angebotPreviewModal').style.display='none'; document.getElementById('angebotModal').style.display='flex'; }
-
-function buildAngebotPrintHTML(size,orientation,p,discountPrice){
-    let originalPrice=p.price;
-    let showDiscount=(discountPrice!==null && discountPrice<originalPrice);
-    let finalPrice=showDiscount?discountPrice:originalPrice;
-    let ip=Math.floor(finalPrice);
-    let ic=Math.round((finalPrice-ip)*100);
-    let cents=ic<10?'0'+ic:''+ic;
-    let centsStr=ic===0?'—':cents;
-    let imgSrc=p.image?`<img src="${p.image}" style="max-width:100%;max-height:100%;object-fit:contain;">`:'';
-    let oip2=Math.floor(originalPrice); let oic2=Math.round((originalPrice-oip2)*100); let ocents2=oic2<10?'0'+oic2:''+oic2;
-    let oldBlock=showDiscount?`<div class="old-price">${oip2},${ocents2} €</div>`:'';
-    let fontLink=`<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">`;
-    let bodyCSS='', bodyHTML='';
-    if(size==='a6'){
-        bodyCSS=`@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;background:white;}body{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;width:210mm;height:297mm;}.card{border:1px dashed #bbb;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6mm;box-sizing:border-box;overflow:hidden;}.card .angebot{font-family:'Anton',Impact,sans-serif;font-size:30pt;font-weight:400;color:#cc0000;letter-spacing:1px;line-height:1;margin-bottom:2mm;}.card .img-box{width:100%;height:42mm;display:flex;align-items:center;justify-content:center;margin-bottom:2mm;}.card .img-box img{max-width:100%;max-height:100%;object-fit:contain;}.card .name{font-size:11pt;font-weight:900;color:#cc0000;margin:1mm 0;line-height:1.2;}.card .old-price{font-family:'Anton',Impact,sans-serif;font-size:11pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;margin-bottom:1mm;}.card .price-row{display:flex;align-items:flex-end;justify-content:center;line-height:1;}.card .price-num{font-family:'Anton',Impact,sans-serif;font-size:40pt;font-weight:400;color:#cc0000;line-height:1;}.card .price-cents{font-size:17pt;vertical-align:bottom;}.card .price-eur{font-family:'Anton',Impact,sans-serif;font-size:20pt;color:#cc0000;padding-bottom:3mm;margin-left:1mm;}`;
-        let card=`<div class="card"><div class="angebot">ANGEBOT</div><div class="img-box">${imgSrc}</div><div class="name">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},<span class="price-cents">${centsStr}</span></span><span class="price-eur">€</span></div></div>`;
-        bodyHTML=card+card+card+card;
-    } else if(size==='a5'){
-        if(orientation==='landscape'){
-            bodyCSS=`@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;background:white;}body{display:flex;flex-direction:column;width:210mm;height:297mm;}.poster{height:148.5mm;display:flex;align-items:stretch;overflow:hidden;border-bottom:1px dashed #bbb;box-sizing:border-box;}.img-side{flex:1;display:flex;align-items:center;justify-content:center;padding:8mm;}.img-side img{max-width:100%;max-height:100%;object-fit:contain;}.sep{width:3px;background:#cc0000;margin:14mm 0;border-radius:2px;flex-shrink:0;}.text-side{flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:8mm 10mm;gap:3mm;}.angebot{font-family:'Anton',Impact,sans-serif;font-size:34pt;font-weight:400;color:#cc0000;letter-spacing:1px;line-height:1;}.pname{font-family:'Anton',Impact,sans-serif;font-size:22pt;font-weight:400;color:#cc0000;line-height:1.1;text-transform:uppercase;margin:0;}.old-price{font-family:'Anton',Impact,sans-serif;font-size:13pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;margin:0;}.price-row{display:flex;align-items:flex-end;line-height:1;margin:0;}.price-num{font-family:'Anton',Impact,sans-serif;font-size:52pt;font-weight:400;color:#cc0000;line-height:1;}.price-cents{font-size:22pt;vertical-align:bottom;}.price-eur{font-family:'Anton',Impact,sans-serif;font-size:26pt;color:#cc0000;padding-bottom:4mm;margin-left:2mm;}`;
-            let poster=`<div class="poster"><div class="img-side">${imgSrc}</div><div class="sep"></div><div class="text-side"><div class="angebot">ANGEBOT</div><div class="pname">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},<span class="price-cents">${centsStr}</span></span><span class="price-eur">€</span></div></div></div>`;
-            bodyHTML=poster+poster;
+// ---- ANGEBOT ----
+function openAngebotModal(p) {
+    angebotProduct = p;
+    document.getElementById('angebotProductName').innerHTML = `${escapeHtml(p.name)} — ${p.price.toFixed(2)} €`;
+    document.getElementById('angebotOriginalPrice').innerHTML = p.price.toFixed(2);
+    document.getElementById('angebotDiscountPrice').value = '';
+    document.getElementById('angebotError').innerHTML = '';
+    document.getElementById('angebotModal').style.display = 'flex';
+}
+function validateDiscountPrice(originalPrice, discountPrice) {
+    if (discountPrice === null || discountPrice === undefined || isNaN(discountPrice)) return false;
+    if (discountPrice >= originalPrice) {
+        document.getElementById('angebotError').innerHTML = '❌ İndirimli fiyat, normal fiyattan küçük olmalı!';
+        return false;
+    }
+    if (discountPrice <= 0) {
+        document.getElementById('angebotError').innerHTML = '❌ Geçerli bir indirimli fiyat girin.';
+        return false;
+    }
+    document.getElementById('angebotError').innerHTML = '';
+    return true;
+}
+function generateAngebotWithDiscount(size, orientation) {
+    if (!angebotProduct) return;
+    let discountVal = parseFloat(document.getElementById('angebotDiscountPrice').value);
+    if (!validateDiscountPrice(angebotProduct.price, discountVal)) return;
+    currentDiscountPrice = discountVal;
+    currentAngebotSize = size;
+    currentAngebotOrientation = orientation;
+    let modal = document.getElementById('angebotPreviewModal');
+    let content = document.getElementById('angebotPreviewContent');
+    let title = document.getElementById('angebotPreviewTitle');
+    let labelMap = { a4: 'A4', a5: 'A5', a6: 'A6 (4\'LÜ)' };
+    title.innerText = `👁️ ${labelMap[size]} ${size === 'a6' ? '' : (orientation === 'portrait' ? 'DİKEY' : 'YATAY')}`;
+    let printHTML = buildAngebotHTML(size, orientation, angebotProduct, currentDiscountPrice);
+    printHTML = printHTML.replace('<div class="toolbar"><button onclick="window.print()">🖨️ YAZDIR</button></div>', '');
+    let escaped = printHTML.replace(/"/g, '&quot;');
+    let pwMM = 210, phMM = 297;
+    if (size === 'a4' && orientation === 'landscape') { pwMM = 297; phMM = 210; }
+    let pxW = Math.round(pwMM * 3.779527), pxH = Math.round(phMM * 3.779527);
+    let scale = Math.min((window.innerWidth * 0.85 - 48) / pxW, (window.innerHeight * 0.70) / pxH, 1);
+    let scaledW = Math.round(pxW * scale), scaledH = Math.round(pxH * scale);
+    content.innerHTML = `<div style="width:${scaledW}px;height:${scaledH}px;margin:0 auto;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.45);background:white;"><iframe srcdoc="${escaped}" style="width:${pxW}px;height:${pxH}px;border:none;transform:scale(${scale});transform-origin:top left;" scrolling="no"></iframe></div>`;
+    document.getElementById('angebotModal').style.display = 'none';
+    modal.style.display = 'flex';
+    document.getElementById('angebotPreviewPrintBtn').onclick = () => { printAngebotDirectWithDiscount(size, orientation); };
+}
+function printAngebotDirectWithDiscount(size, orientation) {
+    if (!angebotProduct) return;
+    let discountVal = parseFloat(document.getElementById('angebotDiscountPrice').value);
+    if (!validateDiscountPrice(angebotProduct.price, discountVal)) return;
+    currentDiscountPrice = discountVal;
+    let w = window.open('', '_blank');
+    if (!w) {
+        showToast('⚠️ Açılır pencere engellendi! İzin verin.', 'error');
+        return;
+    }
+    w.document.write(buildAngebotHTML(size, orientation, angebotProduct, currentDiscountPrice));
+    w.document.close();
+}
+function printCurrentAngebot() {
+    printAngebotDirectWithDiscount(currentAngebotSize, currentAngebotOrientation);
+}
+function closeAngebotPreview() {
+    document.getElementById('angebotPreviewModal').style.display = 'none';
+    document.getElementById('angebotModal').style.display = 'flex';
+}
+function buildAngebotHTML(size, orientation, p, discountPrice) {
+    let originalPrice = p.price;
+    let showDiscount = (discountPrice !== null && discountPrice < originalPrice);
+    let finalPrice = showDiscount ? discountPrice : originalPrice;
+    let ip = Math.floor(finalPrice);
+    let ic = Math.round((finalPrice - ip) * 100);
+    let cents = ic < 10 ? '0' + ic : '' + ic;
+    let centsStr = ic === 0 ? '—' : cents;
+    let imgSrc = p.image ? `<img src="${validateImageSrc(p.image)}" style="max-width:100%;max-height:100%;object-fit:contain;">` : '';
+    let oip2 = Math.floor(originalPrice);
+    let oic2 = Math.round((originalPrice - oip2) * 100);
+    let ocents2 = oic2 < 10 ? '0' + oic2 : '' + oic2;
+    let oldBlock = showDiscount ? `<div class="old-price">${oip2},${ocents2} €</div>` : '';
+    let fontLink = `<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">`;
+    let bodyCSS = '', bodyHTML = '';
+    if (size === 'a6') {
+        bodyCSS = `@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;background:white;}body{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;width:210mm;height:297mm;}.card{border:1px dashed #bbb;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6mm;box-sizing:border-box;overflow:hidden;}.card .angebot{font-family:'Anton',Impact,sans-serif;font-size:30pt;font-weight:400;color:#cc0000;letter-spacing:1px;line-height:1;margin-bottom:2mm;}.card .img-box{width:100%;height:42mm;display:flex;align-items:center;justify-content:center;margin-bottom:2mm;}.card .img-box img{max-width:100%;max-height:100%;object-fit:contain;}.card .name{font-size:11pt;font-weight:900;color:#cc0000;margin:1mm 0;line-height:1.2;}.card .old-price{font-family:'Anton',Impact,sans-serif;font-size:11pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;margin-bottom:1mm;}.card .price-row{display:flex;align-items:flex-end;justify-content:center;line-height:1;}.card .price-num{font-family:'Anton',Impact,sans-serif;font-size:40pt;font-weight:400;color:#cc0000;line-height:1;}.card .price-cents{font-size:17pt;vertical-align:bottom;}.card .price-eur{font-family:'Anton',Impact,sans-serif;font-size:20pt;color:#cc0000;padding-bottom:3mm;margin-left:1mm;}`;
+        let card = `<div class="card"><div class="angebot">ANGEBOT</div><div class="img-box">${imgSrc}</div><div class="name">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},<span class="price-cents">${centsStr}</span></span><span class="price-eur">€</span></div></div>`;
+        bodyHTML = card + card + card + card;
+    } else if (size === 'a5') {
+        if (orientation === 'landscape') {
+            bodyCSS = `@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;background:white;}body{display:flex;flex-direction:column;width:210mm;height:297mm;}.poster{height:148.5mm;display:flex;align-items:stretch;overflow:hidden;border-bottom:1px dashed #bbb;box-sizing:border-box;}.img-side{flex:1;display:flex;align-items:center;justify-content:center;padding:8mm;}.img-side img{max-width:100%;max-height:100%;object-fit:contain;}.sep{width:3px;background:#cc0000;margin:14mm 0;border-radius:2px;flex-shrink:0;}.text-side{flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:8mm 10mm;gap:3mm;}.angebot{font-family:'Anton',Impact,sans-serif;font-size:34pt;font-weight:400;color:#cc0000;letter-spacing:1px;line-height:1;}.pname{font-family:'Anton',Impact,sans-serif;font-size:22pt;font-weight:400;color:#cc0000;line-height:1.1;text-transform:uppercase;margin:0;}.old-price{font-family:'Anton',Impact,sans-serif;font-size:13pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;margin:0;}.price-row{display:flex;align-items:flex-end;line-height:1;margin:0;}.price-num{font-family:'Anton',Impact,sans-serif;font-size:52pt;font-weight:400;color:#cc0000;line-height:1;}.price-cents{font-size:22pt;vertical-align:bottom;}.price-eur{font-family:'Anton',Impact,sans-serif;font-size:26pt;color:#cc0000;padding-bottom:4mm;margin-left:2mm;}`;
+            let poster = `<div class="poster"><div class="img-side">${imgSrc}</div><div class="sep"></div><div class="text-side"><div class="angebot">ANGEBOT</div><div class="pname">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},<span class="price-cents">${centsStr}</span></span><span class="price-eur">€</span></div></div></div>`;
+            bodyHTML = poster + poster;
         } else {
-            bodyCSS=`@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;background:white;}body{display:flex;flex-direction:column;width:210mm;height:297mm;}.poster{height:148.5mm;display:flex;align-items:center;justify-content:center;overflow:hidden;border-bottom:1px dashed #bbb;box-sizing:border-box;}.group{display:flex;flex-direction:column;align-items:center;gap:0;}.angebot{font-family:'Anton',Impact,sans-serif;font-size:40pt;font-weight:400;color:#cc0000;letter-spacing:2px;line-height:1;text-align:center;margin:0;}.img-box{width:120mm;height:62mm;display:flex;align-items:center;justify-content:center;}.img-box img{max-width:100%;max-height:100%;object-fit:contain;}.pname{font-size:14pt;font-weight:900;color:#cc0000;text-align:center;max-width:130mm;line-height:1.2;margin:1.5mm 0;}.old-price{font-family:'Anton',Impact,sans-serif;font-size:13pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;text-align:center;margin:0 0 1mm 0;}.price-row{display:flex;align-items:flex-end;justify-content:center;line-height:1;margin:0;}.price-num{font-family:'Anton',Impact,sans-serif;font-size:54pt;font-weight:400;color:#cc0000;line-height:1;}.price-cents{font-size:23pt;vertical-align:bottom;}.price-eur{font-family:'Anton',Impact,sans-serif;font-size:26pt;color:#cc0000;padding-bottom:4mm;margin-left:2mm;}`;
-            let poster=`<div class="poster"><div class="group"><div class="angebot">ANGEBOT</div><div class="img-box">${imgSrc}</div><div class="pname">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},<span class="price-cents">${centsStr}</span></span><span class="price-eur">€</span></div></div></div>`;
-            bodyHTML=poster+poster;
+            bodyCSS = `@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;background:white;}body{display:flex;flex-direction:column;width:210mm;height:297mm;}.poster{height:148.5mm;display:flex;align-items:center;justify-content:center;overflow:hidden;border-bottom:1px dashed #bbb;box-sizing:border-box;}.group{display:flex;flex-direction:column;align-items:center;gap:0;}.angebot{font-family:'Anton',Impact,sans-serif;font-size:40pt;font-weight:400;color:#cc0000;letter-spacing:2px;line-height:1;text-align:center;margin:0;}.img-box{width:120mm;height:62mm;display:flex;align-items:center;justify-content:center;}.img-box img{max-width:100%;max-height:100%;object-fit:contain;}.pname{font-size:14pt;font-weight:900;color:#cc0000;text-align:center;max-width:130mm;line-height:1.2;margin:1.5mm 0;}.old-price{font-family:'Anton',Impact,sans-serif;font-size:13pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;text-align:center;margin:0 0 1mm 0;}.price-row{display:flex;align-items:flex-end;justify-content:center;line-height:1;margin:0;}.price-num{font-family:'Anton',Impact,sans-serif;font-size:54pt;font-weight:400;color:#cc0000;line-height:1;}.price-cents{font-size:23pt;vertical-align:bottom;}.price-eur{font-family:'Anton',Impact,sans-serif;font-size:26pt;color:#cc0000;padding-bottom:4mm;margin-left:2mm;}`;
+            let poster = `<div class="poster"><div class="group"><div class="angebot">ANGEBOT</div><div class="img-box">${imgSrc}</div><div class="pname">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},<span class="price-cents">${centsStr}</span></span><span class="price-eur">€</span></div></div></div>`;
+            bodyHTML = poster + poster;
         }
     } else {
-        if(orientation==='landscape'){
-            bodyCSS=`@page{size:A4 landscape;margin:0;}html,body{width:297mm;height:210mm;margin:0;padding:0;overflow:hidden;background:white;}body{display:flex;align-items:stretch;}.img-side{flex:1.1;display:flex;align-items:center;justify-content:center;padding:12mm;}.img-side img{max-width:100%;max-height:100%;object-fit:contain;}.sep{width:4px;background:#cc0000;margin:24mm 0;border-radius:2px;flex-shrink:0;}.text-side{flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:14mm 16mm;gap:6mm;}.angebot{font-family:'Anton',Impact,sans-serif;font-size:62pt;font-weight:400;color:#cc0000;letter-spacing:2px;line-height:1;margin:0;}.pname{font-family:'Anton',Impact,sans-serif;font-size:34pt;font-weight:400;color:#cc0000;line-height:1.05;text-transform:uppercase;margin:0;}.old-price{font-family:'Anton',Impact,sans-serif;font-size:20pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;margin:0;}.price-row{display:flex;align-items:flex-end;line-height:1;margin:0;}.price-num{font-family:'Anton',Impact,sans-serif;font-size:90pt;font-weight:400;color:#cc0000;line-height:1;}.price-cents{font-size:38pt;vertical-align:bottom;}.price-eur{font-family:'Anton',Impact,sans-serif;font-size:44pt;color:#cc0000;padding-bottom:8mm;margin-left:3mm;}`;
-            bodyHTML=`<div class="img-side">${imgSrc}</div><div class="sep"></div><div class="text-side"><div class="angebot">ANGEBOT</div><div class="pname">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},<span class="price-cents">${centsStr}</span></span><span class="price-eur">€</span></div></div>`;
+        if (orientation === 'landscape') {
+            bodyCSS = `@page{size:A4 landscape;margin:0;}html,body{width:297mm;height:210mm;margin:0;padding:0;overflow:hidden;background:white;}body{display:flex;align-items:stretch;}.img-side{flex:1.1;display:flex;align-items:center;justify-content:center;padding:12mm;}.img-side img{max-width:100%;max-height:100%;object-fit:contain;}.sep{width:4px;background:#cc0000;margin:24mm 0;border-radius:2px;flex-shrink:0;}.text-side{flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:14mm 16mm;gap:6mm;}.angebot{font-family:'Anton',Impact,sans-serif;font-size:62pt;font-weight:400;color:#cc0000;letter-spacing:2px;line-height:1;margin:0;}.pname{font-family:'Anton',Impact,sans-serif;font-size:34pt;font-weight:400;color:#cc0000;line-height:1.05;text-transform:uppercase;margin:0;}.old-price{font-family:'Anton',Impact,sans-serif;font-size:20pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;margin:0;}.price-row{display:flex;align-items:flex-end;line-height:1;margin:0;}.price-num{font-family:'Anton',Impact,sans-serif;font-size:90pt;font-weight:400;color:#cc0000;line-height:1;}.price-cents{font-size:38pt;vertical-align:bottom;}.price-eur{font-family:'Anton',Impact,sans-serif;font-size:44pt;color:#cc0000;padding-bottom:8mm;margin-left:3mm;}`;
+            bodyHTML = `<div class="img-side">${imgSrc}</div><div class="sep"></div><div class="text-side"><div class="angebot">ANGEBOT</div><div class="pname">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},<span class="price-cents">${centsStr}</span></span><span class="price-eur">€</span></div></div>`;
         } else {
-            bodyCSS=`@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;background:white;}body{display:flex;align-items:center;justify-content:center;}.group{display:flex;flex-direction:column;align-items:center;gap:0;}.angebot{font-family:'Anton',Impact,sans-serif;font-size:84pt;font-weight:400;color:#cc0000;letter-spacing:3px;line-height:1;text-align:center;margin:0;}.img-box{width:160mm;height:115mm;display:flex;align-items:center;justify-content:center;}.img-box img{max-width:100%;max-height:100%;object-fit:contain;}.pname{font-size:20pt;font-weight:900;color:#cc0000;text-align:center;max-width:165mm;line-height:1.3;margin:3mm 0;}.old-price{font-family:'Anton',Impact,sans-serif;font-size:18pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;text-align:center;margin:0 0 3mm 0;}.price-row{display:flex;align-items:flex-end;justify-content:center;line-height:1;margin:0;}.price-num{font-family:'Anton',Impact,sans-serif;font-size:108pt;font-weight:400;color:#cc0000;line-height:1;}.price-cents{font-size:46pt;vertical-align:bottom;}.price-eur{font-family:'Anton',Impact,sans-serif;font-size:50pt;color:#cc0000;padding-bottom:9mm;margin-left:3mm;}`;
-            bodyHTML=`<div class="group"><div class="angebot">ANGEBOT</div><div class="img-box">${imgSrc}</div><div class="pname">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},<span class="price-cents">${centsStr}</span></span><span class="price-eur">€</span></div></div>`;
+            bodyCSS = `@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;background:white;}body{display:flex;align-items:center;justify-content:center;}.group{display:flex;flex-direction:column;align-items:center;gap:0;}.angebot{font-family:'Anton',Impact,sans-serif;font-size:84pt;font-weight:400;color:#cc0000;letter-spacing:3px;line-height:1;text-align:center;margin:0;}.img-box{width:160mm;height:115mm;display:flex;align-items:center;justify-content:center;}.img-box img{max-width:100%;max-height:100%;object-fit:contain;}.pname{font-size:20pt;font-weight:900;color:#cc0000;text-align:center;max-width:165mm;line-height:1.3;margin:3mm 0;}.old-price{font-family:'Anton',Impact,sans-serif;font-size:18pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;text-align:center;margin:0 0 3mm 0;}.price-row{display:flex;align-items:flex-end;justify-content:center;line-height:1;margin:0;}.price-num{font-family:'Anton',Impact,sans-serif;font-size:108pt;font-weight:400;color:#cc0000;line-height:1;}.price-cents{font-size:46pt;vertical-align:bottom;}.price-eur{font-family:'Anton',Impact,sans-serif;font-size:50pt;color:#cc0000;padding-bottom:9mm;margin-left:3mm;}`;
+            bodyHTML = `<div class="group"><div class="angebot">ANGEBOT</div><div class="img-box">${imgSrc}</div><div class="pname">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},<span class="price-cents">${centsStr}</span></span><span class="price-eur">€</span></div></div>`;
         }
     }
     return `<!DOCTYPE html><html><head><meta charset="UTF-8">${fontLink}<style>.toolbar{position:fixed;top:0;left:0;width:100%;background:#222;color:white;padding:12px;text-align:center;z-index:99;font-family:system-ui,sans-serif;}.toolbar button{background:#e67e22;border:none;border-radius:30px;padding:12px 28px;color:white;font-weight:800;font-size:16px;cursor:pointer;}@media print{.toolbar{display:none!important;}}${bodyCSS}</style></head><body><div class="toolbar"><button onclick="window.print()">🖨️ YAZDIR</button></div>${bodyHTML}<script>window.addEventListener('load',function(){if(document.querySelector('.toolbar')){setTimeout(function(){try{window.focus();}catch(e){}window.print();},700);}});<\/script></body></html>`;
 }
 
-function openUrgentModal(){ let today=new Date(); let urgent=products.filter(p=>p.expiry && p.quantity>0 && Math.ceil((new Date(p.expiry)-today)/86400000)<=7 && Math.ceil((new Date(p.expiry)-today)/86400000)>=0); urgent.sort((a,b)=>new Date(a.expiry)-new Date(b.expiry)); let c=document.getElementById("urgentProductList"); if(urgent.length===0){ c.innerHTML="<div>7 gün içinde SKT'si geçecek ve stokta olan ürün yok.</div>"; } else { c.innerHTML=urgent.map(p=>{ let d=Math.ceil((new Date(p.expiry)-today)/86400000); let cl=getProductColorClass(p); return `<div class="${cl}" style="border-radius:28px;padding:12px;margin-bottom:10px;"><strong>${escapeHtml(p.name)}</strong><br>SKT: ${p.expiry} (${d} gün)<br>Stok: ${p.quantity}</div>`; }).join(''); } document.getElementById("urgentModal").style.display="flex"; }
-function closeUrgentModal(){ document.getElementById("urgentModal").style.display="none"; }
-async function openCameraModal(mode){
-    if(quaggaActive){ Quagga.stop(); Quagga.offDetected(); quaggaActive=false; }
-    if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-    let modal=document.getElementById("cameraModal"), video=document.getElementById("cameraVideo"), status=document.getElementById("cameraModalStatus");
-    sayimKameraMode=false;
-    modal.style.display="flex";
-    status.innerHTML="📷 BAŞLATILIYOR...";
-    try{
-        let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
-        video.srcObject=stream;
-        currentStream=stream;
-        await video.play();
-        Quagga.init({inputStream:{name:"LiveStream",type:"LiveStream",target:video},decoder:{readers:["ean_reader","ean_8_reader","upc_reader","code_128_reader"]},locate:true,frequency:10}, err=>{
-            if(err){ status.innerHTML="HATA"; return; }
-            Quagga.start();
-            quaggaActive=true;
-            status.innerHTML="🎥 BARKODU GÖSTER...";
-        });
-        let scanCounts={}, locked=false;
-        Quagga.offDetected();
-        Quagga.onDetected(data=>{
-            if(locked) return;
-            let code=data.codeResult.code;
-            if(!code||code.length<4) return;
-            scanCounts[code]=(scanCounts[code]||0)+1;
-            status.innerHTML="🎯 OKUNUYOR... ("+scanCounts[code]+"/2)";
-            if(scanCounts[code]<2) return;
-            locked=true;
-            playBeep();
-            if(quaggaActive){ Quagga.stop(); Quagga.offDetected(); quaggaActive=false; }
-            if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-            modal.style.display="none";
-            if(mode==='search'){
-                let found=findByBarcode(code);
-                if(found) showResult(found);
-                else {
-                    let cn=normBarcode(code);
-                    let pref=cn.replace(/^0+/,"").slice(0,7);
-                    let benzer=products.filter(p=>{
-                        let pb=normBarcode(p.barcode).replace(/^0+/,"");
-                        return pref.length>=5 && (pb.startsWith(pref.slice(0,6)) || cn.slice(0,6)===pb.slice(0,6));
-                    }).slice(0,5);
-                    let benzerHtml=benzer.length?'<div style="margin-top:12px;border-top:1px solid #555;padding-top:10px;"><div style="color:#ffaa88;font-size:0.8rem;margin-bottom:6px;">🔎 Benzer ürünler (yanlış okuma olabilir):</div>'+benzer.map(p=>{
-                        let i=products.findIndex(x=>x.id===p.id);
-                        return `<button onclick="closeResultAndOpenDetail(${i})" style="display:block;width:100%;text-align:left;background:#3a3a3a;border:none;border-radius:30px;padding:8px 12px;color:white;font-size:0.78rem;margin-bottom:5px;cursor:pointer;">${escapeHtml(p.name)} — ${p.barcode}</button>`;
-                    }).join('')+'</div>':'';
-                    document.getElementById("resultArea").innerHTML=`<div style="color:white;padding:10px;">❌ "${escapeHtml(code)}" BULUNAMADI<br><button class="btn btn-primary" onclick="showAddFormForBarcode('${code}')" style="margin-top:10px;width:100%;">➕ EKLE</button>${benzerHtml}</div>`;
-                }
-            } else showAddFormForBarcode(code);
-        });
-    } catch(e){
-        status.innerHTML="❌ KAMERA İZNİ GEREKLİ";
-        setTimeout(()=>{
-            if(quaggaActive){ Quagga.stop(); Quagga.offDetected(); quaggaActive=false; }
-            if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-            modal.style.display="none";
-        },2000);
+// ---- URGENT ----
+function openUrgentModal() {
+    let today = new Date(); today.setHours(0,0,0,0);
+    let urgent = products.filter(p => {
+        if (!p.expiry || p.quantity <= 0) return false;
+        let exp = new Date(p.expiry); exp.setHours(0,0,0,0);
+        let d = Math.ceil((exp - today) / 86400000);
+        return d <= 7 && d >= 0;
+    }).sort((a,b) => new Date(a.expiry) - new Date(b.expiry));
+    let c = document.getElementById('urgentProductList');
+    if (urgent.length === 0) {
+        c.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;">7 gün içinde SKT\'si geçecek ve stokta olan ürün yok.</div>';
+    } else {
+        c.innerHTML = urgent.map(p => {
+            let exp = new Date(p.expiry); exp.setHours(0,0,0,0);
+            let d = Math.ceil((exp - today) / 86400000);
+            let cl = getProductColorClass(p);
+            return `<div class="${cl}" style="border-radius:28px;padding:12px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.08);">
+                <strong>${escapeHtml(p.name)}</strong><br>
+                SKT: ${p.expiry} (${d} gün)<br>
+                Stok: ${p.quantity}
+            </div>`;
+        }).join('');
     }
+    document.getElementById('urgentModal').style.display = 'flex';
 }
-async function openSayimKamera(){
-    if(quaggaActive){ Quagga.stop(); Quagga.offDetected(); quaggaActive=false; }
-    if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-    let modal=document.getElementById("cameraModal"), video=document.getElementById("cameraVideo"), status=document.getElementById("cameraModalStatus");
-    sayimKameraMode=true;
-    document.getElementById("stokSayimModal").style.display="none";
-    modal.style.display="flex";
-    status.innerHTML="📷 SAYIM - BARKODU GÖSTER...";
-    try{
-        let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
-        video.srcObject=stream;
-        currentStream=stream;
-        video.play();
-        Quagga.init({inputStream:{name:"LiveStream",type:"LiveStream",target:video},decoder:{readers:["ean_reader","ean_8_reader","upc_reader","code_128_reader"]},locate:true,frequency:10}, err=>{
-            if(err){ status.innerHTML="HATA"; return; }
-            Quagga.start();
-            quaggaActive=true;
-            status.innerHTML="🎥 SAYIM: BARKODU GÖSTER...";
-        });
-        let detected=false, scanCounts={};
-        Quagga.offDetected();
-        Quagga.onDetected(data=>{
-            if(detected) return;
-            let code=data.codeResult.code;
-            if(!code||code.length<4) return;
-            scanCounts[code]=(scanCounts[code]||0)+1;
-            status.innerHTML="🎯 OKUNUYOR... ("+scanCounts[code]+"/2)";
-            if(scanCounts[code]<2) return;
-            detected=true;
-            playBeep();
-            if(quaggaActive){ Quagga.stop(); Quagga.offDetected(); quaggaActive=false; }
-            if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-            modal.style.display="none";
-            document.getElementById("stokSayimModal").style.display="flex";
-            let p=findByBarcode(code);
-            let nm=p?p.name:("Bilinmeyen: "+code);
-            let mev=sayimBarkodMap[code]||0;
-            let girilen=prompt("📦 "+nm+"\nSistem stoğu: "+(p?p.quantity:"?")+(mev>0?"\nÖnceki sayım: "+mev:"")+"\n\nKaç adet saydınız?",mev>0?String(mev):"1");
-            if(girilen!==null){
-                let adet=parseInt(girilen);
-                if(!isNaN(adet)&&adet>=0){
-                    if(adet===0) delete sayimBarkodMap[code];
-                    else sayimBarkodMap[code]=adet;
-                    renderSayimBarkodListe();
-                    showToast(adet===0?"Listeden çıkarıldı":"✅ "+nm+" → "+adet+" adet");
-                } else showToast("❌ Geçersiz miktar!");
-            }
-            sayimKameraMode=false;
-        });
-    } catch(e){
-        modal.style.display="none";
-        document.getElementById("stokSayimModal").style.display="flex";
-        showToast("❌ Kamera açılamadı!");
-        sayimKameraMode=false;
-    }
+function closeUrgentModal() {
+    document.getElementById('urgentModal').style.display = 'none';
 }
-function closeCameraModal(){
-    if(quaggaActive){ Quagga.stop(); Quagga.offDetected(); quaggaActive=false; }
-    if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-    document.getElementById("cameraModal").style.display="none";
-    if(sayimKameraMode){ document.getElementById("stokSayimModal").style.display="flex"; sayimKameraMode=false; }
-}
-function openStokSayimModal(){ sayimBarkodMap={}; setSayimMod('liste'); document.getElementById("stokSayimModal").style.display="flex"; }
-function closeStokSayimModal(){ document.getElementById("stokSayimModal").style.display="none"; }
-function setSayimMod(mod){ sayimMod=mod; document.getElementById('sayimModListeBtn').style.background=mod==='liste'?'#3498db':'#2a2a2a'; document.getElementById('sayimModBarkodBtn').style.background=mod==='barkod'?'#3498db':'#2a2a2a'; document.getElementById('sayimListeContainer').style.display=mod==='liste'?'block':'none'; document.getElementById('sayimBarkodContainer').style.display=mod==='barkod'?'block':'none'; if(mod==='liste') renderSayimListe(); else renderSayimBarkodListe(); }
-function renderSayimListe(){ let s=(document.getElementById('sayimSearchInput')?.value||'').toLowerCase(); let f=products.filter(p=>!s||p.name.toLowerCase().includes(s)||p.barcode.includes(s)); let sorted=[...f].sort((a,b)=>a.name.localeCompare(b.name)); let c=document.getElementById('sayimListeItems'); if(!sorted.length){ c.innerHTML='<div style="color:#aaa;text-align:center;padding:16px">Ürün bulunamadı</div>'; return; } c.innerHTML=sorted.map(p=>{ let preset=p.quantity===0?'value="1"':''; let diffInit=p.quantity===0?'<span class="sayim-diff-pos">+1</span>':'<span class="sayim-diff-zero">—</span>'; return `<div class="sayim-item"><div class="sayim-name">${escapeHtml(p.name)}</div><div class="sayim-mevcut">Şu an:${p.quantity}</div><input type="number" class="sayim-input" id="sayim_${p.barcode}" placeholder="—" min="0" ${preset} oninput="updateSayimDiff('${p.barcode}',${p.quantity})"><span id="sayimdiff_${p.barcode}" class="${p.quantity===0?'sayim-diff-pos':'sayim-diff-zero'}">${diffInit}</span></div>`; }).join(''); }
-function updateSayimDiff(bc,mev){ let inp=document.getElementById('sayim_'+bc),del=document.getElementById('sayimdiff_'+bc); if(!inp||!del) return; let v=parseInt(inp.value); if(isNaN(v)){ del.innerText='—'; del.className='sayim-diff-zero'; return; } let d=v-mev; if(d>0){ del.innerText='+'+d; del.className='sayim-diff-pos'; } else if(d<0){ del.innerText=String(d); del.className='sayim-diff-neg'; } else { del.innerText='✓'; del.className='sayim-diff-zero'; } }
-async function saveSayimListe(){ let cnt=0; products.forEach(p=>{ let inp=document.getElementById('sayim_'+p.barcode); if(inp && inp.value!==''){ let v=parseInt(inp.value); if(!isNaN(v)){ p.quantity=v; cnt++; } } }); if(!cnt){ showToast('Hiç miktar girilmedi!'); return; } await saveProducts(); await updateUI(); showToast('✅ '+cnt+' ürün güncellendi'); closeStokSayimModal(); }
-function resetSayimInputs(){ products.forEach(p=>{ let i=document.getElementById('sayim_'+p.barcode); if(i) i.value=''; let d=document.getElementById('sayimdiff_'+p.barcode); if(d){ d.innerText='—'; d.className='sayim-diff-zero'; } }); }
-function renderSayimBarkodListe(){ let c=document.getElementById('sayimBarkodListesi'); let keys=Object.keys(sayimBarkodMap); if(!keys.length){ c.innerHTML='<div style="color:#aaa;text-align:center;padding:16px">Henüz ürün taranmadı</div>'; return; } c.innerHTML=keys.map(bc=>{ let p=products.find(x=>x.barcode===bc), nm=p?p.name:bc, mev=p?p.quantity:0, say=sayimBarkodMap[bc], d=say-mev; let dh=d>0?`<span class="sayim-diff-pos">+${d}</span>`:d<0?`<span class="sayim-diff-neg">${d}</span>`:`<span class="sayim-diff-zero">✓</span>`; return `<div class="sayim-item"><div class="sayim-name">${escapeHtml(nm)}</div><div class="sayim-mevcut">Şu an:${mev}</div><div style="font-weight:900;color:#ffaa88;min-width:28px;text-align:center;">${say}x</div>${dh}<button onclick="removeSayimBarkod('${bc}')" style="background:#c0392b;border:none;border-radius:20px;padding:4px 10px;color:white;font-size:0.7rem;cursor:pointer;">✕</button></div>`; }).join(''); }
-function removeSayimBarkod(bc){ delete sayimBarkodMap[bc]; renderSayimBarkodListe(); }
-function clearSayimBarkod(){ if(confirm('Sayım listesi temizlensin mi?')){ sayimBarkodMap={}; renderSayimBarkodListe(); } }
-async function saveSayimBarkod(){ let keys=Object.keys(sayimBarkodMap); if(!keys.length){ showToast('Hiç ürün taranmadı!'); return; } let cnt=0; keys.forEach(bc=>{ let p=products.find(x=>x.barcode===bc); if(p){ p.quantity=sayimBarkodMap[bc]; cnt++; } }); await saveProducts(); await updateUI(); showToast('✅ '+cnt+' ürün stoğu güncellendi'); sayimBarkodMap={}; closeStokSayimModal(); }
-function showAddFormForBarcode(barcode){ let c=document.getElementById("addFormContainer"); c.classList.remove("hidden"); c.innerHTML=`<div style="background:#2a2a2a;padding:20px;border-radius:40px;margin-top:10px;"><strong style="color:white;display:block;margin-bottom:8px;">➕ YENİ ÜRÜN</strong><input id="addBarcode" value="${barcode}"><input id="addName" placeholder="Ürün adı (max 35)" maxlength="35"><input id="addPrice" placeholder="Fiyat (€) — 549 → 5.49 otomatik"><input id="addCost" placeholder="Maliyet (€) — 349 → 3.49 otomatik"><div id="addProfitBox" class="profit-box"><div class="profit-suggested">💰 Maliyet girilirse fiyat önerilir</div></div><select id="addCategory"><option selected>Dolap Ürünleri</option><option>Kuru Gıda</option></select><input id="addQuantity" placeholder="Stok" value="1" type="number"><input id="addExpiry" type="date"><div class="image-buttons-group"><button onclick="openGoogleSearchForAdd()" style="background:#27ae60;flex:unset;width:100%;">🔍 İNTERNET'TEN GÖRSEL ARA</button></div><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')">🖼️ GALERİ</button><button onclick="captureImageForAdd('camera')">📷 KAMERA</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProduct()">💾 KAYDET</button><button class="btn-cancel" onclick="closeAddForm()">İPTAL</button></div></div>`; setupPriceFields('addCost','addPrice','addProfitBox'); }
-async function saveNewProduct(){ let barcode=normBarcode(document.getElementById("addBarcode").value), name=document.getElementById("addName").value.trim().toUpperCase(), price=parseFloat(document.getElementById("addPrice").value), cost=parseFloat(document.getElementById("addCost").value)||null, category=document.getElementById("addCategory").value, quantity=parseInt(document.getElementById("addQuantity").value)||1, expiry=document.getElementById("addExpiry").value; if(!name||!barcode||isNaN(price)){ showToast("Eksik bilgi!"); return; } let existing=findIdxByBarcode(barcode); if(existing!==-1 && confirm("Barkod var, üzerine yazılsın mı?")) products[existing]={...products[existing], barcode, name, price, cost, category, quantity, expiry, image:tempImageData||products[existing].image}; else products.push({barcode, name, price, cost, category, quantity, expiry, image:tempImageData, id:Date.now()}); await saveProducts(); tempImageData=null; closeAddForm(); showToast("✅ Ürün kaydedildi!"); await updateUI(); }
-function closeAddForm(){ document.getElementById("addFormContainer").classList.add("hidden"); document.getElementById("addFormContainer").innerHTML=""; tempImageData=null; }
-async function captureImageForAdd(source){ let input=document.createElement("input"); input.type="file"; input.accept="image/*"; if(source==='camera') input.capture="environment"; input.onchange=async(e)=>{ let file=e.target.files[0]; if(file){ let reader=new FileReader(); reader.onload=async(ev)=>{ tempImageData=await compressImage(ev.target.result); showToast("Resim hazır!"); }; reader.readAsDataURL(file); } }; input.click(); }
-function openGoogleSearchForAdd(){ let name=(document.getElementById("addName")?.value||'').trim(); if(name) window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank'); else showToast("Önce ürün adı girin!"); }
-function openManualAddModal(){ let container=document.getElementById("manualAddFormContainer"); container.innerHTML=`<div><input id="addBarcode" placeholder="Barkod (manuel gir)"><input id="addName" placeholder="Ürün adı (max 35)" maxlength="35"><input id="addPrice" placeholder="Fiyat (€) — 549 → 5.49 otomatik"><input id="addCost" placeholder="Maliyet (€) — 349 → 3.49 otomatik"><div id="addProfitBox" class="profit-box"></div><select id="addCategory"><option selected>Dolap Ürünleri</option><option>Kuru Gıda</option></select><input id="addQuantity" placeholder="Stok" value="1" type="number"><input id="addExpiry" type="date"><div class="image-buttons-group"><button onclick="openGoogleSearchForAdd()" style="background:#27ae60;flex:unset;width:100%;">🔍 İNTERNET'TEN GÖRSEL ARA</button></div><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')">🖼️ GALERİ</button><button onclick="captureImageForAdd('camera')">📷 KAMERA</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProductFromModal()">💾 KAYDET</button><button class="btn-cancel" onclick="closeManualAddModal()">İPTAL</button></div></div>`; setupPriceFields('addCost','addPrice','addProfitBox'); document.getElementById("manualAddModal").style.display="flex"; }
-function closeManualAddModal(){ document.getElementById("manualAddModal").style.display="none"; tempImageData=null; }
-async function saveNewProductFromModal(){ let barcode=normBarcode(document.getElementById("addBarcode").value), name=document.getElementById("addName").value.trim().toUpperCase(), price=parseFloat(document.getElementById("addPrice").value), cost=parseFloat(document.getElementById("addCost").value)||null, category=document.getElementById("addCategory").value, quantity=parseInt(document.getElementById("addQuantity").value)||1, expiry=document.getElementById("addExpiry").value; if(!name||!barcode||isNaN(price)){ showToast("Eksik bilgi!"); return; } let existing=findIdxByBarcode(barcode); if(existing!==-1 && confirm("Barkod var, üzerine yazılsın mı?")) products[existing]={...products[existing], barcode, name, price, cost, category, quantity, expiry, image:tempImageData||products[existing].image}; else products.push({barcode, name, price, cost, category, quantity, expiry, image:tempImageData, id:Date.now()}); await saveProducts(); tempImageData=null; closeManualAddModal(); showToast(`✅ Ürün kaydedildi: ${name}`); await updateUI(); }
-function openDrawer(){ document.getElementById("drawer").style.left="0"; document.getElementById("drawerOverlay").style.display="block"; }
-function closeDrawer(){ document.getElementById("drawer").style.left="-255px"; document.getElementById("drawerOverlay").style.display="none"; }
-async function backupData(){ try{ const backup={products:products, printQueue:printQueue, tarih:new Date().toISOString()}; const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); const now=new Date(); const stamp=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+'_'+String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0'); a.download=`MarketPro_Yedek_${stamp}.json`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); showToast("💾 Yedek telefona indirildi"); }catch(e){ showToast("❌ Yedek alınamadı"); } }
-function backupToGoogleDrive(){ try{ let data={products:products, printQueue:printQueue, tarih:new Date().toISOString()}; let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}); let now=new Date(); let stamp=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+'_'+String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0'); let fileName=`MarketPro_Yedek_${stamp}.json`; let file=new File([blob],fileName,{type:"application/json"}); if(navigator.canShare && navigator.canShare({files:[file]})){ navigator.share({files:[file], title:fileName, text:'Market Pro yedek dosyası'}).then(()=>{ showToast("☁️ Paylaşım açıldı — Google Drive'ı seçin"); }).catch(()=>{ backupData(); }); } else { backupData(); } }catch(e){ backupData(); } }
-async function restoreData(){ let inp=document.createElement("input"); inp.type="file"; inp.accept="application/json"; inp.onchange=async e=>{ let file=e.target.files[0]; let r=new FileReader(); r.onload=async ev=>{ try{ let d=JSON.parse(ev.target.result); console.log('📂 Yedek içeriği:', d); if(Array.isArray(d)){ products=d; await saveProductsToIDB(products); showToast("Yedek yüklendi"); location.reload(); } else if(d && Array.isArray(d.products)){ products=d.products; if(Array.isArray(d.printQueue)){ printQueue=d.printQueue; savePrintQueue(); } await saveProductsToIDB(products); showToast("Yedek yüklendi"); location.reload(); } else throw 0; } catch(err){ showToast("Hatalı dosya!"); } }; r.readAsText(file); }; inp.click(); }
-async function clearAllData(){ if(confirm("TÜM VERİLER SİLİNECEK!")){ products=[]; await saveProductsToIDB(products); printQueue=[]; savePrintQueue(); showToast("Veriler silindi"); location.reload(); } }
-function exportToCSV(){ let rows=[["Ad","Barkod","Fiyat (€)","Stok","Maliyet (€)","Kar (€)","Kar%","SKT","Kategori"]]; for(let p of products){ let pr=(p.cost&&p.cost>0)?(p.price-p.cost):0, m=(p.cost&&p.cost>0&&p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0"; rows.push([`"${p.name}"`, p.barcode, p.price, p.quantity, p.cost||0, pr.toFixed(2), m, p.expiry||"", p.category]); } let csv=rows.map(r=>r.join(",")).join("\n"), blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}), a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="envanter_raporu.csv"; a.click(); URL.revokeObjectURL(a.href); showToast("CSV indirildi."); }
-function printReport(){ let html=`<table border="1"><thead><tr><th>Ad</th><th>Barkod</th><th>Fiyat</th><th>Stok</th><th>Maliyet</th><th>Kar</th><th>Kar%</th><th>SKT</th><th>Kategori</th></tr></thead><tbody>`; for(let p of products){ let pr=(p.cost&&p.cost>0)?(p.price-p.cost):0, m=(p.cost&&p.cost>0&&p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0"; html+=`<tr><td>${escapeHtml(p.name)}</td><td>${p.barcode}</td><td>${p.price.toFixed(2)}</td><td>${p.quantity}</td><td>${p.cost?p.cost.toFixed(2):'0'}</td><td>${pr.toFixed(2)}</td><td>${m}%</td><td>${p.expiry||''}</td><td>${p.category}</td></tr>`; } html+=`</tbody></table>`; document.getElementById("printTableContainer").innerHTML=html; document.getElementById("printModal").style.display="flex"; }
-async function compressAllImages(){ let cnt=0; for(let p of products){ if(p.image && p.image.length>60000){ p.image=await compressImage(p.image); cnt++; } } if(cnt) await saveProducts(); showToast(cnt?`${cnt} resim sıkıştırıldı`:"Sıkıştırılacak yok"); }
-function updateClock(){ let now=new Date(); let h=String(now.getHours()).padStart(2,'0'); let m=String(now.getMinutes()).padStart(2,'0'); let s=String(now.getSeconds()).padStart(2,'0'); let dd=String(now.getDate()).padStart(2,'0'); let mo=String(now.getMonth()+1).padStart(2,'0'); let timeEl=document.getElementById('clockTime'); let dateEl=document.getElementById('clockDate'); if(timeEl) timeEl.textContent=h+':'+m+':'+s; if(dateEl) dateEl.textContent=dd+'/'+mo; }
-document.getElementById("searchBtn").onclick=()=>openCameraModal('search');
-document.getElementById("addBtn").onclick=()=>openCameraModal('add');
-document.getElementById("productSearchBtn").onclick=()=>openInventoryModal();
-document.getElementById("manualAddBtn").onclick=openManualAddModal;
-document.getElementById("closeCameraModalBtn").onclick=closeCameraModal;
 
-(async function init(){ await openIndexedDB(); await migrateFromLocalStorage(); await loadProducts(); await loadPrintQueue(); await updateUI(); showToast("✅ Market Pro Hazır! (IndexedDB modu)"); updateClock(); setInterval(updateClock, 1000); })();
+// ---- STOK SAYIM ----
+function openStokSayimModal() {
+    sayimBarkodMap = {};
+    setSayimMod('liste');
+    document.getElementById('stokSayimModal').style.display = 'flex';
+}
+function closeStokSayimModal() {
+    document.getElementById('stokSayimModal').style.display = 'none';
+}
+function setSayimMod(mod) {
+    sayimMod = mod;
+    document.getElementById('sayimModListeBtn').style.background = mod === 'liste' ? '#3498db' : '#2a2a2a';
+    document.getElementById('sayimModBarkodBtn').style.background = mod === 'barkod' ? '#3498db' : '#2a2a2a';
+    document.getElementById('sayimListeContainer').style.display = mod === 'liste' ? 'block' : 'none';
+    document.getElementById('sayimBarkodContainer').style.display = mod === 'barkod' ? 'block' : 'none';
+    if (mod === 'liste') renderSayimListe();
+    else renderSayimBarkodListe();
+}
+function renderSayimListe() {
+    let s = (document.getElementById('sayimSearchInput')?.value || '').toLowerCase();
+    let f = products.filter(p => !s || p.name.toLowerCase().includes(s) || p.barcode.includes(s));
+    let sorted = [...f].sort((a,b) => a.name.localeCompare(b.name));
+    let c = document.getElementById('sayimListeItems');
+    if (!sorted.length) {
+        c.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:16px;">Ürün bulunamadı</div>';
+        return;
+    }
+    c.innerHTML = sorted.map(p => {
+        let preset = p.quantity === 0 ? 'value="1"' : '';
+        let diffInit = p.quantity === 0 ? '<span class="sayim-diff-pos">+1</span>' : '<span class="sayim-diff-zero">—</span>';
+        return `<div class="sayim-item">
+            <div class="sayim-name">${escapeHtml(p.name)}</div>
+            <div class="sayim-mevcut">Şu an: ${p.quantity}</div>
+            <input type="number" class="sayim-input" id="sayim_${p.barcode}" placeholder="—" min="0" ${preset} oninput="updateSayimDiff('${p.barcode}',${p.quantity})">
+            <span id="sayimdiff_${p.barcode}" class="${p.quantity === 0 ? 'sayim-diff-pos' : 'sayim-diff-zero'}">${diffInit}</span>
+        </div>`;
+    }).join('');
+}
+function updateSayimDiff(bc, mev) {
+    let inp = document.getElementById('sayim_' + bc);
+    let del = document.getElementById('sayimdiff_' + bc);
+    if (!inp || !del) return;
+    let v = parseInt(inp.value);
+    if (isNaN(v)) { del.innerText = '—'; del.className = 'sayim-diff-zero'; return; }
+    let d = v - mev;
+    if (d > 0) { del.innerText = '+' + d; del.className = 'sayim-diff-pos'; }
+    else if (d < 0) { del.innerText = String(d); del.className = 'sayim-diff-neg'; }
+    else { del.innerText = '✓'; del.className = 'sayim-diff-zero'; }
+}
+async function saveSayimListe() {
+    let cnt = 0;
+    products.forEach(p => {
+        let inp = document.getElementById('sayim_' + p.barcode);
+        if (inp && inp.value !== '') {
+            let v = parseInt(inp.value);
+            if (!isNaN(v)) { p.quantity = v; cnt++; }
+        }
+    });
+    if (!cnt) { showToast('Hiç miktar girilmedi!', 'warning'); return; }
+    await saveProducts();
+    await updateUI();
+    showToast('✅ ' + cnt + ' ürün güncellendi', 'success');
+    closeStokSayimModal();
+}
+function resetSayimInputs() {
+    products.forEach(p => {
+        let i = document.getElementById('sayim_' + p.barcode);
+        if (i) i.value = '';
+        let d = document.getElementById('sayimdiff_' + p.barcode);
+        if (d) { d.innerText = '—'; d.className = 'sayim-diff-zero'; }
+    });
+}
+function renderSayimBarkodListe() {
+    let c = document.getElementById('sayimBarkodListesi');
+    let keys = Object.keys(sayimBarkodMap);
+    if (!keys.length) {
+        c.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:16px;">Henüz ürün taranmadı</div>';
+        return;
+    }
+    c.innerHTML = keys.map(bc => {
+        let p = products.find(x => x.barcode === bc);
+        let nm = p ? p.name : bc;
+        let mev = p ? p.quantity : 0;
+        let say = sayimBarkodMap[bc];
+        let d = say - mev;
+        let dh = d > 0 ? `<span class="sayim-diff-pos">+${d}</span>` : d < 0 ? `<span class="sayim-diff-neg">${d}</span>` : `<span class="sayim-diff-zero">✓</span>`;
+        return `<div class="sayim-item">
+            <div class="sayim-name">${escapeHtml(nm)}</div>
+            <div class="sayim-mevcut">Şu an: ${mev}</div>
+            <div style="font-weight:900;color:#ffaa88;min-width:28px;text-align:center;">${say}x</div>
+            ${dh}
+            <button onclick="removeSayimBarkod('${bc}')" style="background:#ef4444;border:none;border-radius:20px;padding:2px 10px;color:white;font-size:0.7rem;cursor:pointer;">✖</button>
+        </div>`;
+    }).join('');
+}
+function removeSayimBarkod(bc) {
+    delete sayimBarkodMap[bc];
+    renderSayimBarkodListe();
+}
+function clearSayimBarkod() {
+    if (confirm('Sayım listesi temizlensin mi?')) {
+        sayimBarkodMap = {};
+        renderSayimBarkodListe();
+    }
+}
+async function saveSayimBarkod() {
+    let keys = Object.keys(sayimBarkodMap);
+    if (!keys.length) { showToast('Hiç ürün taranmadı!', 'warning'); return; }
+    let cnt = 0;
+    keys.forEach(bc => {
+        let p = products.find(x => x.barcode === bc);
+        if (p) { p.quantity = sayimBarkodMap[bc]; cnt++; }
+    });
+    await saveProducts();
+    await updateUI();
+    showToast('✅ ' + cnt + ' ürün stoğu güncellendi', 'success');
+    sayimBarkodMap = {};
+    closeStokSayimModal();
+}
+
+// ---- CAMERA ----
+function cleanupQuagga() {
+    if (quaggaActive) {
+        try { Quagga.stop(); } catch(e) {}
+        quaggaActive = false;
+    }
+    try { Quagga.offDetected(); } catch(e) {}
+    if (currentStream) {
+        currentStream.getTracks().forEach(t => t.stop());
+        currentStream = null;
+    }
+}
+async function openCameraModal(mode) {
+    cleanupQuagga();
+    let modal = document.getElementById('cameraModal');
+    let video = document.getElementById('cameraVideo');
+    let status = document.getElementById('cameraModalStatus');
+    sayimKameraMode = false;
+    modal.style.display = 'flex';
+    status.innerHTML = '📷 BAŞLATILIYOR...';
+    try {
+        let stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = stream;
+        currentStream = stream;
+        await video.play();
+        Quagga.init({
+            inputStream: { name: 'LiveStream', type: 'LiveStream', target: video },
+            decoder: { readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'code_128_reader'] },
+            locate: true,
+            frequency: 10
+        }, err => {
+            if (err) { status.innerHTML = 'HATA'; return; }
+            Quagga.start();
+            quaggaActive = true;
+            status.innerHTML = '🎥 BARKODU GÖSTER...';
+        });
+        let scanCounts = {}, locked = false;
+        Quagga.offDetected();
+        Quagga.onDetected(data => {
+            if (locked) return;
+            let code = data.codeResult.code;
+            if (!code || code.length < 4) return;
+            scanCounts[code] = (scanCounts[code] || 0) + 1;
+            status.innerHTML = '🎯 OKUNUYOR... (' + scanCounts[code] + '/2)';
+            if (scanCounts[code] < 2) return;
+            locked = true;
+            playBeep();
+            cleanupQuagga();
+            modal.style.display = 'none';
+            if (mode === 'search') {
+                let found = findByBarcode(code);
+                if (found) {
+                    showResult(found);
+                } else {
+                    let cn = normBarcode(code);
+                    let pref = cn.replace(/^0+/, '').slice(0, 7);
+                    let benzer = products.filter(p => {
+                        let pb = normBarcode(p.barcode).replace(/^0+/, '');
+                        return pref.length >= 5 && (pb.startsWith(pref.slice(0, 6)) || cn.slice(0, 6) === pb.slice(0, 6));
+                    }).slice(0, 5);
+                    let benzerHtml = benzer.length ? '<div style="margin-top:12px;border-top:1px solid #555;padding-top:10px;"><div style="color:#ffaa88;font-size:0.8rem;margin-bottom:6px;">🔎 Benzer ürünler (yanlış okuma olabilir):</div>' +
+                        benzer.map(p => {
+                            let i = products.findIndex(x => x.id === p.id);
+                            return `<button onclick="closeResultAndOpenDetail(${i})" style="display:block;width:100%;text-align:left;background:#3a3a3a;border:1px solid #555;border-radius:30px;padding:8px 12px;color:white;font-size:0.78rem;margin-bottom:5px;cursor:pointer;">${escapeHtml(p.name)} — ${p.barcode}</button>`;
+                        }).join('') + '</div>' : '';
+                    document.getElementById('resultArea').innerHTML = `
+                        <div style="color:white;padding:10px;">
+                            ❌ "${escapeHtml(code)}" BULUNAMADI
+                            <br>
+                            <button class="btn btn-primary" onclick="showAddFormForBarcode('${code}')" style="margin-top:10px;width:100%;">➕ EKLE</button>
+                            ${benzerHtml}
+                        </div>
+                    `;
+                }
+            } else {
+                showAddFormForBarcode(code);
+            }
+        });
+    } catch(e) {
+        status.innerHTML = '❌ KAMERA İZNİ GEREKLİ';
+        setTimeout(() => { cleanupQuagga(); modal.style.display = 'none'; }, 2000);
+    }
+}
+async function openSayimKamera() {
+    cleanupQuagga();
+    let modal = document.getElementById('cameraModal');
+    let video = document.getElementById('cameraVideo');
+    let status = document.getElementById('cameraModalStatus');
+    sayimKameraMode = true;
+    document.getElementById('stokSayimModal').style.display = 'none';
+    modal.style.display = 'flex';
+    status.innerHTML = '📷 SAYIM - BARKODU GÖSTER...';
+    try {
+        let stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = stream;
+        currentStream = stream;
+        video.play();
+        Quagga.init({
+            inputStream: { name: 'LiveStream', type: 'LiveStream', target: video },
+            decoder: { readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'code_128_reader'] },
+            locate: true,
+            frequency: 10
+        }, err => {
+            if (err) { status.innerHTML = 'HATA'; return; }
+            Quagga.start();
+            quaggaActive = true;
+            status.innerHTML = '🎥 SAYIM: BARKODU GÖSTER...';
+        });
+        let detected = false, scanCounts = {};
+        Quagga.offDetected();
+        Quagga.onDetected(data => {
+            if (detected) return;
+            let code = data.codeResult.code;
+            if (!code || code.length < 4) return;
+            scanCounts[code] = (scanCounts[code] || 0) + 1;
+            status.innerHTML = '🎯 OKUNUYOR... (' + scanCounts[code] + '/2)';
+            if (scanCounts[code] < 2) return;
+            detected = true;
+            playBeep();
+            cleanupQuagga();
+            modal.style.display = 'none';
+            document.getElementById('stokSayimModal').style.display = 'flex';
+            let p = findByBarcode(code);
+            let nm = p ? p.name : ('Bilinmeyen: ' + code);
+            let mev = sayimBarkodMap[code] || 0;
+            let girilen = prompt('📦 ' + nm + '\nSistem stoğu: ' + (p ? p.quantity : '?') + (mev > 0 ? '\nÖnceki sayım: ' + mev : '') + '\n\nKaç adet saydınız?', mev > 0 ? String(mev) : '1');
+            if (girilen !== null) {
+                let adet = parseInt(girilen);
+                if (!isNaN(adet) && adet >= 0) {
+                    if (adet === 0) delete sayimBarkodMap[code];
+                    else sayimBarkodMap[code] = adet;
+                    renderSayimBarkodListe();
+                    showToast(adet === 0 ? 'Listeden çıkarıldı' : '✅ ' + nm + ' → ' + adet + ' adet', 'success');
+                } else {
+                    showToast('❌ Geçersiz miktar!', 'error');
+                }
+            }
+            sayimKameraMode = false;
+        });
+    } catch(e) {
+        modal.style.display = 'none';
+        document.getElementById('stokSayimModal').style.display = 'flex';
+        showToast('❌ Kamera açılamadı!', 'error');
+        sayimKameraMode = false;
+    }
+}
+function closeCameraModal() {
+    cleanupQuagga();
+    document.getElementById('cameraModal').style.display = 'none';
+    if (sayimKameraMode) {
+        document.getElementById('stokSayimModal').style.display = 'flex';
+        sayimKameraMode = false;
+    }
+}
+
+// ---- ADD PRODUCT ----
+function showAddFormForBarcode(barcode) {
+    let c = document.getElementById('addFormContainer');
+    c.classList.remove('hidden');
+    c.innerHTML = `
+        <div style="background:#2a2a2a;padding:20px;border-radius:40px;margin-top:10px;border:1px solid #555;">
+            <strong style="color:white;display:block;margin-bottom:8px;">➕ YENİ ÜRÜN</strong>
+            <input id="addBarcode" value="${barcode}">
+            <input id="addName" placeholder="Ürün adı (max 35)" maxlength="35">
+            <input id="addPrice" placeholder="Fiyat (€) — 549 → 5.49 otomatik">
+            <input id="addCost" placeholder="Maliyet (€) — 349 → 3.49 otomatik">
+            <div id="addProfitBox" class="profit-box"><div class="profit-suggested">💰 Maliyet girilirse fiyat önerilir</div></div>
+            <select id="addCategory">
+                <option selected>Dolap Ürünleri</option>
+                <option>Kuru Gıda</option>
+                <option>İçecek</option>
+                <option>Temizlik</option>
+                <option>Diğer</option>
+            </select>
+            <input id="addQuantity" placeholder="Stok" value="1" type="number">
+            <input id="addExpiry" type="date">
+            <div class="image-buttons-group">
+                <button onclick="openGoogleSearchForAdd()" style="background:#27ae60;">🔍 İNTERNET'TEN GÖRSEL ARA</button>
+            </div>
+            <div class="image-buttons-group">
+                <button onclick="captureImageForAdd('gallery')">🖼️ GALERİ</button>
+                <button onclick="captureImageForAdd('camera')">📷 KAMERA</button>
+            </div>
+            <div class="edit-form-buttons">
+                <button class="btn-save" onclick="saveNewProduct()">💾 KAYDET</button>
+                <button class="btn-cancel" onclick="closeAddForm()">İPTAL</button>
+            </div>
+        </div>
+    `;
+    setupPriceFields('addCost', 'addPrice', 'addProfitBox');
+}
+async function saveNewProduct() {
+    let barcode = normBarcode(document.getElementById('addBarcode').value);
+    let name = document.getElementById('addName').value.trim().toUpperCase();
+    let price = parseFloat(document.getElementById('addPrice').value);
+    let cost = parseFloat(document.getElementById('addCost').value) || null;
+    let category = document.getElementById('addCategory').value;
+    let quantity = parseInt(document.getElementById('addQuantity').value) || 1;
+    let expiry = document.getElementById('addExpiry').value;
+    if (!name || !barcode || isNaN(price)) {
+        showToast('Eksik bilgi!', 'error');
+        return;
+    }
+    let existing = findIdxByBarcode(barcode);
+    if (existing !== -1 && confirm('Barkod var, üzerine yazılsın mı?')) {
+        products[existing] = { ...products[existing], barcode, name, price, cost, category, quantity, expiry, image: tempImageData || products[existing].image };
+    } else {
+        products.push({ barcode, name, price, cost, category, quantity, expiry, image: tempImageData, id: Date.now() });
+    }
+    await saveProducts();
+    tempImageData = null;
+    closeAddForm();
+    showToast('✅ Ürün kaydedildi!', 'success');
+    await updateUI();
+}
+function closeAddForm() {
+    document.getElementById('addFormContainer').classList.add('hidden');
+    document.getElementById('addFormContainer').innerHTML = '';
+    tempImageData = null;
+}
+async function captureImageForAdd(source) {
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    if (source === 'camera') input.capture = 'environment';
+    input.onchange = async (e) => {
+        let file = e.target.files[0];
+        if (!file) return;
+        let reader = new FileReader();
+        reader.onload = async (ev) => {
+            tempImageData = await compressImage(ev.target.result);
+            showToast('Resim hazır!', 'success');
+        };
+        reader.readAsDataURL(file);
+    };
+    input.click();
+}
+function openGoogleSearchForAdd() {
+    let name = document.getElementById('addName')?.value?.trim();
+    if (name) window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`, '_blank');
+    else showToast('Önce ürün adı girin!', 'warning');
+}
+function openManualAddModal() {
+    let container = document.getElementById('manualAddFormContainer');
+    container.innerHTML = `
+        <div>
+            <input id="addBarcode" placeholder="Barkod (manuel gir)">
+            <input id="addName" placeholder="Ürün adı (max 35)" maxlength="35">
+            <input id="addPrice" placeholder="Fiyat (€) — 549 → 5.49 otomatik">
+            <input id="addCost" placeholder="Maliyet (€) — 349 → 3.49 otomatik">
+            <div id="addProfitBox" class="profit-box"></div>
+            <select id="addCategory">
+                <option selected>Dolap Ürünleri</option>
+                <option>Kuru Gıda</option>
+                <option>İçecek</option>
+                <option>Temizlik</option>
+                <option>Diğer</option>
+            </select>
+            <input id="addQuantity" placeholder="Stok" value="1" type="number">
+            <input id="addExpiry" type="date">
+            <div class="image-buttons-group">
+                <button onclick="openGoogleSearchForAdd()" style="background:#27ae60;">🔍 İNTERNET'TEN GÖRSEL ARA</button>
+            </div>
+            <div class="image-buttons-group">
+                <button onclick="captureImageForAdd('gallery')">🖼️ GALERİ</button>
+                <button onclick="captureImageForAdd('camera')">📷 KAMERA</button>
+            </div>
+            <div class="edit-form-buttons">
+                <button class="btn-save" onclick="saveNewProductFromModal()">💾 KAYDET</button>
+                <button class="btn-cancel" onclick="closeManualAddModal()">İPTAL</button>
+            </div>
+        </div>
+    `;
+    setupPriceFields('addCost', 'addPrice', 'addProfitBox');
+    document.getElementById('manualAddModal').style.display = 'flex';
+}
+function closeManualAddModal() {
+    document.getElementById('manualAddModal').style.display = 'none';
+    tempImageData = null;
+}
+async function saveNewProductFromModal() {
+    let barcode = normBarcode(document.getElementById('addBarcode').value);
+    let name = document.getElementById('addName').value.trim().toUpperCase();
+    let price = parseFloat(document.getElementById('addPrice').value);
+    let cost = parseFloat(document.getElementById('addCost').value) || null;
+    let category = document.getElementById('addCategory').value;
+    let quantity = parseInt(document.getElementById('addQuantity').value) || 1;
+    let expiry = document.getElementById('addExpiry').value;
+    if (!name || !barcode || isNaN(price)) {
+        showToast('Eksik bilgi!', 'error');
+        return;
+    }
+    let existing = findIdxByBarcode(barcode);
+    if (existing !== -1 && confirm('Barkod var, üzerine yazılsın mı?')) {
+        products[existing] = { ...products[existing], barcode, name, price, cost, category, quantity, expiry, image: tempImageData || products[existing].image };
+    } else {
+        products.push({ barcode, name, price, cost, category, quantity, expiry, image: tempImageData, id: Date.now() });
+    }
+    await saveProducts();
+    tempImageData = null;
+    closeManualAddModal();
+    showToast(`✅ Ürün kaydedildi: ${name}`, 'success');
+    await updateUI();
+}
+
+// ---- YEDEKLEME (DÜZELTİLDİ) ----
+async function backupData() {
+    try {
+        const backup = {
+            products: products,
+            printQueue: printQueue,
+            receipts: receipts,
+            tarih: new Date().toISOString(),
+            version: "2.0"
+        };
+        const json = JSON.stringify(backup, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const now = new Date();
+        const stamp = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + '_' + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
+        a.download = 'MarketPro_Yedek_' + stamp + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+        showToast('💾 Yedek başarıyla indirildi! (' + products.length + ' ürün)', 'success');
+    } catch(e) {
+        console.error('Yedek hatası:', e);
+        showToast('❌ Yedek alınamadı: ' + e.message, 'error');
+    }
+}
+function backupToGoogleDrive() {
+    try {
+        const backup = {
+            products: products,
+            printQueue: printQueue,
+            receipts: receipts,
+            tarih: new Date().toISOString(),
+            version: "2.0"
+        };
+        const json = JSON.stringify(backup, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const now = new Date();
+        const stamp = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + '_' + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
+        const fileName = 'MarketPro_Yedek_' + stamp + '.json';
+        const file = new File([blob], fileName, { type: 'application/json' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({
+                files: [file],
+                title: fileName,
+                text: 'Market Pro yedek dosyası (' + products.length + ' ürün)'
+            })
+            .then(() => { showToast('☁️ Paylaşım açıldı!', 'success'); })
+            .catch((err) => {
+                if (err.name !== 'AbortError') {
+                    backupData();
+                }
+            });
+        } else {
+            backupData();
+        }
+    } catch(e) {
+        backupData();
+    }
+}
+async function restoreData() {
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+    input.onchange = async function(e) {
+        let file = e.target.files[0];
+        if (!file) {
+            showToast('Dosya seçilmedi!', 'warning');
+            return;
+        }
+        let reader = new FileReader();
+        reader.onload = async function(ev) {
+            try {
+                let text = ev.target.result;
+                let data = JSON.parse(text);
+                console.log('📂 Yedek içeriği:', data);
+                if (Array.isArray(data)) {
+                    if (data.length === 0) {
+                        showToast('⚠️ Yedek dosyası boş!', 'warning');
+                        return;
+                    }
+                    products = data;
+                    await saveProductsToIDB(products);
+                    showToast('✅ ' + products.length + ' ürün yüklendi (Format 1)', 'success');
+                    setTimeout(() => location.reload(), 800);
+                    return;
+                }
+                if (data && typeof data === 'object') {
+                    let loaded = 0;
+                    if (Array.isArray(data.products) && data.products.length > 0) {
+                        products = data.products;
+                        loaded += products.length;
+                    } else {
+                        showToast('⚠️ Dosyada ürün bulunamadı!', 'warning');
+                        return;
+                    }
+                    if (Array.isArray(data.printQueue)) {
+                        printQueue = data.printQueue;
+                        savePrintQueue();
+                    }
+                    if (Array.isArray(data.receipts)) {
+                        receipts = data.receipts;
+                        for (let r of receipts) {
+                            await addReceipt(r);
+                        }
+                    }
+                    await saveProductsToIDB(products);
+                    showToast('✅ ' + loaded + ' ürün yüklendi (Format 2)', 'success');
+                    setTimeout(() => location.reload(), 800);
+                    return;
+                }
+                if (data && Array.isArray(data.data) && data.data.length > 0) {
+                    products = data.data;
+                    await saveProductsToIDB(products);
+                    showToast('✅ ' + products.length + ' ürün yüklendi (Format 3)', 'success');
+                    setTimeout(() => location.reload(), 800);
+                    return;
+                }
+                showToast('❌ Desteklenmeyen dosya formatı!', 'error');
+            } catch(err) {
+                console.error('❌ Yedek yükleme hatası:', err);
+                showToast('❌ Hatalı dosya: ' + err.message, 'error');
+            }
+        };
+        reader.onerror = function() {
+            showToast('❌ Dosya okunamadı!', 'error');
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
+
+// ---- RAPORLAR ----
+function exportToCSV() {
+    let rows = [['Ad', 'Barkod', 'Fiyat (€)', 'Stok', 'Maliyet (€)', 'Kar (€)', 'Kar%', 'SKT', 'Kategori']];
+    for (let p of products) {
+        let pr = (p.cost && p.cost > 0) ? (p.price - p.cost) : 0;
+        let m = (p.cost && p.cost > 0 && p.price > 0) ? ((p.price - p.cost) / p.price * 100).toFixed(1) : '0';
+        rows.push([`"${p.name}"`, p.barcode, p.price, p.quantity, p.cost || 0, pr.toFixed(2), m, p.expiry || '', p.category]);
+    }
+    let csv = rows.map(r => r.join(',')).join('\n');
+    let blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+    let a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const now = new Date();
+    const stamp = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    a.download = 'Envanter_' + stamp + '.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('📑 CSV indirildi.', 'success');
+}
+function printReport() {
+    let html = `<table border="1" style="width:100%;border-collapse:collapse;font-size:0.8rem;background:white;color:black;">
+        <thead><tr style="background:#333;color:white;">
+            <th>Ad</th><th>Barkod</th><th>Fiyat</th><th>Stok</th><th>Maliyet</th><th>Kar</th><th>Kar%</th><th>SKT</th><th>Kategori</th>
+        </tr></thead><tbody>`;
+    for (let p of products) {
+        let pr = (p.cost && p.cost > 0) ? (p.price - p.cost) : 0;
+        let m = (p.cost && p.cost > 0 && p.price > 0) ? ((p.price - p.cost) / p.price * 100).toFixed(1) : '0';
+        html += `<tr><td>${escapeHtml(p.name)}</td><td>${p.barcode}</td><td>${p.price.toFixed(2)}</td><td>${p.quantity}</td><td>${p.cost ? p.cost.toFixed(2) : '0'}</td><td>${pr.toFixed(2)}</td><td>${m}%</td><td>${p.expiry || ''}</td><td>${escapeHtml(p.category)}</td></tr>`;
+    }
+    html += `</tbody></table>`;
+    document.getElementById('printTableContainer').innerHTML = html;
+    document.getElementById('printModal').style.display = 'flex';
+}
+async function compressAllImages() {
+    let cnt = 0;
+    for (let p of products) {
+        if (p.image && p.image.length > 60000) {
+            p.image = await compressImage(p.image);
+            cnt++;
+        }
+    }
+    if (cnt) await saveProducts();
+    showToast(cnt ? `🖼️ ${cnt} resim sıkıştırıldı` : 'Sıkıştırılacak yok', cnt ? 'success' : 'info');
+}
+async function clearAllData() {
+    if (confirm('TÜM VERİLER SİLİNECEK!')) {
+        products = [];
+        await saveProductsToIDB(products);
+        printQueue = [];
+        savePrintQueue();
+        receipts = [];
+        showToast('🗑️ Veriler silindi', 'success');
+        location.reload();
+    }
+}
+
+// ---- DRAWER ----
+function openDrawer() {
+    document.getElementById('drawer').style.left = '0';
+    document.getElementById('drawerOverlay').style.display = 'block';
+}
+function closeDrawer() {
+    document.getElementById('drawer').style.left = '-255px';
+    document.getElementById('drawerOverlay').style.display = 'none';
+}
+
+// ---- CLOCK ----
+function updateClock() {
+    try {
+        let now = new Date();
+        let h = String(now.getHours()).padStart(2, '0');
+        let m = String(now.getMinutes()).padStart(2, '0');
+        let s = String(now.getSeconds()).padStart(2, '0');
+        let dd = String(now.getDate()).padStart(2, '0');
+        let mo = String(now.getMonth() + 1).padStart(2, '0');
+        let y = String(now.getFullYear()).slice(2);
+        let timeEl = document.getElementById('clockTime');
+        let dateEl = document.getElementById('clockDate');
+        if (timeEl) timeEl.textContent = h + ':' + m + ':' + s;
+        if (dateEl) dateEl.textContent = dd + '/' + mo + '/' + y;
+    } catch(e) {}
+}
+
+// ---- INIT ----
+document.getElementById('searchBtn').onclick = () => openCameraModal('search');
+document.getElementById('addBtn').onclick = () => openCameraModal('add');
+document.getElementById('productSearchBtn').onclick = openInventoryModal;
+document.getElementById('manualAddBtn').onclick = openManualAddModal;
+document.getElementById('closeCameraModalBtn').onclick = closeCameraModal;
+
+(async function init() {
+    try {
+        await openIndexedDB();
+        await migrateFromLocalStorage();
+        await loadProducts();
+        await loadPrintQueue();
+        receipts = await getReceipts();
+        await updateUI();
+        updateClock();
+        setInterval(updateClock, 1000);
+        showToast('✅ Market Pro Hazır!', 'success');
+    } catch(e) {
+        console.error('Başlangıç hatası:', e);
+        showToast('❌ Başlangıç hatası: ' + e.message, 'error');
+    }
+})();
 </script>
 </body>
 </html>
