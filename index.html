@@ -7,7 +7,6 @@
     <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
-        /* ===== AÇIK TEMA ===== */
         :root {
             --bg-primary: #f1f5f9;
             --bg-secondary: #ffffff;
@@ -25,7 +24,6 @@
         body{background:var(--bg-primary);display:flex;justify-content:center;min-height:100vh;padding:12px;color:var(--text-primary)}
         .app-container{max-width:550px;width:100%;background:var(--bg-secondary);border-radius:48px;padding:16px 20px;box-shadow:var(--shadow);border:1px solid var(--border-glass)}
         
-        /* HEADER */
         .header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;margin-bottom:12px}
         .menu-btn{background:var(--bg-card);border:none;border-radius:16px;padding:12px 16px;cursor:pointer;font-size:1.4rem;color:var(--text-primary)}
         .logo{text-align:center;font-size:1.2rem;font-weight:900;color:#dc2626;letter-spacing:2px}
@@ -60,18 +58,28 @@
         .modal-title{color:#dc2626;font-weight:800;font-size:1.2rem;display:flex;align-items:center;gap:8px}
         .close-modal-btn{background:var(--danger);padding:6px 16px;border-radius:40px;font-size:0.85rem;cursor:pointer;color:white;border:none;display:flex;align-items:center;gap:6px}
 
-        /* INVENTORY */
+        /* INVENTORY - FİLTRE BUTONLARI */
+        .filter-buttons{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+        .filter-btn{padding:8px 16px;border-radius:40px;border:2px solid var(--border-glass);background:transparent;color:var(--text-secondary);font-weight:700;font-size:0.75rem;cursor:pointer;transition:all 0.2s}
+        .filter-btn:active{transform:scale(0.95)}
+        .filter-btn.active{background:var(--primary);color:white;border-color:var(--primary)}
+        .filter-btn.active-zero{background:var(--danger);color:white;border-color:var(--danger)}
+        .filter-btn.active-urgent{background:#f59e0b;color:white;border-color:#f59e0b}
+        .filter-btn.active-all{background:var(--primary);color:white;border-color:var(--primary)}
+
         .inventory-search input{width:100%;padding:12px 18px;border-radius:60px;border:1px solid var(--border-glass);background:var(--bg-card);color:var(--text-primary);font-size:0.9rem;margin-bottom:12px}
         .inventory-search input::placeholder{color:var(--text-secondary)}
         .product-list-simple{display:flex;flex-direction:column;gap:8px;max-height:45vh;overflow-y:auto;padding-right:4px}
         .envanter-item{background:var(--bg-card);border-radius:40px;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--border-glass)}
         .product-name-item{flex:1;cursor:pointer;font-weight:600;font-size:0.8rem;padding:4px 2px;color:var(--text-primary)}
         .btn-add-queue-list{background:var(--warning);border:none;border-radius:30px;padding:4px 12px;color:white;font-weight:700;font-size:0.65rem;cursor:pointer;white-space:nowrap}
-        .inventory-stats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-        .stat-pill{background:var(--bg-card);border-radius:30px;padding:4px 14px;font-size:0.7rem;font-weight:700;border:1px solid var(--border-glass);color:var(--text-primary)}
-        .stat-pill.success{background:rgba(34,197,94,0.2);border-color:var(--success);color:#16a34a}
-        .stat-pill.danger{background:rgba(239,68,68,0.2);border-color:var(--danger);color:#dc2626}
-        .stat-pill.gray{background:rgba(100,116,139,0.15);border-color:var(--text-secondary);color:var(--text-secondary)}
+        .inventory-stats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+        .stat-pill{padding:6px 16px;border-radius:30px;font-size:0.75rem;font-weight:800;border:2px solid;cursor:pointer;transition:all 0.2s}
+        .stat-pill:active{transform:scale(0.95)}
+        .stat-pill.total{background:#3b82f6;color:white;border-color:#3b82f6}
+        .stat-pill.active{background:#22c55e;color:white;border-color:#22c55e}
+        .stat-pill.zero{background:#ef4444;color:white;border-color:#ef4444}
+        .stat-pill.urgent{background:#f59e0b;color:white;border-color:#f59e0b}
 
         /* PRODUCT DETAIL */
         .product-detail-card{border-radius:32px;padding:20px;text-align:center;background:var(--bg-card)}
@@ -100,12 +108,12 @@
         .profit-margin.ok{color:#d97706}
         .profit-margin.bad{color:#dc2626}
 
-        /* EXPIRY COLORS */
-        .expiry-red{background:rgba(239,68,68,0.15)!important;border-color:#dc2626!important}
-        .expiry-yellow{background:rgba(245,158,11,0.15)!important;border-color:#d97706!important}
-        .expiry-green{background:rgba(34,197,94,0.12)!important;border-color:#16a34a!important}
-        .expiry-zero-stock{background:rgba(100,116,139,0.12)!important;border-color:var(--text-secondary)!important;opacity:0.7}
-        .expiry-no-date{background:var(--bg-card)!important;border-color:var(--border-glass)!important}
+        /* EXPIRY COLORS - DAHA BASKIN */
+        .expiry-red{background:#fee2e2!important;border:2px solid #dc2626!important;color:#7f1d1d!important}
+        .expiry-yellow{background:#fef3c7!important;border:2px solid #d97706!important;color:#78350f!important}
+        .expiry-green{background:#d1fae5!important;border:2px solid #16a34a!important;color:#064e3b!important}
+        .expiry-zero-stock{background:#f1f5f9!important;border:2px solid #64748b!important;color:#334155!important;opacity:0.7}
+        .expiry-no-date{background:var(--bg-card)!important;border:1px solid var(--border-glass)!important}
 
         /* STOK SAYIM */
         .sayim-item{background:var(--bg-card);border-radius:30px;padding:8px 12px;display:flex;align-items:center;gap:8px;margin-bottom:4px;border:1px solid var(--border-glass);flex-wrap:wrap}
@@ -142,7 +150,17 @@
         .drawer-btn-red:hover{background:rgba(239,68,68,0.1)!important}
         #urgentCount{background:var(--danger);border-radius:20px;padding:1px 8px;font-size:0.7rem;margin-left:auto;color:white}
 
-        /* LABELS */
+        .action-card{background:var(--bg-card);border-radius:16px;padding:10px 16px;cursor:pointer;border:1px solid var(--border-glass);display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+        .action-card .label{font-size:0.8rem;font-weight:700;color:var(--text-primary)}
+        .action-card .badge{background:rgba(0,0,0,0.06);border-radius:20px;padding:2px 14px;font-size:0.75rem;font-weight:700;color:var(--text-secondary)}
+        .action-card.urgent{background:#fef2f2;border-color:#fca5a5}
+        .action-card.urgent .label{color:#dc2626}
+        .action-card.success{background:#f0fdf4;border-color:#86efac}
+        .action-card.success .label{color:#16a34a}
+        .result-image-btn{background:var(--warning);border:none;border-radius:40px;padding:8px 16px;color:white;font-weight:700;font-size:0.8rem;cursor:pointer;margin:4px}
+        .result-image-btn:active{transform:scale(0.95)}
+        .internet-btn{background:#2563eb!important}
+
         .label-grid-container{background:#fff;padding:0;margin:0;box-sizing:border-box;page-break-after:always;width:210mm;overflow:hidden}
         .label-grid{width:210mm;margin:0 auto;border-collapse:collapse;table-layout:fixed}
         .label-cell{width:70mm;height:42.4mm;padding:1mm;border:none;vertical-align:top;overflow:hidden}
@@ -160,21 +178,9 @@
         .barcode-svg{width:100%;height:12px}
 
         @media print{body *{visibility:hidden}.print-modal,.print-modal *{visibility:visible}.print-modal{position:absolute;top:0;left:0;width:100%;background:white}.label-grid-container{page-break-after:always}}
-
         ::-webkit-scrollbar{width:4px}
         ::-webkit-scrollbar-track{background:transparent}
         ::-webkit-scrollbar-thumb{background:var(--text-secondary);border-radius:10px}
-        
-        .action-card{background:var(--bg-card);border-radius:16px;padding:10px 16px;cursor:pointer;border:1px solid var(--border-glass);display:flex;align-items:center;justify-content:space-between;margin-top:8px}
-        .action-card .label{font-size:0.8rem;font-weight:700;color:var(--text-primary)}
-        .action-card .badge{background:rgba(0,0,0,0.06);border-radius:20px;padding:2px 14px;font-size:0.75rem;font-weight:700;color:var(--text-secondary)}
-        .action-card.urgent{background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2)}
-        .action-card.urgent .label{color:#dc2626}
-        .action-card.success{background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.2)}
-        .action-card.success .label{color:#16a34a}
-        .result-image-btn{background:var(--warning);border:none;border-radius:40px;padding:8px 16px;color:white;font-weight:700;font-size:0.8rem;cursor:pointer;margin:4px}
-        .result-image-btn:active{transform:scale(0.95)}
-        .internet-btn{background:#2563eb!important}
     </style>
 </head>
 <body>
@@ -266,6 +272,7 @@
     <div id="cameraModalStatus" style="color:var(--text-secondary);margin-top:8px;font-size:0.85rem">📷 KAMERA BAŞLATILIYOR...</div>
 </div>
 
+<!-- INVENTORY MODAL - FİLTRELİ -->
 <div id="inventoryModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -273,6 +280,12 @@
             <button class="close-modal-btn" onclick="closeInventoryModal()">✖ KAPAT</button>
         </div>
         <div id="inventoryStats" class="inventory-stats"></div>
+        <div class="filter-buttons">
+            <button class="filter-btn active-all" data-filter="all" onclick="setInventoryFilter('all')">📋 TÜMÜ</button>
+            <button class="filter-btn" data-filter="zero" onclick="setInventoryFilter('zero')">⬜ STOKSUZ</button>
+            <button class="filter-btn" data-filter="urgent" onclick="setInventoryFilter('urgent')">⚠️ ACİL</button>
+            <button class="filter-btn" data-filter="active" onclick="setInventoryFilter('active')">✅ AKTİF</button>
+        </div>
         <div class="inventory-search">
             <input type="text" id="inventorySearchInput" placeholder="🔍 Ürün adı veya barkod..." autocomplete="off">
         </div>
@@ -413,7 +426,7 @@
 
 <script>
 // ============================================================
-//  MARKET PRO v2.0 - AÇIK TEMA + EŞİT BUTONLAR + İNTERNET BUTONU
+//  MARKET PRO v2.0 - FİLTRELİ ENVANTER + BASKIN RENKLER
 // ============================================================
 
 let db = null;
@@ -433,8 +446,9 @@ let currentAngebotSize = 'a4';
 let currentAngebotOrientation = 'portrait';
 let currentDiscountPrice = null;
 let audioCtx = null;
+let currentFilter = 'all';
 
-// ---- AUDIO ----
+// ---- AUDIO (SES YÜKSELTİLDİ - gain 0.30) ----
 function initAudio() {
     if (!audioCtx) {
         try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
@@ -449,7 +463,7 @@ function playBeep() {
         const gain = audioCtx.createGain();
         osc.type = 'sine';
         osc.frequency.value = 880;
-        gain.gain.value = 0.15;
+        gain.gain.value = 0.30; // SES 2 KAT YÜKSELDİ
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
@@ -755,16 +769,35 @@ async function updateUI() {
     }
 }
 
-// ---- INVENTORY ----
+// ---- INVENTORY (FİLTRELİ) ----
+let inventoryFilter = 'all';
+
+function setInventoryFilter(filter) {
+    inventoryFilter = filter;
+    // Buton stillerini güncelle
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.className = 'filter-btn';
+        if (btn.dataset.filter === filter) {
+            if (filter === 'zero') btn.classList.add('active-zero');
+            else if (filter === 'urgent') btn.classList.add('active-urgent');
+            else btn.classList.add('active-all');
+        }
+    });
+    renderInventoryList();
+}
+
 function openInventoryModal() {
     document.getElementById('inventoryModal').style.display = 'flex';
     let inp = document.getElementById('inventorySearchInput');
     if (inp) { inp.value = ''; inp.oninput = () => renderInventoryList(); }
+    // Filtre butonlarını sıfırla
+    setInventoryFilter('all');
     renderInventoryList();
 }
 function closeInventoryModal() {
     document.getElementById('inventoryModal').style.display = 'none';
 }
+
 function renderInventoryList() {
     let statsEl = document.getElementById('inventoryStats');
     if (statsEl) {
@@ -778,47 +811,68 @@ function renderInventoryList() {
             return Math.ceil((exp - today) / 86400000) <= 7;
         }).length;
         statsEl.innerHTML = `
-            <span class="stat-pill">📦 TOPLAM: ${total}</span>
-            <span class="stat-pill success">✅ AKTİF: ${active}</span>
-            ${zero > 0 ? `<span class="stat-pill gray">⬜ STOKSUZ: ${zero}</span>` : ''}
-            ${urgent > 0 ? `<span class="stat-pill danger">⚠️ ACİL: ${urgent}</span>` : ''}
+            <span class="stat-pill total" onclick="setInventoryFilter('all')">📦 TOPLAM: ${total}</span>
+            <span class="stat-pill active" onclick="setInventoryFilter('active')">✅ AKTİF: ${active}</span>
+            <span class="stat-pill zero" onclick="setInventoryFilter('zero')">⬜ STOKSUZ: ${zero}</span>
+            <span class="stat-pill urgent" onclick="setInventoryFilter('urgent')">⚠️ ACİL: ${urgent}</span>
         `;
     }
+    
     let container = document.getElementById('modalProductList');
     let sv = (document.getElementById('inventorySearchInput')?.value || '').trim().toLowerCase();
-    let filtered = sv ? products.filter(p => p.name.toLowerCase().includes(sv) || p.barcode.includes(sv)) : products;
+    
+    // Filtreleme
+    let filtered = products.filter(p => {
+        // Arama filtresi
+        if (sv && !p.name.toLowerCase().includes(sv) && !p.barcode.includes(sv)) return false;
+        // Kategori filtresi
+        if (inventoryFilter === 'zero' && p.quantity > 0) return false;
+        if (inventoryFilter === 'active' && p.quantity === 0) return false;
+        if (inventoryFilter === 'urgent') {
+            if (p.quantity === 0) return false;
+            if (!p.expiry) return false;
+            let today = new Date(); today.setHours(0,0,0,0);
+            let exp = new Date(p.expiry); exp.setHours(0,0,0,0);
+            if (Math.ceil((exp - today) / 86400000) > 7) return false;
+        }
+        return true;
+    });
+    
+    // Sıralama: stoksuzlar en altta, sonra tarihe göre
     let today = new Date(); today.setHours(0,0,0,0);
     let sorted = [...filtered].sort((a,b) => {
-        let getPriority = (p) => {
-            if (p.quantity === 0) return 4;
-            if (!p.expiry) return 5;
-            let exp = new Date(p.expiry); exp.setHours(0,0,0,0);
-            let d = Math.ceil((exp - today) / 86400000);
-            if (d <= 7) return 0;
-            if (d <= 14) return 1;
-            return 2;
-        };
-        let pa = getPriority(a), pb = getPriority(b);
-        if (pa !== pb) return pa - pb;
-        if (pa === 0 || pa === 1 || pa === 2) return new Date(a.expiry) - new Date(b.expiry);
+        // Önce stoksuzları göster (en altta)
+        if (a.quantity === 0 && b.quantity > 0) return 1;
+        if (a.quantity > 0 && b.quantity === 0) return -1;
+        // Sonra tarihe göre (en yakın en üstte)
+        let aExp = a.expiry ? new Date(a.expiry) : new Date(9999,11,31);
+        let bExp = b.expiry ? new Date(b.expiry) : new Date(9999,11,31);
+        if (aExp.getTime() !== bExp.getTime()) return aExp - bExp;
         return a.name.localeCompare(b.name);
     });
+    
     if (!sorted.length) {
-        container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">Ürün yok</div>';
+        let msg = 'Ürün yok';
+        if (inventoryFilter === 'zero') msg = 'Stoksuz ürün yok';
+        if (inventoryFilter === 'urgent') msg = 'Acil ürün yok';
+        if (inventoryFilter === 'active') msg = 'Aktif ürün yok';
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);">${msg}</div>`;
         return;
     }
+    
     container.innerHTML = sorted.map((p, idx) => {
         let realIdx = products.findIndex(pr => pr.id === p.id);
         let cc = getProductColorClass(p);
         let emoji = getCategoryEmoji(p.category);
+        let stockLabel = p.quantity === 0 ? ' ⬜' : '';
         return `<div class="envanter-item ${cc}">
-            <div class="product-name-item" onclick="openProductDetailModal(${realIdx})">${escapeHtml(p.name)} ${emoji} (${p.quantity})</div>
+            <div class="product-name-item" onclick="openProductDetailModal(${realIdx})">${escapeHtml(p.name)} ${emoji} (${p.quantity})${stockLabel}</div>
             <button class="btn-add-queue-list" onclick="addToPrintQueue(products[${realIdx}])">➕ ETİKET</button>
         </div>`;
     }).join('');
 }
 
-// ---- PRODUCT DETAIL (İNTERNET BUTONU EKLENDİ) ----
+// ---- PRODUCT DETAIL ----
 function openProductDetailModal(idx) {
     let p = products[idx];
     if (!p) return;
@@ -998,7 +1052,7 @@ async function sellProduct(product, index) {
     }
 }
 
-// ---- RESULT (İNTERNET BUTONU EKLENDİ) ----
+// ---- RESULT ----
 function showResult(p) {
     if (!p) return;
     lastScannedProduct = p;
@@ -1102,8 +1156,6 @@ async function addImageToResult(source) {
     };
     input.click();
 }
-
-// ---- SONUÇ EKRANINDAN İNTERNET ARAMA ----
 function openGoogleSearchForResult() {
     if (lastScannedProduct && lastScannedProduct.name) {
         let searchTerm = encodeURIComponent(lastScannedProduct.name + ' ürün görsel');
@@ -1547,7 +1599,7 @@ function openUrgentModal() {
             let exp = new Date(p.expiry); exp.setHours(0,0,0,0);
             let d = Math.ceil((exp - today) / 86400000);
             let cl = getProductColorClass(p);
-            return `<div class="${cl}" style="border-radius:28px;padding:12px;margin-bottom:8px;border:1px solid var(--border-glass);">
+            return `<div class="${cl}" style="border-radius:28px;padding:12px;margin-bottom:8px;border:2px solid var(--border-glass);">
                 <strong>${escapeHtml(p.name)}</strong><br>
                 SKT: ${p.expiry} (${d} gün)<br>
                 Stok: ${p.quantity}
