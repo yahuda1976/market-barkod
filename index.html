@@ -406,9 +406,9 @@
 // ============================================================
 //  MARKET PRO v2.0 - FULLY WORKING WITH INDEXEDDB
 //  Everything included: barkod, etiket, angebot, sayım, yedek
+//  HIZLI KAMERA (locate:true, frequency:10) + BEYAZ YAZILAR
 // ============================================================
 
-// ---- GLOBAL STATE ----
 let db = null;
 let products = [];
 let printQueue = [];
@@ -797,7 +797,7 @@ function renderInventoryList() {
         return a.name.localeCompare(b.name);
     });
     if (!sorted.length) {
-        container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">Ürün yok</div>';
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;">Ürün yok</div>';
         return;
     }
     container.innerHTML = sorted.map((p, idx) => {
@@ -811,7 +811,7 @@ function renderInventoryList() {
     }).join('');
 }
 
-// ---- PRODUCT DETAIL (RENK DÜZELTİLDİ: #ffffff) ----
+// ---- PRODUCT DETAIL ----
 function openProductDetailModal(idx) {
     let p = products[idx];
     if (!p) return;
@@ -1250,7 +1250,7 @@ function addToPrintQueue(product) {
 }
 function managePrintQueue() {
     let c = document.getElementById('queueListContainer');
-    c.innerHTML = !printQueue.length ? '<div style="text-align:center;color:var(--text-secondary);padding:20px;">Liste boş</div>' :
+    c.innerHTML = !printQueue.length ? '<div style="text-align:center;color:#94a3b8;padding:20px;">Liste boş</div>' :
         printQueue.map((p, i) => `
             <div style="background:var(--bg-card);border-radius:40px;padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border-glass);">
                 <span style="font-weight:600;font-size:0.85rem;">${escapeHtml(p.name)} (${p.price.toFixed(2)} €)</span>
@@ -1276,7 +1276,7 @@ function closeQueueModal() {
     document.getElementById('queueModal').style.display = 'none';
 }
 
-// ---- MULTI LABEL (21'li) ----
+// ---- MULTI LABEL ----
 function showMultiLabelPreview() {
     if (!printQueue.length) {
         showToast('Etiket listesi boş! Önce "➕ ETİKET" butonuyla ürün ekleyin.', 'warning');
@@ -1397,7 +1397,7 @@ setTimeout(function(){ try{window.focus();}catch(e){} window.print(); }, 800);
     showToast('🖨️ Yazdırma penceresi açıldı. Liste korunuyor.', 'success');
 }
 
-// ---- ANGEBOT (Poster) ----
+// ---- ANGEBOT ----
 function openAngebotModal(p) {
     angebotProduct = p;
     document.getElementById('angebotProductName').innerHTML = `${escapeHtml(p.name)} — ${p.price.toFixed(2)} €`;
@@ -1519,7 +1519,7 @@ function openUrgentModal() {
     }).sort((a,b) => new Date(a.expiry) - new Date(b.expiry));
     let c = document.getElementById('urgentProductList');
     if (urgent.length === 0) {
-        c.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-secondary);">7 gün içinde SKT\'si geçecek ve stokta olan ürün yok.</div>';
+        c.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;">7 gün içinde SKT\'si geçecek ve stokta olan ürün yok.</div>';
     } else {
         c.innerHTML = urgent.map(p => {
             let exp = new Date(p.expiry); exp.setHours(0,0,0,0);
@@ -1562,7 +1562,7 @@ function renderSayimListe() {
     let sorted = [...f].sort((a,b) => a.name.localeCompare(b.name));
     let c = document.getElementById('sayimListeItems');
     if (!sorted.length) {
-        c.innerHTML = '<div style="color:var(--text-secondary);text-align:center;padding:16px;">Ürün bulunamadı</div>';
+        c.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:16px;">Ürün bulunamadı</div>';
         return;
     }
     c.innerHTML = sorted.map(p => {
@@ -1614,7 +1614,7 @@ function renderSayimBarkodListe() {
     let c = document.getElementById('sayimBarkodListesi');
     let keys = Object.keys(sayimBarkodMap);
     if (!keys.length) {
-        c.innerHTML = '<div style="color:var(--text-secondary);text-align:center;padding:16px;">Henüz ürün taranmadı</div>';
+        c.innerHTML = '<div style="color:#94a3b8;text-align:center;padding:16px;">Henüz ürün taranmadı</div>';
         return;
     }
     c.innerHTML = keys.map(bc => {
@@ -1658,7 +1658,7 @@ async function saveSayimBarkod() {
     closeStokSayimModal();
 }
 
-// ---- CAMERA ----
+// ---- CAMERA (HIZLI VERSIYON - locate:true, frequency:10) ----
 function cleanupQuagga() {
     if (quaggaActive) {
         try { Quagga.stop(); } catch(e) {}
@@ -1678,32 +1678,62 @@ async function openCameraModal(mode) {
     sayimKameraMode = false;
     modal.style.display = 'flex';
     status.innerHTML = '📷 BAŞLATILIYOR...';
+    
     try {
-        let stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        let stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } } 
+        });
         video.srcObject = stream;
         currentStream = stream;
-        video.play();
+        await video.play();
+        
         Quagga.init({
-            inputStream: { name: 'LiveStream', type: 'LiveStream', target: video },
-            decoder: { readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'code_128_reader'] }
-        }, err => {
-            if (err) { status.innerHTML = 'HATA'; return; }
+            inputStream: {
+                name: "LiveStream",
+                type: "LiveStream",
+                target: video,
+                constraints: {
+                    width: { min: 640 },
+                    height: { min: 480 },
+                    facingMode: "environment"
+                }
+            },
+            decoder: {
+                readers: ["ean_reader", "ean_8_reader", "upc_reader", "code_128_reader"]
+            },
+            locate: true,
+            frequency: 10
+        }, function(err) {
+            if (err) {
+                console.error("Quagga init error:", err);
+                status.innerHTML = '❌ HATA: ' + err.message;
+                return;
+            }
             Quagga.start();
             quaggaActive = true;
             status.innerHTML = '🎥 BARKODU GÖSTER...';
         });
-        let scanCounts = {}, locked = false;
-        Quagga.onDetected(data => {
+
+        let scanCounts = {};
+        let locked = false;
+        
+        Quagga.offDetected();
+        
+        Quagga.onDetected(function(data) {
             if (locked) return;
             let code = data.codeResult.code;
             if (!code || code.length < 4) return;
+            
             scanCounts[code] = (scanCounts[code] || 0) + 1;
             status.innerHTML = '🎯 OKUNUYOR... (' + scanCounts[code] + '/2)';
+            
             if (scanCounts[code] < 2) return;
             locked = true;
+            
             playBeep();
             cleanupQuagga();
             modal.style.display = 'none';
+            
             if (mode === 'search') {
                 let found = findByBarcode(code);
                 if (found) {
@@ -1715,10 +1745,10 @@ async function openCameraModal(mode) {
                         let pb = normBarcode(p.barcode).replace(/^0+/, '');
                         return pref.length >= 5 && (pb.startsWith(pref.slice(0, 6)) || cn.slice(0, 6) === pb.slice(0, 6));
                     }).slice(0, 5);
-                    let benzerHtml = benzer.length ? '<div style="margin-top:12px;border-top:1px solid var(--border-glass);padding-top:10px;"><div style="color:#fca5a8;font-size:0.8rem;margin-bottom:6px;">🔎 Benzer ürünler (yanlış okuma olabilir):</div>' +
+                    let benzerHtml = benzer.length ? '<div style="margin-top:12px;border-top:1px solid #475569;padding-top:10px;"><div style="color:#fca5a5;font-size:0.8rem;margin-bottom:6px;">🔎 Benzer ürünler (yanlış okuma olabilir):</div>' +
                         benzer.map(p => {
                             let i = products.findIndex(x => x.id === p.id);
-                            return `<button onclick="closeResultAndOpenDetail(${i})" style="display:block;width:100%;text-align:left;background:var(--bg-card);border:1px solid var(--border-glass);border-radius:30px;padding:8px 12px;color:white;font-size:0.78rem;margin-bottom:5px;cursor:pointer;">${escapeHtml(p.name)} — ${p.barcode}</button>`;
+                            return `<button onclick="closeResultAndOpenDetail(${i})" style="display:block;width:100%;text-align:left;background:#0f172a;border:1px solid #475569;border-radius:30px;padding:8px 12px;color:#ffffff;font-size:0.78rem;margin-bottom:5px;cursor:pointer;">${escapeHtml(p.name)} — ${p.barcode}</button>`;
                         }).join('') + '</div>' : '';
                     document.getElementById('resultArea').innerHTML = `
                         <div style="color:white;padding:10px;">
@@ -1733,9 +1763,11 @@ async function openCameraModal(mode) {
                 showAddFormForBarcode(code);
             }
         });
+        
     } catch(e) {
-        status.innerHTML = '❌ KAMERA İZNİ GEREKLİ';
-        setTimeout(() => { cleanupQuagga(); modal.style.display = 'none'; }, 2000);
+        console.error("Kamera hatası:", e);
+        status.innerHTML = '❌ KAMERA AÇILAMADI: ' + e.message;
+        setTimeout(() => { cleanupQuagga(); modal.style.display = 'none'; }, 3000);
     }
 }
 async function openSayimKamera() {
@@ -1754,7 +1786,9 @@ async function openSayimKamera() {
         video.play();
         Quagga.init({
             inputStream: { name: 'LiveStream', type: 'LiveStream', target: video },
-            decoder: { readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'code_128_reader'] }
+            decoder: { readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'code_128_reader'] },
+            locate: true,
+            frequency: 10
         }, err => {
             if (err) { status.innerHTML = 'HATA'; return; }
             Quagga.start();
@@ -1762,6 +1796,7 @@ async function openSayimKamera() {
             status.innerHTML = '🎥 SAYIM: BARKODU GÖSTER...';
         });
         let detected = false, scanCounts = {};
+        Quagga.offDetected();
         Quagga.onDetected(data => {
             if (detected) return;
             let code = data.codeResult.code;
