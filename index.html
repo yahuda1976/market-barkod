@@ -964,9 +964,6 @@ function openUrgentModal(){
 }
 function closeUrgentModal(){ document.getElementById("urgentModal").style.display="none"; }
 
-// ==============================================================
-//  ESKI VERSIYONDAKI CIFT OKUMALI KAMERA SISTEMI - ENTEGRE EDILDI
-// ==============================================================
 async function openCameraModal(mode){
     let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
     sayimKameraMode=false;
@@ -1023,8 +1020,6 @@ async function openCameraModal(mode){
         setTimeout(()=>closeCameraModal(),2000);
     }
 }
-// ==============================================================
-
 async function openSayimKamera(){
     let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
     sayimKameraMode=true;
