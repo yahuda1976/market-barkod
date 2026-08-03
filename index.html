@@ -119,7 +119,7 @@
         .sayim-name{flex:1;font-size:0.85rem;font-weight:700;color:var(--text-primary)}
         .sayim-mevcut{font-size:0.75rem;color:var(--text-secondary);white-space:nowrap}
         .sayim-input{width:70px!important;padding:10px 12px!important;margin:0!important;text-align:center;font-weight:800;font-size:1rem;background:rgba(255,255,255,0.8);border:1px solid rgba(0,0,0,0.1);border-radius:16px;color:var(--text-primary)}
-        .sayim-input:focus{outline:none;border-color:rgba(59,130,246,0.4);background:rgba(255,255,255,1)}
+        .sayim-input:focus{outline:none;border-color:rgba(59,130,246,0.4)}
         .sayim-diff-pos{color:#34d399;font-weight:800;font-size:0.85rem;min-width:32px;text-align:center}
         .sayim-diff-neg{color:#f87171;font-weight:800;font-size:0.85rem;min-width:32px;text-align:center}
         .sayim-diff-zero{color:var(--text-secondary);font-size:0.85rem;min-width:32px;text-align:center}
@@ -128,10 +128,10 @@
         .result-image-btn{background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:40px;padding:9px 18px;color:white;font-weight:700;font-size:0.78rem;cursor:pointer;margin:6px 4px;box-shadow:0 4px 12px rgba(245,158,11,0.2);transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)}
         .result-image-btn:hover{transform:translateY(-1px);filter:brightness(1.1)}
         .app-header-title{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,#f87171,#fdba74);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:1px;text-shadow:none}
-        .nav-card{background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(37,99,235,0.08));border:1px solid rgba(59,130,246,0.15);border-radius:18px;padding:12px 20px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all 0.3s ease;margin-top:12px}
-        .nav-card:hover{transform:translateY(-2px);background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(37,99,235,0.12));box-shadow:0 10px 25px -5px rgba(59,130,246,0.15)}
-        .nav-card .nav-title{font-size:0.9rem;font-weight:800;color:#bfdbfe;letter-spacing:0.5px}
-        .nav-card .nav-badge{background:rgba(255,255,255,0.12);border-radius:20px;padding:4px 14px;font-size:0.8rem;font-weight:800;color:#e0f2fe}
+        .nav-card{background:linear-gradient(135deg,#3b82f6,#2563eb);border:1px solid rgba(59,130,246,0.3);border-radius:18px;padding:12px 20px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all 0.3s ease;margin-top:12px}
+        .nav-card:hover{transform:translateY(-2px);background:linear-gradient(135deg,#2563eb,#1d4ed8);box-shadow:0 10px 25px -5px rgba(59,130,246,0.3)}
+        .nav-card .nav-title{font-size:0.9rem;font-weight:800;color:#ffffff;letter-spacing:0.5px}
+        .nav-card .nav-badge{background:rgba(255,255,255,0.25);border-radius:20px;padding:4px 14px;font-size:0.8rem;font-weight:800;color:#ffffff}
         .menu-btn{background:rgba(255,255,255,0.06);border:none;border-radius:16px;padding:12px 18px;cursor:pointer;font-size:1.3rem;color:var(--text-primary);justify-self:start;transition:all 0.2s;border:1px solid rgba(255,255,255,0.08)}
         .menu-btn:hover{background:rgba(255,255,255,0.12);transform:scale(1.05)}
     </style>
@@ -143,8 +143,7 @@
     <div style="padding:16px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:calc(100vh - 140px)">
         <div class="drawer-group-title"><i class="fa-solid fa-boxes-stacked" style="margin-right:6px"></i>ENVANTER</div>
         <button class="drawer-btn" onclick="closeDrawer();openStokSayimModal();"><i class="fa-solid fa-calculator" style="width:20px;text-align:center"></i> STOK SAYIM MODU</button>
-        <div class="drawer-sep"></div>
-        <div class="drawer-group-title"><i class="fa-solid fa-tags" style="margin-right:6px"></i>ETIKETLER</div>
+        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-tags" style="margin-right:6px"></i>ETIKETLER</div>
         <button class="drawer-btn" onclick="closeDrawer();managePrintQueue();"><i class="fa-solid fa-list-check" style="width:20px;text-align:center"></i> ETIKET LISTESINI YONET</button>
         <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-cloud-arrow-down" style="margin-right:6px"></i>YEDEKLEME</div>
         <button class="drawer-btn" onclick="closeDrawer();backupData();"><i class="fa-solid fa-download" style="width:20px;text-align:center"></i> TELEFONA YEDEK AL</button>
