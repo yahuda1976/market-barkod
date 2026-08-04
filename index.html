@@ -148,6 +148,17 @@
         .scan-laser{position:absolute;left:4%;right:4%;height:3px;top:8%;background:linear-gradient(90deg,transparent,#22d3ee,#60a5fa,#22d3ee,transparent);box-shadow:0 0 10px #22d3ee,0 0 20px #3b82f6;border-radius:4px;animation:scanMove 1.8s ease-in-out infinite;z-index:11;}
         @keyframes scanMove{0%{top:20%}50%{top:78%}100%{top:20%}}
         .torch-active{box-shadow:0 0 0 3px rgba(253,224,71,0.8)!important;filter:brightness(1.15)}
+        .firma-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);border-radius:30px;padding:10px 16px;color:white;font-weight:700;font-size:0.8rem;cursor:pointer;transition:all 0.2s;text-align:center}
+        .firma-btn:hover{background:rgba(255,255,255,0.3);transform:translateY(-2px)}
+        .firma-btn.active{background:rgba(255,255,255,0.35);box-shadow:0 0 0 2px rgba(255,255,255,0.5)}
+        .firma-list-container{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;padding:4px 0}
+        .photo-buttons{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
+        .photo-buttons button{flex:1;min-width:80px;padding:12px 6px;border:none;border-radius:40px;color:white;font-weight:700;font-size:0.75rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)}
+        .photo-buttons button:hover{transform:translateY(-2px);filter:brightness(1.1)}
+        .photo-gallery{background:linear-gradient(135deg,#8b5cf6,#7c3aed)}
+        .photo-camera{background:linear-gradient(135deg,#06b6d4,#0891b2)}
+        .photo-internet{background:linear-gradient(135deg,#ec4899,#db2777)}
+        .photo-preview{max-width:100%;max-height:150px;border-radius:16px;margin:8px auto;display:block;object-fit:contain}
     </style>
 </head>
 <body>
@@ -213,6 +224,8 @@
             <button class="close-modal-btn" onclick="closeInventoryModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button>
         </div>
         <div id="inventoryStats" class="inventory-stats"></div>
+        <!-- FIRMALAR BUTONU -->
+        <div id="firmaContainer" style="margin-bottom:12px;"></div>
         <div class="inventory-search"><input type="text" id="inventorySearchInput" placeholder="Urun adi veya barkod ara..." autocomplete="off"></div>
         <div id="modalProductList" class="product-list-simple"></div>
     </div>
@@ -234,6 +247,19 @@
             <button class="close-modal-btn" onclick="closeManualAddModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button>
         </div>
         <div id="manualAddFormContainer"></div>
+    </div>
+</div>
+<div id="firmaModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa-solid fa-building" style="margin-right:8px"></i>FİRMALAR</span>
+            <button class="close-modal-btn" onclick="closeFirmaModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:14px">
+            <input type="text" id="newFirmaInput" placeholder="Yeni firma adı..." style="flex:1;margin:0;">
+            <button onclick="addNewFirma()" style="background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:40px;padding:12px 20px;color:white;font-weight:800;cursor:pointer;white-space:nowrap;"><i class="fa-solid fa-plus"></i> EKLE</button>
+        </div>
+        <div id="firmaListesiContainer"></div>
     </div>
 </div>
 <div id="printModal" class="modal print-modal">
@@ -341,11 +367,14 @@ let sayimKameraMode = false;
 let currentTorchOn = false;
 let db = null;
 let inventoryFilterMode = 'all';
+let selectedFirma = null;
 let products = [];
 let printQueue = [];
 let tempImageData = null, currentEditingProductId = null, angebotProduct = null, sayimMod = 'liste', sayimBarkodMap = {};
 let currentAngebotSize = 'a4', currentAngebotOrientation = 'portrait';
 let currentDiscountPrice = null;
+let firmalar = [];
+
 let audioCtx = null;
 
 function initAudio() {
@@ -372,7 +401,7 @@ function playBeep() {
 
 function openIndexedDB() {
     return new Promise((resolve, reject) => {
-        const request = indexedDB.open("MarketProDB", 1);
+        const request = indexedDB.open("MarketProDB", 2);
         request.onerror = () => reject(request.error);
         request.onsuccess = () => { db = request.result; resolve(db); };
         request.onupgradeneeded = (event) => {
@@ -451,13 +480,14 @@ async function loadProducts() {
         futureDate.setFullYear(futureDate.getFullYear() + 1);
         let futureStr = futureDate.toISOString().slice(0,10);
         prods = [
-            {barcode:"4003998000470",name:"CAYKUR RIZE CAYI",price:4.99,cost:3.40,quantity:12,expiry:futureStr,image:null,id:Date.now()+1,category:"Dolap Urunleri"},
-            {barcode:"8690504003016",name:"ULKER CIKOLATA",price:1.29,cost:0.88,quantity:30,expiry:futureStr,image:null,id:Date.now()+2,category:"Kuru Gida"},
-            {barcode:"4006381333948",name:"FRITZ COLA 0.33L",price:1.19,cost:0.75,quantity:24,expiry:futureStr,image:null,id:Date.now()+3,category:"Dolap Urunleri"}
+            {barcode:"4003998000470",name:"CAYKUR RIZE CAYI",price:4.99,cost:3.40,quantity:12,expiry:futureStr,image:null,id:Date.now()+1,category:"Dolap Urunleri",firma:"Doga Gida"},
+            {barcode:"8690504003016",name:"ULKER CIKOLATA",price:1.29,cost:0.88,quantity:30,expiry:futureStr,image:null,id:Date.now()+2,category:"Kuru Gida",firma:"Doga Gida"},
+            {barcode:"4006381333948",name:"FRITZ COLA 0.33L",price:1.19,cost:0.75,quantity:24,expiry:futureStr,image:null,id:Date.now()+3,category:"Dolap Urunleri",firma:"Bereket Gida"}
         ];
         await saveProductsToIDB(prods);
     }
     products = prods;
+    await loadFirmalar();
     await updateUI();
 }
 async function saveProducts() {
@@ -470,6 +500,99 @@ async function loadPrintQueue() {
     printQueue = Array.isArray(q) ? q : [];
 }
 function savePrintQueue() { saveMetadata('printQueue', printQueue); }
+
+// FIRMA ISLEMLERI
+async function loadFirmalar() {
+    const f = await loadMetadata('firmalar');
+    firmalar = Array.isArray(f) ? f : [];
+    // Mevcut ürünlerdeki firmaları da ekle (otomatik)
+    products.forEach(p => {
+        if (p.firma && p.firma.trim() && !firmalar.includes(p.firma.trim())) {
+            firmalar.push(p.firma.trim());
+        }
+    });
+    firmalar = [...new Set(firmalar)].sort();
+    await saveFirmalar();
+}
+async function saveFirmalar() {
+    await saveMetadata('firmalar', firmalar);
+}
+function getFirmaOptions(selected) {
+    let opts = '<option value="">Firma seçin</option>';
+    firmalar.forEach(f => {
+        opts += `<option value="${f}" ${f === selected ? 'selected' : ''}>${f}</option>`;
+    });
+    return opts;
+}
+function addNewFirma() {
+    let input = document.getElementById('newFirmaInput');
+    let name = input.value.trim();
+    if (!name) { showToast('Firma adı girin'); return; }
+    if (firmalar.includes(name)) { showToast('Bu firma zaten var'); return; }
+    firmalar.push(name);
+    firmalar.sort();
+    saveFirmalar();
+    input.value = '';
+    renderFirmaListesi();
+    renderFirmaButonlari();
+    showToast(`✅ ${name} eklendi`);
+}
+function deleteFirma(name) {
+    if (!confirm(`${name} silinsin mi?`)) return;
+    firmalar = firmalar.filter(f => f !== name);
+    saveFirmalar();
+    // Bu firmaya ait ürünlerin firmasını temizle
+    products.forEach(p => {
+        if (p.firma === name) p.firma = '';
+    });
+    saveProducts();
+    renderFirmaListesi();
+    renderFirmaButonlari();
+    if (selectedFirma === name) { selectedFirma = null; renderInventoryList(); }
+    showToast(`❌ ${name} silindi`);
+}
+function renderFirmaListesi() {
+    let c = document.getElementById('firmaListesiContainer');
+    if (!firmalar.length) {
+        c.innerHTML = '<div style="color:var(--text-secondary);text-align:center;padding:16px;">Henüz firma eklenmemiş</div>';
+        return;
+    }
+    c.innerHTML = firmalar.map(f => `
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.4);border-radius:30px;padding:10px 16px;margin-bottom:8px;">
+            <span style="font-weight:700;">${f}</span>
+            <button onclick="deleteFirma('${f}')" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:30px;padding:6px 14px;color:white;font-weight:700;font-size:0.75rem;cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+        </div>
+    `).join('');
+}
+function renderFirmaButonlari() {
+    let c = document.getElementById('firmaContainer');
+    if (!firmalar.length) {
+        c.innerHTML = `<button onclick="openFirmaModal()" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;border-radius:40px;padding:12px 20px;color:white;font-weight:800;font-size:0.9rem;cursor:pointer;width:100%;box-shadow:0 4px 12px rgba(139,92,246,0.3);"><i class="fa-solid fa-building" style="margin-right:6px"></i>FİRMALAR (0)</button>`;
+        return;
+    }
+    let html = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+        <button onclick="selectFirma(null)" style="background:${!selectedFirma ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.12)'};border:1px solid rgba(255,255,255,0.2);border-radius:30px;padding:8px 14px;color:white;font-weight:700;font-size:0.75rem;cursor:pointer;transition:all 0.2s;">TÜMÜ</button>`;
+    firmalar.forEach(f => {
+        html += `<button onclick="selectFirma('${f}')" style="background:${selectedFirma === f ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.12)'};border:1px solid rgba(255,255,255,0.2);border-radius:30px;padding:8px 14px;color:white;font-weight:700;font-size:0.75rem;cursor:pointer;transition:all 0.2s;">${f}</button>`;
+    });
+    html += `<button onclick="openFirmaModal()" style="background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:30px;padding:8px 14px;color:white;font-weight:700;font-size:0.75rem;cursor:pointer;transition:all 0.2s;"><i class="fa-solid fa-plus"></i></button>`;
+    html += `</div>`;
+    c.innerHTML = html;
+}
+function selectFirma(firma) {
+    selectedFirma = firma;
+    renderFirmaButonlari();
+    renderInventoryList();
+}
+function openFirmaModal() {
+    document.getElementById('firmaModal').style.display = 'flex';
+    renderFirmaListesi();
+    document.getElementById('newFirmaInput').value = '';
+    document.getElementById('newFirmaInput').focus();
+}
+function closeFirmaModal() {
+    document.getElementById('firmaModal').style.display = 'none';
+}
 
 function showToast(msg){ 
     let c=document.getElementById("toast-container"),t=document.createElement("div");
@@ -549,13 +672,16 @@ function findIdxByBarcode(code){
 }
 async function updateUI(){ 
     document.getElementById('productCountBadge').innerText=products.length+' cesit'; 
+    renderFirmaButonlari();
 }
 
 function openInventoryModal(){ 
     inventoryFilterMode='all'; 
+    selectedFirma = null;
     document.getElementById("inventoryModal").style.display="flex"; 
     let inp=document.getElementById("inventorySearchInput"); 
     if(inp){inp.value="";inp.oninput=()=>renderInventoryList();} 
+    renderFirmaButonlari();
     renderInventoryList(); 
 }
 function closeInventoryModal(){ document.getElementById("inventoryModal").style.display="none"; }
@@ -572,7 +698,13 @@ function renderInventoryList(){
     } 
     let container=document.getElementById("modalProductList"); 
     let sv=(document.getElementById("inventorySearchInput")?.value||'').trim().toLowerCase(); 
-    let filtered=sv?products.filter(p=>p.name.toLowerCase().includes(sv)||p.barcode.includes(sv)):products; 
+    let filtered=sv?products.filter(p=>p.name.toLowerCase().includes(sv)||p.barcode.includes(sv)):products;
+    
+    // Firma filtresi
+    if (selectedFirma) {
+        filtered = filtered.filter(p => p.firma === selectedFirma);
+    }
+    
     if(inventoryFilterMode==='active')filtered=filtered.filter(p=>p.quantity>0); 
     else if(inventoryFilterMode==='zero')filtered=filtered.filter(p=>p.quantity===0); 
     else if(inventoryFilterMode==='urgent')filtered=filtered.filter(p=>p.expiry&&p.quantity>0&&Math.ceil((new Date(p.expiry)-new Date())/86400000)<=7); 
@@ -601,7 +733,8 @@ function renderInventoryList(){
     }
     container.innerHTML=sorted.map((p, index)=>{
         let idx=products.findIndex(pr=>pr.id===p.id),cc=getProductColorClass(p);
-        return `<div class="envanter-item ${cc}" style="animation-delay:${index*0.03}s"><div class="product-name-item" onclick="openProductDetailModal(${idx})">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)} <span style="color:var(--text-secondary);font-weight:600">(${p.quantity})</span></div><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-plus" style="margin-right:3px;font-size:0.6rem"></i>ETIKET</button></div>`;
+        let firmaLabel = p.firma ? `<span style="font-size:0.65rem;color:var(--text-secondary);background:rgba(255,255,255,0.3);padding:2px 8px;border-radius:12px;margin-left:4px;">${p.firma}</span>` : '';
+        return `<div class="envanter-item ${cc}" style="animation-delay:${index*0.03}s"><div class="product-name-item" onclick="openProductDetailModal(${idx})">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)} ${firmaLabel}<span style="color:var(--text-secondary);font-weight:600">(${p.quantity})</span></div><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-plus" style="margin-right:3px;font-size:0.6rem"></i>ETIKET</button></div>`;
     }).join('');
 }
 function setInventoryFilter(mode){ inventoryFilterMode=mode; renderInventoryList(); }
@@ -609,15 +742,17 @@ function setInventoryFilter(mode){ inventoryFilterMode=mode; renderInventoryList
 function openProductDetailModal(idx){
     let p=products[idx];currentEditingProductId=idx;let color=getProductColorClass(p);
     let modal=document.getElementById("productDetailModal"),content=document.getElementById("productDetailContent");
-    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>URUN DETAYI</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:'<div style="padding:20px;color:var(--text-secondary);font-size:3rem;"><i class="fa-regular fa-image"></i><div style="font-size:0.9rem;margin-top:8px;">RESIM YOK</div></div>'}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<div style="color:var(--text-secondary);margin-top:6px;font-size:0.9rem;line-height:1.6;">Barkod: ${p.barcode}<br>Fiyat: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>Stok: <span style="font-weight:700">${p.quantity}</span><br>SKT: ${p.expiry||"YOK"}</div></div><div class="detail-actions"><button class="btn-detail-edit" onclick="toggleEditMode()"><i class="fa-solid fa-pen" style="margin-right:4px"></i>DUZENLE</button><button class="btn-detail-delete" onclick="deleteCurrentProduct()"><i class="fa-solid fa-trash" style="margin-right:4px"></i>SIL</button><button class="btn-detail-sell" onclick="sellProduct(products[${idx}],${idx})"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>SATILDI</button><button class="btn-detail-gallery" onclick="addImageToCurrentProduct('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>GALERI</button><button class="btn-detail-camera" onclick="addImageToCurrentProduct('camera')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>KAMERA</button><button class="btn-detail-internet" onclick="openGoogleSearchForCurrent()"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>INTERNET</button><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>ETIKET LISTESINE EKLE</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:8px;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>ANGEBOT HAZIRLA</button></div><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
+    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>URUN DETAYI</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:'<div style="padding:20px;color:var(--text-secondary);font-size:3rem;"><i class="fa-regular fa-image"></i><div style="font-size:0.9rem;margin-top:8px;">RESIM YOK</div></div>'}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<div style="color:var(--text-secondary);margin-top:6px;font-size:0.9rem;line-height:1.6;">Barkod: ${p.barcode}<br>Fiyat: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>Stok: <span style="font-weight:700">${p.quantity}</span><br>SKT: ${p.expiry||"YOK"}<br>Firma: ${p.firma||"Belirtilmemiş"}</div></div><div class="detail-actions"><button class="btn-detail-edit" onclick="toggleEditMode()"><i class="fa-solid fa-pen" style="margin-right:4px"></i>DUZENLE</button><button class="btn-detail-delete" onclick="deleteCurrentProduct()"><i class="fa-solid fa-trash" style="margin-right:4px"></i>SIL</button><button class="btn-detail-sell" onclick="sellProduct(products[${idx}],${idx})"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>SATILDI</button><button class="btn-detail-gallery" onclick="addImageToCurrentProduct('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>GALERI</button><button class="btn-detail-camera" onclick="addImageToCurrentProduct('camera')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>KAMERA</button><button class="btn-detail-internet" onclick="openGoogleSearchForCurrent()"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>INTERNET</button><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>ETIKET LISTESINE EKLE</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:8px;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>ANGEBOT HAZIRLA</button></div><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
     modal.style.display="flex";
 }
 function closeProductDetailModal(){ document.getElementById("productDetailModal").style.display="none";currentEditingProductId=null; }
+
 function toggleEditMode(){
     let editDiv=document.getElementById("editFields"),p=products[currentEditingProductId];
     if(editDiv.style.display==="none"){
         editDiv.style.display="block";
-        editDiv.innerHTML=`<input id="editName" value="${escapeHtml(p.name)}" maxlength="35" placeholder="Urun adi"><input id="editBarcode" value="${p.barcode}" placeholder="Barkod"><input id="editPrice" value="${p.price}" placeholder="Fiyat (€)"><input id="editCost" value="${p.cost||''}" placeholder="Maliyet (€)"><div id="editProfitBox" class="profit-box"></div><select id="editCategory">${p.category=="Dolap Urunleri"?"<option selected>Dolap Urunleri</option><option>Kuru Gida</option>":"<option>Dolap Urunleri</option><option selected>Kuru Gida</option>"}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}" placeholder="Stok" type="number"><input id="editExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveProductEdit()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button><button class="btn-cancel" onclick="toggleEditMode()">IPTAL</button></div>`;
+        let firmaOpts = getFirmaOptions(p.firma);
+        editDiv.innerHTML=`<input id="editName" value="${escapeHtml(p.name)}" maxlength="35" placeholder="Urun adi"><input id="editBarcode" value="${p.barcode}" placeholder="Barkod"><input id="editPrice" value="${p.price}" placeholder="Fiyat (€)"><input id="editCost" value="${p.cost||''}" placeholder="Maliyet (€)"><div id="editProfitBox" class="profit-box"></div><select id="editCategory">${p.category=="Dolap Urunleri"?"<option selected>Dolap Urunleri</option><option>Kuru Gida</option>":"<option>Dolap Urunleri</option><option selected>Kuru Gida</option>"}</select><select id="editFirma">${firmaOpts}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}" placeholder="Stok" type="number"><input id="editExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveProductEdit()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button><button class="btn-cancel" onclick="toggleEditMode()">IPTAL</button></div>`;
         setupPriceFields('editCost','editPrice','editProfitBox');
     }else{editDiv.style.display="none";editDiv.innerHTML="";}
 }
@@ -628,11 +763,13 @@ async function saveProductEdit(){
     products[idx].price=parseFloat(document.getElementById("editPrice").value);
     products[idx].cost=parseFloat(document.getElementById("editCost").value)||null;
     products[idx].category=document.getElementById("editCategory").value;
+    products[idx].firma=document.getElementById("editFirma").value;
     let _q=parseInt(document.getElementById("editQuantity").value);
     if(isNaN(_q)||_q<=0)_q=1;
     products[idx].quantity=_q;
     products[idx].expiry=document.getElementById("editExpiry").value;
     await saveProducts();
+    await loadFirmalar();
     await updateUI();
     openProductDetailModal(idx);
     playBeep();
@@ -749,7 +886,7 @@ function managePrintQueue(){
         let p=products.find(pr=>pr.id===pid);
         if(p) items.push(p);
     }
-    c.innerHTML=items.map((p,i)=>`<div style="background:rgba(255,255,255,0.04);border-radius:40px;padding:12px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,0.05);"><span style="font-weight:600;font-size:0.9rem;">${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-size:0.8rem;">(${p.price.toFixed(2)}€)</span></span><button onclick="removeFromQueue(${i})" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:30px;padding:6px 14px;color:white;font-weight:700;font-size:0.75rem;cursor:pointer;"><i class="fa-solid fa-xmark" style="margin-right:3px"></i>CIKAR</button></div>`).join('');
+    c.innerHTML=items.map((p,i)=>`<div style="background:rgba(255,255,255,0.04);border-radius:40px;padding:12px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,0.05);"><span style="font-weight:600;font-size:0.9rem;">${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-size:0.8rem;">(${p.price.toFixed(2)}€)</span> ${p.firma ? `<span style="font-size:0.65rem;color:var(--text-secondary);">${p.firma}</span>` : ''}</span><button onclick="removeFromQueue(${i})" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:30px;padding:6px 14px;color:white;font-weight:700;font-size:0.75rem;cursor:pointer;"><i class="fa-solid fa-xmark" style="margin-right:3px"></i>CIKAR</button></div>`).join('');
     document.getElementById("queueModal").style.display="flex";
 }
 function removeFromQueue(i){ printQueue.splice(i,1);savePrintQueue();managePrintQueue(); }
@@ -1258,6 +1395,7 @@ function closeResultAndOpenDetail(idx){
 function showAddFormForBarcode(code){
     let container=document.getElementById('addFormContainer');
     container.classList.remove('hidden');
+    let firmaOpts = getFirmaOptions('');
     container.innerHTML='<div style="background:rgba(255,255,255,0.5);border-radius:28px;padding:20px;margin-top:12px;border:1px solid rgba(59,130,246,0.1);">'+
         '<div style="font-size:1.1rem;font-weight:800;color:#f87171;margin-bottom:12px;font-family:\'Outfit\',sans-serif;"><i class="fa-solid fa-plus" style="margin-right:6px"></i>YENİ ÜRÜN EKLE</div>'+
         '<input id="addBarcode" value="'+escapeHtml(code)+'" placeholder="Barkod" readonly style="background:rgba(255,255,255,0.4);">'+
@@ -1266,8 +1404,15 @@ function showAddFormForBarcode(code){
         '<input id="addPrice" placeholder="Satış fiyatı (€)" type="number" step="0.01">'+
         '<div id="addProfitBox" class="profit-box"></div>'+
         '<select id="addCategory"><option selected>Dolap Ürünleri</option><option>Kuru Gıda</option></select>'+
+        '<select id="addFirma">'+firmaOpts+'</select>'+
         '<input id="addQuantity" placeholder="Stok adedi" type="number" value="1">'+
         '<input id="addExpiry" type="date" placeholder="SKT">'+
+        '<div class="photo-buttons">'+
+            '<button class="photo-gallery" onclick="addImageToManualForm(\'gallery\')"><i class="fa-solid fa-images"></i> GALERİ</button>'+
+            '<button class="photo-camera" onclick="addImageToManualForm(\'camera\')"><i class="fa-solid fa-camera"></i> KAMERA</button>'+
+            '<button class="photo-internet" onclick="searchImageOnline()"><i class="fa-solid fa-magnifying-glass"></i> İNTERNET</button>'+
+        '</div>'+
+        '<div id="manualImagePreview"></div>'+
         '<div style="display:flex;gap:10px;margin-top:12px;">'+
             '<button onclick="saveNewProduct()" class="btn btn-success" style="flex:1;"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button>'+
             '<button onclick="document.getElementById(\'addFormContainer\').classList.add(\'hidden\')" class="btn btn-primary" style="flex:1;background:linear-gradient(135deg,#64748b,#475569)!important;"><i class="fa-solid fa-xmark" style="margin-right:6px"></i>İPTAL</button>'+
@@ -1276,21 +1421,53 @@ function showAddFormForBarcode(code){
     setupPriceFields('addCost','addPrice','addProfitBox');
     document.getElementById('addName').focus();
 }
+let manualImageDataUrl = null;
+function addImageToManualForm(source){
+    let input=document.createElement("input");
+    input.type="file";
+    input.accept="image/*";
+    if(source==='camera')input.capture="environment";
+    input.onchange=async(e)=>{
+        let file=e.target.files[0];
+        if(file){
+            let reader=new FileReader();
+            reader.onload=async(ev)=>{
+                manualImageDataUrl = await compressImage(ev.target.result);
+                document.getElementById('manualImagePreview').innerHTML = `<img src="${manualImageDataUrl}" class="photo-preview">`;
+                showToast('✅ Resim eklendi');
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    input.click();
+}
+function searchImageOnline(){
+    let name = document.getElementById('addName')?.value?.trim();
+    if(!name) { showToast('Önce ürün adını girin!'); return; }
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank');
+}
 async function saveNewProduct(){
     let barcode=normBarcode(document.getElementById('addBarcode').value);
     let name=document.getElementById('addName').value.trim().toUpperCase();
     let cost=parseFloat(document.getElementById('addCost').value)||null;
     let price=parseFloat(document.getElementById('addPrice').value);
     let category=document.getElementById('addCategory').value;
+    let firma=document.getElementById('addFirma').value;
     let quantity=parseInt(document.getElementById('addQuantity').value)||1;
     let expiry=document.getElementById('addExpiry').value;
     if(!name){ showToast('Ürün adı gerekli'); return; }
     if(isNaN(price)||price<=0){ showToast('Geçerli fiyat girin'); return; }
     if(findByBarcode(barcode)){ showToast('Bu barkod zaten var'); return; }
-    let newProduct={barcode:barcode,name:name,price:price,cost:cost,quantity:quantity,expiry:expiry||null,image:null,id:Date.now(),category:category};
+    let newProduct={barcode:barcode,name:name,price:price,cost:cost,quantity:quantity,expiry:expiry||null,image:manualImageDataUrl||null,id:Date.now(),category:category,firma:firma};
     products.push(newProduct);
+    if(firma && !firmalar.includes(firma)) {
+        firmalar.push(firma);
+        firmalar.sort();
+        await saveFirmalar();
+    }
     await saveProducts();
     await updateUI();
+    manualImageDataUrl = null;
     document.getElementById('addFormContainer').classList.add('hidden');
     showResult(newProduct);
     playBeep();
@@ -1304,7 +1481,7 @@ function showResult(p){
             imgHtml+
             '<div class="result-name">'+escapeHtml(p.name)+'</div>'+
             '<div class="result-price">'+p.price.toFixed(2)+' €</div>'+
-            '<div style="color:var(--text-secondary);font-size:0.9rem;font-weight:600;">Stok: '+p.quantity+' | SKT: '+(p.expiry||'YOK')+'</div>'+
+            '<div style="color:var(--text-secondary);font-size:0.9rem;font-weight:600;">Stok: '+p.quantity+' | SKT: '+(p.expiry||'YOK')+' | Firma: '+(p.firma||'—')+'</div>'+
             '<div style="margin-top:10px;">'+
                 '<button class="result-image-btn" onclick="addImageToResult(\'camera\')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>KAMERA</button>'+
                 '<button class="result-image-btn" onclick="addImageToResult(\'gallery\')"><i class="fa-solid fa-images" style="margin-right:4px"></i>GALERİ</button>'+
@@ -1315,7 +1492,7 @@ function showResult(p){
         '</div>';
 }
 function backupData(){
-    let data={products:products,printQueue:printQueue,exportDate:new Date().toISOString()};
+    let data={products:products,printQueue:printQueue,firmalar:firmalar,exportDate:new Date().toISOString()};
     let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     let url=URL.createObjectURL(blob);
     let a=document.createElement('a');
@@ -1342,7 +1519,9 @@ async function restoreData(){
                 if(confirm(data.products.length+' ürün yükleniyor. Mevcut verilerin üzerine yazılsın mı?')){
                     products=data.products;
                     if(data.printQueue) printQueue=data.printQueue;
+                    if(data.firmalar) firmalar=data.firmalar;
                     await saveProducts();
+                    await saveFirmalar();
                     await updateUI();
                     showToast('Yedek başarıyla yüklendi');
                 }
@@ -1352,9 +1531,9 @@ async function restoreData(){
     input.click();
 }
 function exportToCSV(){
-    let csv='Barkod,Ürün Adı,Fiyat,Maliyet,Stok,SKT,Kategori\n';
+    let csv='Barkod,Ürün Adı,Fiyat,Maliyet,Stok,SKT,Kategori,Firma\n';
     products.forEach(p=>{
-        csv+=p.barcode+',"'+p.name+'",'+p.price+','+(p.cost||'')+','+p.quantity+','+(p.expiry||'')+','+(p.category||'')+'\n';
+        csv+=p.barcode+',"'+p.name+'",'+p.price+','+(p.cost||'')+','+p.quantity+','+(p.expiry||'')+','+(p.category||'')+','+(p.firma||'')+'\n';
     });
     let blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
     let url=URL.createObjectURL(blob);
@@ -1367,9 +1546,9 @@ function exportToCSV(){
 }
 function printReport(){
     let container=document.getElementById('printTableContainer');
-    let html='<table style="width:100%;border-collapse:collapse;font-size:0.85rem;"><thead><tr style="background:#f1f5f9;"><th style="padding:8px;border:1px solid #cbd5e1;text-align:left;">Barkod</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:left;">Ürün</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:right;">Fiyat</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:right;">Stok</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:left;">SKT</th></tr></thead><tbody>';
+    let html='<table style="width:100%;border-collapse:collapse;font-size:0.85rem;"><thead><tr style="background:#f1f5f9;"><th style="padding:8px;border:1px solid #cbd5e1;text-align:left;">Barkod</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:left;">Ürün</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:right;">Fiyat</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:right;">Stok</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:left;">SKT</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:left;">Firma</th></tr></thead><tbody>';
     products.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(p=>{
-        html+='<tr><td style="padding:8px;border:1px solid #e2e8f0;">'+p.barcode+'</td><td style="padding:8px;border:1px solid #e2e8f0;">'+escapeHtml(p.name)+'</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:right;">'+p.price.toFixed(2)+' €</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:right;">'+p.quantity+'</td><td style="padding:8px;border:1px solid #e2e8f0;">'+(p.expiry||'—')+'</td></tr>';
+        html+='<tr><td style="padding:8px;border:1px solid #e2e8f0;">'+p.barcode+'</td><td style="padding:8px;border:1px solid #e2e8f0;">'+escapeHtml(p.name)+'</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:right;">'+p.price.toFixed(2)+' €</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:right;">'+p.quantity+'</td><td style="padding:8px;border:1px solid #e2e8f0;">'+(p.expiry||'—')+'</td><td style="padding:8px;border:1px solid #e2e8f0;">'+(p.firma||'—')+'</td></tr>';
     });
     html+='</tbody></table>';
     container.innerHTML=html;
@@ -1407,14 +1586,22 @@ document.getElementById('productSearchBtn').addEventListener('click',openInvento
 document.getElementById('manualAddBtn').addEventListener('click',()=>{
     document.getElementById('manualAddModal').style.display='flex';
     let c=document.getElementById('manualAddFormContainer');
+    let firmaOpts = getFirmaOptions('');
     c.innerHTML='<input id="manualBarcode" placeholder="Barkod">'+
         '<input id="manualName" placeholder="Ürün adı" maxlength="35">'+
         '<input id="manualCost" placeholder="Maliyet (€)" type="number" step="0.01">'+
         '<input id="manualPrice" placeholder="Satış fiyatı (€)" type="number" step="0.01">'+
         '<div id="manualProfitBox" class="profit-box"></div>'+
         '<select id="manualCategory"><option selected>Dolap Ürünleri</option><option>Kuru Gıda</option></select>'+
+        '<select id="manualFirma">'+firmaOpts+'</select>'+
         '<input id="manualQuantity" placeholder="Stok" type="number" value="1">'+
         '<input id="manualExpiry" type="date">'+
+        '<div class="photo-buttons">'+
+            '<button class="photo-gallery" onclick="addImageToManualForm2(\'gallery\')"><i class="fa-solid fa-images"></i> GALERİ</button>'+
+            '<button class="photo-camera" onclick="addImageToManualForm2(\'camera\')"><i class="fa-solid fa-camera"></i> KAMERA</button>'+
+            '<button class="photo-internet" onclick="searchImageOnline2()"><i class="fa-solid fa-magnifying-glass"></i> İNTERNET</button>'+
+        '</div>'+
+        '<div id="manualImagePreview2"></div>'+
         '<div style="display:flex;gap:10px;margin-top:12px;">'+
             '<button onclick="saveManualAdd()" class="btn btn-success" style="flex:1;"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button>'+
             '<button onclick="closeManualAddModal()" class="btn btn-primary" style="flex:1;background:linear-gradient(135deg,#64748b,#475569)!important;"><i class="fa-solid fa-xmark" style="margin-right:6px"></i>İPTAL</button>'+
@@ -1422,22 +1609,54 @@ document.getElementById('manualAddBtn').addEventListener('click',()=>{
     setupPriceFields('manualCost','manualPrice','manualProfitBox');
     document.getElementById('manualBarcode').focus();
 });
+let manualImageDataUrl2 = null;
+function addImageToManualForm2(source){
+    let input=document.createElement("input");
+    input.type="file";
+    input.accept="image/*";
+    if(source==='camera')input.capture="environment";
+    input.onchange=async(e)=>{
+        let file=e.target.files[0];
+        if(file){
+            let reader=new FileReader();
+            reader.onload=async(ev)=>{
+                manualImageDataUrl2 = await compressImage(ev.target.result);
+                document.getElementById('manualImagePreview2').innerHTML = `<img src="${manualImageDataUrl2}" class="photo-preview">`;
+                showToast('✅ Resim eklendi');
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    input.click();
+}
+function searchImageOnline2(){
+    let name = document.getElementById('manualName')?.value?.trim();
+    if(!name) { showToast('Önce ürün adını girin!'); return; }
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank');
+}
 async function saveManualAdd(){
     let barcode=normBarcode(document.getElementById('manualBarcode').value);
     let name=document.getElementById('manualName').value.trim().toUpperCase();
     let cost=parseFloat(document.getElementById('manualCost').value)||null;
     let price=parseFloat(document.getElementById('manualPrice').value);
     let category=document.getElementById('manualCategory').value;
+    let firma=document.getElementById('manualFirma').value;
     let quantity=parseInt(document.getElementById('manualQuantity').value)||1;
     let expiry=document.getElementById('manualExpiry').value;
     if(!barcode||barcode.length<4){ showToast('Geçerli barkod girin'); return; }
     if(!name){ showToast('Ürün adı gerekli'); return; }
     if(isNaN(price)||price<=0){ showToast('Geçerli fiyat girin'); return; }
     if(findByBarcode(barcode)){ showToast('Bu barkod zaten var'); return; }
-    let newProduct={barcode:barcode,name:name,price:price,cost:cost,quantity:quantity,expiry:expiry||null,image:null,id:Date.now(),category:category};
+    let newProduct={barcode:barcode,name:name,price:price,cost:cost,quantity:quantity,expiry:expiry||null,image:manualImageDataUrl2||null,id:Date.now(),category:category,firma:firma};
     products.push(newProduct);
+    if(firma && !firmalar.includes(firma)) {
+        firmalar.push(firma);
+        firmalar.sort();
+        await saveFirmalar();
+    }
     await saveProducts();
     await updateUI();
+    manualImageDataUrl2 = null;
     closeManualAddModal();
     showResult(newProduct);
     playBeep();
@@ -1451,11 +1670,9 @@ document.getElementById('closeCameraModalBtn').addEventListener('click',closeCam
     await loadPrintQueue();
     updateClock();
     setInterval(updateClock,1000);
-    // SKT uyarısı kaldırıldı
-    // Sadece 1 kez "Hayırlı işler" toast'ı
     if (!localStorage.getItem('welcomeShown')) {
         setTimeout(() => {
-            showToast('TOKAS MARKET 😀 🍀');
+            showToast('❤️ TOKAS MARKET ❤️ ');
         }, 800);
         localStorage.setItem('welcomeShown', 'true');
     }
