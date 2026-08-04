@@ -7,7 +7,7 @@
     <title>MARKET PRO - IndexedDB</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
         :root {
@@ -188,7 +188,7 @@
 <div id="toast-container"></div>
 <div id="cameraModal" class="modal" style="justify-content:center;align-items:center;flex-direction:column">
     <div id="cameraViewportWrap" style="position:relative;width:90%;max-width:500px;background:#000;border-radius:40px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1)">
-        <video id="cameraVideo" autoplay muted playsinline style="width:100%;display:block"></video>
+        <div id="cameraVideo" style="width:100%;min-height:280px;display:block;background:#000;"></div>
         <div class="scan-frame">
             <span class="scan-corner tl"></span><span class="scan-corner tr"></span><span class="scan-corner bl"></span><span class="scan-corner br"></span>
             <div class="scan-laser"></div>
@@ -942,7 +942,235 @@ body{margin:0;padding:0;background:white;}
     let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Etiket Poster</title>' + styleBlock + jsLib + '</head><body>';
     html += '<div class="toolbar"><button onclick="window.print()">YAZDIR</button></div>';
     html += '<div class="sheets">' + allPagesHtml + '</div>';
-    html += jsInit + '</body></html>';
+    html += jsInit + '<script>
+// ==============================================================
+//  HTML5-QRCODE KAMERA OVERRIDE
+// ==============================================================
+let html5QrCode = null;
+
+async function openCameraModal(mode) {
+    let modal = document.getElementById("cameraModal");
+    let status = document.getElementById("cameraModalStatus");
+    sayimKameraMode = false;
+    currentCameraMode = mode;
+    let torchBtn = document.getElementById('torchToggleBtn');
+    if (torchBtn) torchBtn.classList.remove('torch-active');
+    modal.style.display = "flex";
+    status.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px"></i>KAMERA BAŞLATILIYOR...';
+
+    if (html5QrCode) {
+        try { await html5QrCode.stop(); } catch(e) {}
+        html5QrCode = null;
+    }
+    try { 
+        if (currentStream) { 
+            currentStream.getTracks().forEach(t => t.stop()); 
+            currentStream = null; 
+        } 
+    } catch(e) {}
+    currentVideoTrack = null;
+
+    try {
+        html5QrCode = new Html5Qrcode("cameraVideo");
+
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 150 },
+            aspectRatio: 1.777,
+            disableFlip: false
+        };
+
+        let scanCounts = {}, locked = false;
+
+        await html5QrCode.start(
+            { facingMode: "environment" },
+            config,
+            (decodedText, decodedResult) => {
+                if (locked) return;
+                let code = normBarcode(decodedText);
+                if (!code || code.length < 4) return;
+                if (!isValidChecksum(code)) return;
+
+                scanCounts[code] = (scanCounts[code] || 0) + 1;
+                status.innerHTML = `<i class="fa-solid fa-eye" style="margin-right:6px"></i>OKUNUYOR (${scanCounts[code]}/2)...`;
+                if (scanCounts[code] < 2) return;
+                locked = true;
+
+                playBeep();
+                closeCameraModal();
+
+                if (mode === 'search') {
+                    let found = findByBarcode(code);
+                    if (found) showResult(found);
+                    else {
+                        let cn = normBarcode(code);
+                        let pref = cn.replace(/^0+/, '').slice(0, 7);
+                        let benzer = products.filter(p => {
+                            let pb = normBarcode(p.barcode).replace(/^0+/, '');
+                            return pref.length >= 5 && (pb.startsWith(pref.slice(0, 6)) || cn.slice(0, 6) === pb.slice(0, 6));
+                        }).slice(0, 5);
+                        let benzerHtml = benzer.length ? `<div style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;"><div style="color:#fdba74;font-size:0.8rem;margin-bottom:8px;font-weight:600;"><i class="fa-solid fa-lightbulb" style="margin-right:4px"></i>Benzer ürünler:</div>` + benzer.map(p => {
+                            let i = products.findIndex(x => x.id === p.id);
+                            return `<button onclick="closeResultAndOpenDetail(${i})" style="display:block;width:100%;text-align:left;background:rgba(255,255,255,0.04);border:none;border-radius:30px;padding:10px 14px;color:white;font-size:0.8rem;margin-bottom:6px;cursor:pointer;border:1px solid rgba(255,255,255,0.05);transition:all 0.2s;"><i class="fa-solid fa-box" style="margin-right:6px;opacity:0.6"></i>${escapeHtml(p.name)} <span style="color:var(--text-secondary)">— ${p.barcode}</span></button>`;
+                        }).join('') + `</div>` : '';
+                        document.getElementById("resultArea").innerHTML = `<div style="color:white;padding:16px;"><div style="font-size:1.2rem;margin-bottom:8px;"><i class="fa-solid fa-circle-xmark" style="color:#ef4444;margin-right:6px"></i>"${code}" BULUNAMADI</div><button class="btn btn-primary" onclick="showAddFormForBarcode('${code}')" style="margin-top:12px;width:100%;"><i class="fa-solid fa-plus" style="margin-right:6px"></i>EKLE</button>${benzerHtml}</div>`;
+                    }
+                } else {
+                    showAddFormForBarcode(code);
+                }
+            },
+            (errorMessage) => {
+                // okuma hatası - görmezden gel
+            }
+        );
+
+        setTimeout(() => {
+            try {
+                const videoElem = document.getElementById("cameraVideo");
+                if (videoElem && videoElem.srcObject) {
+                    currentStream = videoElem.srcObject;
+                    currentVideoTrack = currentStream.getVideoTracks()[0] || null;
+                }
+            } catch(e) {}
+        }, 500);
+
+        status.innerHTML = '<i class="fa-solid fa-barcode" style="margin-right:6px"></i>BARKODU ÇERÇEVEYE GETİR...';
+    } catch(e) {
+        console.error('Kamera hatası:', e);
+        status.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>KAMERA HATASI: ' + (e.message || 'İZİN GEREKLİ');
+        setTimeout(() => closeCameraModal(), 3000);
+    }
+}
+
+async function openSayimKamera() {
+    let modal = document.getElementById("cameraModal");
+    let status = document.getElementById("cameraModalStatus");
+    sayimKameraMode = true;
+    currentCameraMode = 'sayim';
+    let torchBtn = document.getElementById('torchToggleBtn');
+    if (torchBtn) torchBtn.classList.remove('torch-active');
+    document.getElementById("stokSayimModal").style.display = "none";
+    modal.style.display = "flex";
+    status.innerHTML = '<i class="fa-solid fa-barcode" style="margin-right:6px"></i>SAYIM - BARKODU ÇERÇEVEYE GETİR...';
+
+    if (html5QrCode) {
+        try { await html5QrCode.stop(); } catch(e) {}
+        html5QrCode = null;
+    }
+    try { 
+        if (currentStream) { 
+            currentStream.getTracks().forEach(t => t.stop()); 
+            currentStream = null; 
+        } 
+    } catch(e) {}
+    currentVideoTrack = null;
+
+    try {
+        html5QrCode = new Html5Qrcode("cameraVideo");
+
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 150 },
+            aspectRatio: 1.777,
+            disableFlip: false
+        };
+
+        let detected = false;
+
+        await html5QrCode.start(
+            { facingMode: "environment" },
+            config,
+            (decodedText, decodedResult) => {
+                if (detected) return;
+                let code = normBarcode(decodedText);
+                if (!code || code.length < 4) return;
+                if (!isValidChecksum(code)) return;
+
+                detected = true;
+                playBeep();
+
+                (async () => {
+                    try { await html5QrCode.stop(); } catch(e) {}
+                    try { 
+                        if (currentStream) { 
+                            currentStream.getTracks().forEach(t => t.stop()); 
+                            currentStream = null; 
+                        } 
+                    } catch(e) {}
+                    currentVideoTrack = null;
+                    html5QrCode = null;
+                    modal.style.display = "none";
+                    document.getElementById("stokSayimModal").style.display = "flex";
+
+                    let p = findByBarcode(code);
+                    let nm = p ? p.name : ("Bilinmeyen: " + code);
+                    let mev = sayimBarkodMap[code] || 0;
+                    let girilen = prompt(`📦 ${nm}\nSistem stoğu: ${p ? p.quantity : ""}${mev > 0 ? "\nÖnceki sayım: " + mev : ""}\n\nKaç adet saydınız?`, mev > 0 ? String(mev) : "1");
+                    if (girilen !== null) {
+                        let adet = parseInt(girilen);
+                        if (!isNaN(adet) && adet >= 0) {
+                            if (adet === 0) delete sayimBarkodMap[code];
+                            else sayimBarkodMap[code] = adet;
+                            renderSayimBarkodListe();
+                            showToast(adet === 0 ? "Listeden çıkarıldı" : `✅ ${nm} → ${adet} adet`);
+                        } else showToast("Geçersiz miktar!");
+                    }
+                    sayimKameraMode = false;
+                })();
+            },
+            (errorMessage) => {}
+        );
+
+        setTimeout(() => {
+            try {
+                const videoElem = document.getElementById("cameraVideo");
+                if (videoElem && videoElem.srcObject) {
+                    currentStream = videoElem.srcObject;
+                    currentVideoTrack = currentStream.getVideoTracks()[0] || null;
+                }
+            } catch(e) {}
+        }, 500);
+
+        status.innerHTML = '<i class="fa-solid fa-barcode" style="margin-right:6px"></i>SAYIM: BARKODU ÇERÇEVEYE GETİR...';
+    } catch(e) {
+        console.error('Sayım kamera hatası:', e);
+        try { if (html5QrCode) { await html5QrCode.stop(); html5QrCode = null; } } catch(e2) {}
+        try { 
+            if (currentStream) { 
+                currentStream.getTracks().forEach(t => t.stop()); 
+                currentStream = null; 
+            } 
+        } catch(e2) {}
+        currentVideoTrack = null;
+        modal.style.display = "none";
+        document.getElementById("stokSayimModal").style.display = "flex";
+        showToast("Kamera açılamadı: " + (e.message || 'Bilinmeyen hata'));
+        sayimKameraMode = false;
+    }
+}
+
+async function closeCameraModal() {
+    try { 
+        if (html5QrCode) { 
+            await html5QrCode.stop(); 
+            html5QrCode = null;
+        } 
+    } catch(e) { console.warn('Html5Qrcode stop hatası', e); }
+    try { 
+        if (currentStream) { 
+            currentStream.getTracks().forEach(t => { try { t.stop(); } catch(e) {} }); 
+            currentStream = null; 
+        } 
+    } catch(e) { console.warn('Stream stop hatası', e); }
+    currentVideoTrack = null;
+    document.getElementById("cameraModal").style.display = "none";
+    if (sayimKameraMode) {
+        document.getElementById("stokSayimModal").style.display = "flex";
+        sayimKameraMode = false;
+    }
+}
+</script>
+</body></html>';
     w.document.write(html);
     w.document.close();
     showToast("Yazdirma penceresi acildi. Liste korunuyor.");
@@ -1038,7 +1266,235 @@ function buildAngebotPrintHTML(size,orientation,p,discountPrice){
         }
     }
     let jsBlock = '<sc'+'ript>window.addEventListener("load",function(){setTimeout(function(){try{window.focus();}catch(e){}window.print();},700);});</sc'+'ript>';
-    return '<!DOCTYPE html><html><head><meta charset="UTF-8">'+fontLink+'<style>.toolbar{position:fixed;top:0;left:0;width:100%;background:#222;color:white;padding:12px;text-align:center;z-index:99;font-family:system-ui,sans-serif;}.toolbar button{background:#e67e22;border:none;border-radius:30px;padding:12px 28px;color:white;font-weight:800;font-size:16px;cursor:pointer;}@media print{.toolbar{display:none!important;}}'+bodyCSS+'</style></head><body><div class="toolbar"><button onclick="window.print()">YAZDIR</button></div>'+bodyHTML+jsBlock+'</body></html>';
+    return '<!DOCTYPE html><html><head><meta charset="UTF-8">'+fontLink+'<style>.toolbar{position:fixed;top:0;left:0;width:100%;background:#222;color:white;padding:12px;text-align:center;z-index:99;font-family:system-ui,sans-serif;}.toolbar button{background:#e67e22;border:none;border-radius:30px;padding:12px 28px;color:white;font-weight:800;font-size:16px;cursor:pointer;}@media print{.toolbar{display:none!important;}}'+bodyCSS+'</style></head><body><div class="toolbar"><button onclick="window.print()">YAZDIR</button></div>'+bodyHTML+jsBlock+'<script>
+// ==============================================================
+//  HTML5-QRCODE KAMERA OVERRIDE
+// ==============================================================
+let html5QrCode = null;
+
+async function openCameraModal(mode) {
+    let modal = document.getElementById("cameraModal");
+    let status = document.getElementById("cameraModalStatus");
+    sayimKameraMode = false;
+    currentCameraMode = mode;
+    let torchBtn = document.getElementById('torchToggleBtn');
+    if (torchBtn) torchBtn.classList.remove('torch-active');
+    modal.style.display = "flex";
+    status.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px"></i>KAMERA BAŞLATILIYOR...';
+
+    if (html5QrCode) {
+        try { await html5QrCode.stop(); } catch(e) {}
+        html5QrCode = null;
+    }
+    try { 
+        if (currentStream) { 
+            currentStream.getTracks().forEach(t => t.stop()); 
+            currentStream = null; 
+        } 
+    } catch(e) {}
+    currentVideoTrack = null;
+
+    try {
+        html5QrCode = new Html5Qrcode("cameraVideo");
+
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 150 },
+            aspectRatio: 1.777,
+            disableFlip: false
+        };
+
+        let scanCounts = {}, locked = false;
+
+        await html5QrCode.start(
+            { facingMode: "environment" },
+            config,
+            (decodedText, decodedResult) => {
+                if (locked) return;
+                let code = normBarcode(decodedText);
+                if (!code || code.length < 4) return;
+                if (!isValidChecksum(code)) return;
+
+                scanCounts[code] = (scanCounts[code] || 0) + 1;
+                status.innerHTML = `<i class="fa-solid fa-eye" style="margin-right:6px"></i>OKUNUYOR (${scanCounts[code]}/2)...`;
+                if (scanCounts[code] < 2) return;
+                locked = true;
+
+                playBeep();
+                closeCameraModal();
+
+                if (mode === 'search') {
+                    let found = findByBarcode(code);
+                    if (found) showResult(found);
+                    else {
+                        let cn = normBarcode(code);
+                        let pref = cn.replace(/^0+/, '').slice(0, 7);
+                        let benzer = products.filter(p => {
+                            let pb = normBarcode(p.barcode).replace(/^0+/, '');
+                            return pref.length >= 5 && (pb.startsWith(pref.slice(0, 6)) || cn.slice(0, 6) === pb.slice(0, 6));
+                        }).slice(0, 5);
+                        let benzerHtml = benzer.length ? `<div style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;"><div style="color:#fdba74;font-size:0.8rem;margin-bottom:8px;font-weight:600;"><i class="fa-solid fa-lightbulb" style="margin-right:4px"></i>Benzer ürünler:</div>` + benzer.map(p => {
+                            let i = products.findIndex(x => x.id === p.id);
+                            return `<button onclick="closeResultAndOpenDetail(${i})" style="display:block;width:100%;text-align:left;background:rgba(255,255,255,0.04);border:none;border-radius:30px;padding:10px 14px;color:white;font-size:0.8rem;margin-bottom:6px;cursor:pointer;border:1px solid rgba(255,255,255,0.05);transition:all 0.2s;"><i class="fa-solid fa-box" style="margin-right:6px;opacity:0.6"></i>${escapeHtml(p.name)} <span style="color:var(--text-secondary)">— ${p.barcode}</span></button>`;
+                        }).join('') + `</div>` : '';
+                        document.getElementById("resultArea").innerHTML = `<div style="color:white;padding:16px;"><div style="font-size:1.2rem;margin-bottom:8px;"><i class="fa-solid fa-circle-xmark" style="color:#ef4444;margin-right:6px"></i>"${code}" BULUNAMADI</div><button class="btn btn-primary" onclick="showAddFormForBarcode('${code}')" style="margin-top:12px;width:100%;"><i class="fa-solid fa-plus" style="margin-right:6px"></i>EKLE</button>${benzerHtml}</div>`;
+                    }
+                } else {
+                    showAddFormForBarcode(code);
+                }
+            },
+            (errorMessage) => {
+                // okuma hatası - görmezden gel
+            }
+        );
+
+        setTimeout(() => {
+            try {
+                const videoElem = document.getElementById("cameraVideo");
+                if (videoElem && videoElem.srcObject) {
+                    currentStream = videoElem.srcObject;
+                    currentVideoTrack = currentStream.getVideoTracks()[0] || null;
+                }
+            } catch(e) {}
+        }, 500);
+
+        status.innerHTML = '<i class="fa-solid fa-barcode" style="margin-right:6px"></i>BARKODU ÇERÇEVEYE GETİR...';
+    } catch(e) {
+        console.error('Kamera hatası:', e);
+        status.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>KAMERA HATASI: ' + (e.message || 'İZİN GEREKLİ');
+        setTimeout(() => closeCameraModal(), 3000);
+    }
+}
+
+async function openSayimKamera() {
+    let modal = document.getElementById("cameraModal");
+    let status = document.getElementById("cameraModalStatus");
+    sayimKameraMode = true;
+    currentCameraMode = 'sayim';
+    let torchBtn = document.getElementById('torchToggleBtn');
+    if (torchBtn) torchBtn.classList.remove('torch-active');
+    document.getElementById("stokSayimModal").style.display = "none";
+    modal.style.display = "flex";
+    status.innerHTML = '<i class="fa-solid fa-barcode" style="margin-right:6px"></i>SAYIM - BARKODU ÇERÇEVEYE GETİR...';
+
+    if (html5QrCode) {
+        try { await html5QrCode.stop(); } catch(e) {}
+        html5QrCode = null;
+    }
+    try { 
+        if (currentStream) { 
+            currentStream.getTracks().forEach(t => t.stop()); 
+            currentStream = null; 
+        } 
+    } catch(e) {}
+    currentVideoTrack = null;
+
+    try {
+        html5QrCode = new Html5Qrcode("cameraVideo");
+
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 150 },
+            aspectRatio: 1.777,
+            disableFlip: false
+        };
+
+        let detected = false;
+
+        await html5QrCode.start(
+            { facingMode: "environment" },
+            config,
+            (decodedText, decodedResult) => {
+                if (detected) return;
+                let code = normBarcode(decodedText);
+                if (!code || code.length < 4) return;
+                if (!isValidChecksum(code)) return;
+
+                detected = true;
+                playBeep();
+
+                (async () => {
+                    try { await html5QrCode.stop(); } catch(e) {}
+                    try { 
+                        if (currentStream) { 
+                            currentStream.getTracks().forEach(t => t.stop()); 
+                            currentStream = null; 
+                        } 
+                    } catch(e) {}
+                    currentVideoTrack = null;
+                    html5QrCode = null;
+                    modal.style.display = "none";
+                    document.getElementById("stokSayimModal").style.display = "flex";
+
+                    let p = findByBarcode(code);
+                    let nm = p ? p.name : ("Bilinmeyen: " + code);
+                    let mev = sayimBarkodMap[code] || 0;
+                    let girilen = prompt(`📦 ${nm}\nSistem stoğu: ${p ? p.quantity : ""}${mev > 0 ? "\nÖnceki sayım: " + mev : ""}\n\nKaç adet saydınız?`, mev > 0 ? String(mev) : "1");
+                    if (girilen !== null) {
+                        let adet = parseInt(girilen);
+                        if (!isNaN(adet) && adet >= 0) {
+                            if (adet === 0) delete sayimBarkodMap[code];
+                            else sayimBarkodMap[code] = adet;
+                            renderSayimBarkodListe();
+                            showToast(adet === 0 ? "Listeden çıkarıldı" : `✅ ${nm} → ${adet} adet`);
+                        } else showToast("Geçersiz miktar!");
+                    }
+                    sayimKameraMode = false;
+                })();
+            },
+            (errorMessage) => {}
+        );
+
+        setTimeout(() => {
+            try {
+                const videoElem = document.getElementById("cameraVideo");
+                if (videoElem && videoElem.srcObject) {
+                    currentStream = videoElem.srcObject;
+                    currentVideoTrack = currentStream.getVideoTracks()[0] || null;
+                }
+            } catch(e) {}
+        }, 500);
+
+        status.innerHTML = '<i class="fa-solid fa-barcode" style="margin-right:6px"></i>SAYIM: BARKODU ÇERÇEVEYE GETİR...';
+    } catch(e) {
+        console.error('Sayım kamera hatası:', e);
+        try { if (html5QrCode) { await html5QrCode.stop(); html5QrCode = null; } } catch(e2) {}
+        try { 
+            if (currentStream) { 
+                currentStream.getTracks().forEach(t => t.stop()); 
+                currentStream = null; 
+            } 
+        } catch(e2) {}
+        currentVideoTrack = null;
+        modal.style.display = "none";
+        document.getElementById("stokSayimModal").style.display = "flex";
+        showToast("Kamera açılamadı: " + (e.message || 'Bilinmeyen hata'));
+        sayimKameraMode = false;
+    }
+}
+
+async function closeCameraModal() {
+    try { 
+        if (html5QrCode) { 
+            await html5QrCode.stop(); 
+            html5QrCode = null;
+        } 
+    } catch(e) { console.warn('Html5Qrcode stop hatası', e); }
+    try { 
+        if (currentStream) { 
+            currentStream.getTracks().forEach(t => { try { t.stop(); } catch(e) {} }); 
+            currentStream = null; 
+        } 
+    } catch(e) { console.warn('Stream stop hatası', e); }
+    currentVideoTrack = null;
+    document.getElementById("cameraModal").style.display = "none";
+    if (sayimKameraMode) {
+        document.getElementById("stokSayimModal").style.display = "flex";
+        sayimKameraMode = false;
+    }
+}
+</script>
+</body></html>';
 }
 
 function openUrgentModal(){
@@ -1567,10 +2023,238 @@ document.getElementById('closeCameraModalBtn').addEventListener('click',closeCam
     let urgent=products.filter(p=>p.expiry&&p.quantity>0&&Math.ceil((new Date(p.expiry)-today)/86400000)<=7&&Math.ceil((new Date(p.expiry)-today)/86400000)>=0);
     if(urgent.length>0){
         setTimeout(()=>{
-            if(confirm(urgent.length+' ürünün SKT\'si 7 gün içinde bitiyor. Görmek ister misin?')) openUrgentModal();
+            showToast('⚠️ ' + urgent.length + ' ürünün SKT\'si 7 gün içinde bitiyor!');
         },800);
     }
 })();
+</script>
+<script>
+// ==============================================================
+//  HTML5-QRCODE KAMERA OVERRIDE
+// ==============================================================
+let html5QrCode = null;
+
+async function openCameraModal(mode) {
+    let modal = document.getElementById("cameraModal");
+    let status = document.getElementById("cameraModalStatus");
+    sayimKameraMode = false;
+    currentCameraMode = mode;
+    let torchBtn = document.getElementById('torchToggleBtn');
+    if (torchBtn) torchBtn.classList.remove('torch-active');
+    modal.style.display = "flex";
+    status.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px"></i>KAMERA BAŞLATILIYOR...';
+
+    if (html5QrCode) {
+        try { await html5QrCode.stop(); } catch(e) {}
+        html5QrCode = null;
+    }
+    try { 
+        if (currentStream) { 
+            currentStream.getTracks().forEach(t => t.stop()); 
+            currentStream = null; 
+        } 
+    } catch(e) {}
+    currentVideoTrack = null;
+
+    try {
+        html5QrCode = new Html5Qrcode("cameraVideo");
+
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 150 },
+            aspectRatio: 1.777,
+            disableFlip: false
+        };
+
+        let scanCounts = {}, locked = false;
+
+        await html5QrCode.start(
+            { facingMode: "environment" },
+            config,
+            (decodedText, decodedResult) => {
+                if (locked) return;
+                let code = normBarcode(decodedText);
+                if (!code || code.length < 4) return;
+                if (!isValidChecksum(code)) return;
+
+                scanCounts[code] = (scanCounts[code] || 0) + 1;
+                status.innerHTML = `<i class="fa-solid fa-eye" style="margin-right:6px"></i>OKUNUYOR (${scanCounts[code]}/2)...`;
+                if (scanCounts[code] < 2) return;
+                locked = true;
+
+                playBeep();
+                closeCameraModal();
+
+                if (mode === 'search') {
+                    let found = findByBarcode(code);
+                    if (found) showResult(found);
+                    else {
+                        let cn = normBarcode(code);
+                        let pref = cn.replace(/^0+/, '').slice(0, 7);
+                        let benzer = products.filter(p => {
+                            let pb = normBarcode(p.barcode).replace(/^0+/, '');
+                            return pref.length >= 5 && (pb.startsWith(pref.slice(0, 6)) || cn.slice(0, 6) === pb.slice(0, 6));
+                        }).slice(0, 5);
+                        let benzerHtml = benzer.length ? `<div style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;"><div style="color:#fdba74;font-size:0.8rem;margin-bottom:8px;font-weight:600;"><i class="fa-solid fa-lightbulb" style="margin-right:4px"></i>Benzer ürünler:</div>` + benzer.map(p => {
+                            let i = products.findIndex(x => x.id === p.id);
+                            return `<button onclick="closeResultAndOpenDetail(${i})" style="display:block;width:100%;text-align:left;background:rgba(255,255,255,0.04);border:none;border-radius:30px;padding:10px 14px;color:white;font-size:0.8rem;margin-bottom:6px;cursor:pointer;border:1px solid rgba(255,255,255,0.05);transition:all 0.2s;"><i class="fa-solid fa-box" style="margin-right:6px;opacity:0.6"></i>${escapeHtml(p.name)} <span style="color:var(--text-secondary)">— ${p.barcode}</span></button>`;
+                        }).join('') + `</div>` : '';
+                        document.getElementById("resultArea").innerHTML = `<div style="color:white;padding:16px;"><div style="font-size:1.2rem;margin-bottom:8px;"><i class="fa-solid fa-circle-xmark" style="color:#ef4444;margin-right:6px"></i>"${code}" BULUNAMADI</div><button class="btn btn-primary" onclick="showAddFormForBarcode('${code}')" style="margin-top:12px;width:100%;"><i class="fa-solid fa-plus" style="margin-right:6px"></i>EKLE</button>${benzerHtml}</div>`;
+                    }
+                } else {
+                    showAddFormForBarcode(code);
+                }
+            },
+            (errorMessage) => {
+                // okuma hatası - görmezden gel
+            }
+        );
+
+        setTimeout(() => {
+            try {
+                const videoElem = document.getElementById("cameraVideo");
+                if (videoElem && videoElem.srcObject) {
+                    currentStream = videoElem.srcObject;
+                    currentVideoTrack = currentStream.getVideoTracks()[0] || null;
+                }
+            } catch(e) {}
+        }, 500);
+
+        status.innerHTML = '<i class="fa-solid fa-barcode" style="margin-right:6px"></i>BARKODU ÇERÇEVEYE GETİR...';
+    } catch(e) {
+        console.error('Kamera hatası:', e);
+        status.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>KAMERA HATASI: ' + (e.message || 'İZİN GEREKLİ');
+        setTimeout(() => closeCameraModal(), 3000);
+    }
+}
+
+async function openSayimKamera() {
+    let modal = document.getElementById("cameraModal");
+    let status = document.getElementById("cameraModalStatus");
+    sayimKameraMode = true;
+    currentCameraMode = 'sayim';
+    let torchBtn = document.getElementById('torchToggleBtn');
+    if (torchBtn) torchBtn.classList.remove('torch-active');
+    document.getElementById("stokSayimModal").style.display = "none";
+    modal.style.display = "flex";
+    status.innerHTML = '<i class="fa-solid fa-barcode" style="margin-right:6px"></i>SAYIM - BARKODU ÇERÇEVEYE GETİR...';
+
+    if (html5QrCode) {
+        try { await html5QrCode.stop(); } catch(e) {}
+        html5QrCode = null;
+    }
+    try { 
+        if (currentStream) { 
+            currentStream.getTracks().forEach(t => t.stop()); 
+            currentStream = null; 
+        } 
+    } catch(e) {}
+    currentVideoTrack = null;
+
+    try {
+        html5QrCode = new Html5Qrcode("cameraVideo");
+
+        const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 150 },
+            aspectRatio: 1.777,
+            disableFlip: false
+        };
+
+        let detected = false;
+
+        await html5QrCode.start(
+            { facingMode: "environment" },
+            config,
+            (decodedText, decodedResult) => {
+                if (detected) return;
+                let code = normBarcode(decodedText);
+                if (!code || code.length < 4) return;
+                if (!isValidChecksum(code)) return;
+
+                detected = true;
+                playBeep();
+
+                (async () => {
+                    try { await html5QrCode.stop(); } catch(e) {}
+                    try { 
+                        if (currentStream) { 
+                            currentStream.getTracks().forEach(t => t.stop()); 
+                            currentStream = null; 
+                        } 
+                    } catch(e) {}
+                    currentVideoTrack = null;
+                    html5QrCode = null;
+                    modal.style.display = "none";
+                    document.getElementById("stokSayimModal").style.display = "flex";
+
+                    let p = findByBarcode(code);
+                    let nm = p ? p.name : ("Bilinmeyen: " + code);
+                    let mev = sayimBarkodMap[code] || 0;
+                    let girilen = prompt(`📦 ${nm}\nSistem stoğu: ${p ? p.quantity : ""}${mev > 0 ? "\nÖnceki sayım: " + mev : ""}\n\nKaç adet saydınız?`, mev > 0 ? String(mev) : "1");
+                    if (girilen !== null) {
+                        let adet = parseInt(girilen);
+                        if (!isNaN(adet) && adet >= 0) {
+                            if (adet === 0) delete sayimBarkodMap[code];
+                            else sayimBarkodMap[code] = adet;
+                            renderSayimBarkodListe();
+                            showToast(adet === 0 ? "Listeden çıkarıldı" : `✅ ${nm} → ${adet} adet`);
+                        } else showToast("Geçersiz miktar!");
+                    }
+                    sayimKameraMode = false;
+                })();
+            },
+            (errorMessage) => {}
+        );
+
+        setTimeout(() => {
+            try {
+                const videoElem = document.getElementById("cameraVideo");
+                if (videoElem && videoElem.srcObject) {
+                    currentStream = videoElem.srcObject;
+                    currentVideoTrack = currentStream.getVideoTracks()[0] || null;
+                }
+            } catch(e) {}
+        }, 500);
+
+        status.innerHTML = '<i class="fa-solid fa-barcode" style="margin-right:6px"></i>SAYIM: BARKODU ÇERÇEVEYE GETİR...';
+    } catch(e) {
+        console.error('Sayım kamera hatası:', e);
+        try { if (html5QrCode) { await html5QrCode.stop(); html5QrCode = null; } } catch(e2) {}
+        try { 
+            if (currentStream) { 
+                currentStream.getTracks().forEach(t => t.stop()); 
+                currentStream = null; 
+            } 
+        } catch(e2) {}
+        currentVideoTrack = null;
+        modal.style.display = "none";
+        document.getElementById("stokSayimModal").style.display = "flex";
+        showToast("Kamera açılamadı: " + (e.message || 'Bilinmeyen hata'));
+        sayimKameraMode = false;
+    }
+}
+
+async function closeCameraModal() {
+    try { 
+        if (html5QrCode) { 
+            await html5QrCode.stop(); 
+            html5QrCode = null;
+        } 
+    } catch(e) { console.warn('Html5Qrcode stop hatası', e); }
+    try { 
+        if (currentStream) { 
+            currentStream.getTracks().forEach(t => { try { t.stop(); } catch(e) {} }); 
+            currentStream = null; 
+        } 
+    } catch(e) { console.warn('Stream stop hatası', e); }
+    currentVideoTrack = null;
+    document.getElementById("cameraModal").style.display = "none";
+    if (sayimKameraMode) {
+        document.getElementById("stokSayimModal").style.display = "flex";
+        sayimKameraMode = false;
+    }
+}
 </script>
 </body>
 </html>
