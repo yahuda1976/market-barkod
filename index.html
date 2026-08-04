@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" translate="no">
 <head>
     <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>MARKET PRO - IndexedDB</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1215,4 +1216,381 @@ function renderSayimListe(){
     }
     c.innerHTML=sorted.map(p=>{
         let preset=p.quantity===0?'value="1"':'';
-        let diffInit=p.quantity===0?'<span class="sayim-diff-pos">+1</span>':'<sp
+        let diffInit=p.quantity===0?'<span class="sayim-diff-pos">+1</span>':'<span class="sayim-diff-zero">—</span>';
+        return `<div class="sayim-item"><div class="sayim-name">${escapeHtml(p.name)}</div><div class="sayim-mevcut">Su an: ${p.quantity}</div><input type="number" class="sayim-input" id="sayim_${p.barcode}" placeholder="—" min="0" ${preset} oninput="updateSayimDiff('${p.barcode}',${p.quantity})"><span id="sayimdiff_${p.barcode}" class="${p.quantity===0?'sayim-diff-pos':'sayim-diff-zero'}">${p.quantity===0?'+1':'—'}</span></div>`;
+    }).join('');
+}
+function updateSayimDiff(bc,mev){
+    let inp=document.getElementById('sayim_'+bc),del=document.getElementById('sayimdiff_'+bc);
+    if(!inp||!del) return;
+    let v=parseInt(inp.value);
+    if(isNaN(v)){ del.innerText='—'; del.className='sayim-diff-zero'; return; }
+    let d=v-mev;
+    if(d>0){ del.innerText='+'+d; del.className='sayim-diff-pos'; }
+    else if(d<0){ del.innerText=String(d); del.className='sayim-diff-neg'; }
+    else { del.innerText='✓'; del.className='sayim-diff-zero'; }
+}
+async function saveSayimListe(){
+    let cnt=0;
+    products.forEach(p=>{
+        let inp=document.getElementById('sayim_'+p.barcode);
+        if(inp && inp.value!==''){
+            let v=parseInt(inp.value);
+            if(!isNaN(v)){ p.quantity=v; cnt++; }
+        }
+    });
+    if(!cnt){ showToast('Hic miktar girilmedi!'); return; }
+    await saveProducts();
+    await updateUI();
+    showToast('✅ '+cnt+' urun guncellendi');
+    closeStokSayimModal();
+}
+function resetSayimInputs(){
+    products.forEach(p=>{
+        let i=document.getElementById('sayim_'+p.barcode);
+        if(i) i.value='';
+        let d=document.getElementById('sayimdiff_'+p.barcode);
+        if(d){ d.innerText='—'; d.className='sayim-diff-zero'; }
+    });
+}
+function renderSayimBarkodListe(){
+    let c=document.getElementById('sayimBarkodListesi');
+    let keys=Object.keys(sayimBarkodMap);
+    if(!keys.length){
+        c.innerHTML='<div style="color:var(--text-secondary);text-align:center;padding:16px"><i class="fa-solid fa-barcode" style="font-size:1.5rem;margin-bottom:6px;display:block;opacity:0.5"></i>Henuz urun taranmadi</div>';
+        return;
+    }
+    c.innerHTML=keys.map(bc=>{
+        let p=products.find(x=>x.barcode===bc), nm=p?p.name:bc, mev=p?p.quantity:0, say=sayimBarkodMap[bc], d=say-mev;
+        let dh=d>0?`<span class="sayim-diff-pos">+${d}</span>`:d<0?`<span class="sayim-diff-neg">${d}</span>`:`<span class="sayim-diff-zero">✓</span>`;
+        return `<div class="sayim-item"><div class="sayim-name">${escapeHtml(nm)}</div><div class="sayim-mevcut">Su an: ${mev}</div><div style="font-weight:900;color:#fdba74;min-width:32px;text-align:center;">${say}x</div>${dh}<button onclick="removeSayimBarkod('${bc}')" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:20px;padding:5px 12px;color:white;font-size:0.75rem;cursor:pointer;"><i class="fa-solid fa-xmark"></i></button></div>`;
+    }).join('');
+}
+function removeSayimBarkod(bc){ delete sayimBarkodMap[bc]; renderSayimBarkodListe(); }
+function clearSayimBarkod(){
+    if(confirm('Sayim listesi temizlensin mi?')){ sayimBarkodMap={}; renderSayimBarkodListe(); }
+}
+async function saveSayimBarkod(){
+    let keys=Object.keys(sayimBarkodMap);
+    if(!keys.length){ showToast('Hic urun taranmadi!'); return; }
+    let cnt=0;
+    keys.forEach(bc=>{
+        let p=products.find(x=>x.barcode===bc);
+        if(p){ p.quantity=sayimBarkodMap[bc]; cnt++; }
+    });
+    await saveProducts();
+    await updateUI();
+    showToast('✅ '+cnt+' urun stogu guncellendi');
+    sayimBarkodMap={};
+    closeStokSayimModal();
+}
+
+function showAddFormForBarcode(barcode){
+    let c=document.getElementById("addFormContainer");
+    c.classList.remove("hidden");
+    c.innerHTML=`<div style="background:linear-gradient(145deg,rgba(30,41,59,0.9),rgba(15,23,42,0.95));padding:24px;border-radius:40px;margin-top:12px;border:1px solid rgba(255,255,255,0.06);box-shadow:0 20px 40px rgba(0,0,0,0.3);"><strong style="color:white;display:block;margin-bottom:12px;font-size:1.1rem;"><i class="fa-solid fa-plus" style="margin-right:8px;color:#3b82f6"></i>YENI URUN</strong><input id="addBarcode" value="${barcode}" placeholder="Barkod"><input id="addName" placeholder="Urun adi (max 35)" maxlength="35"><input id="addPrice" placeholder="Fiyat (€) — 549 → 5.49 otomatik"><input id="addCost" placeholder="Maliyet (€) — 349 → 3.49 otomatik"><div id="addProfitBox" class="profit-box"><div class="profit-suggested">Maliyet girilirse fiyat onerilir</div></div><select id="addCategory"><option selected>Dolap Urunleri</option><option>Kuru Gida</option></select><input id="addQuantity" placeholder="Stok" value="1" type="number"><input id="addExpiry" type="date"><div class="image-buttons-group"><button onclick="openGoogleSearchForAdd()" style="background:linear-gradient(135deg,#10b981,#059669);flex:unset;width:100%;"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i>INTERNET'TEN GORSEL ARA</button></div><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>GALERI</button><button onclick="captureImageForAdd('camera')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>KAMERA</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProduct()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button><button class="btn-cancel" onclick="closeAddForm()">IPTAL</button></div></div>`;
+    setupPriceFields('addCost','addPrice','addProfitBox');
+}
+async function saveNewProduct(){
+    let barcode=normBarcode(document.getElementById("addBarcode").value),
+        name=document.getElementById("addName").value.trim().toUpperCase(),
+        price=parseFloat(document.getElementById("addPrice").value),
+        cost=parseFloat(document.getElementById("addCost").value)||null,
+        category=document.getElementById("addCategory").value,
+        quantity=parseInt(document.getElementById("addQuantity").value)||1,
+        expiry=document.getElementById("addExpiry").value;
+    if(!name||!barcode||isNaN(price)){ showToast("Eksik bilgi!"); return; }
+    let existing=findIdxByBarcode(barcode);
+    if(existing!==-1 && confirm("Barkod var, uzerine yazilsin mi?"))
+        products[existing]={...products[existing], barcode, name, price, cost, category, quantity, expiry, image:tempImageData||products[existing].image};
+    else
+        products.push({barcode, name, price, cost, category, quantity, expiry, image:tempImageData, id:Date.now()});
+    await saveProducts();
+    tempImageData=null;
+    closeAddForm();
+    showToast("Urun kaydedildi!");
+    await updateUI();
+}
+function closeAddForm(){
+    document.getElementById("addFormContainer").classList.add("hidden");
+    document.getElementById("addFormContainer").innerHTML="";
+    tempImageData=null;
+}
+async function captureImageForAdd(source){
+    let input=document.createElement("input");
+    input.type="file";
+    input.accept="image/*";
+    if(source==='camera') input.capture="environment";
+    input.onchange=async(e)=>{
+        let file=e.target.files[0];
+        if(file){
+            let reader=new FileReader();
+            reader.onload=async(ev)=>{
+                tempImageData=await compressImage(ev.target.result);
+                showToast("Resim hazir!");
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    input.click();
+}
+function openGoogleSearchForAdd(){
+    let name=(document.getElementById("addName")?.value||'').trim();
+    if(name) window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank');
+    else showToast("Once urun adi girin!");
+}
+
+function showResult(p){
+    if(!p) return;
+    lastScannedProduct=p;
+    let idx=products.findIndex(pr=>pr.id===p.id);
+    document.getElementById("resultArea").innerHTML=`
+        <button class="close-result-btn" onclick="clearResult()"><i class="fa-solid fa-xmark"></i></button>
+        ${p.image?`<img src="${p.image}" class="product-image" onerror="this.style.display='none';">`:'<div style="color:var(--text-secondary);font-size:3rem;padding:10px;"><i class="fa-regular fa-image"></i><div style="font-size:0.9rem;margin-top:6px;">RESIM YOK</div></div>'}
+        <div class="result-name">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)}</div>
+        <div class="result-price">${p.price.toFixed(2)} €</div>
+        <div style="color:var(--text-secondary);font-size:0.9rem;font-weight:500;">STOK: ${p.quantity} | SKT: ${p.expiry||"YOK"}</div>
+        <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+            <button class="btn-primary btn" onclick="showInlineEdit()" style="background:linear-gradient(135deg,#ef4444,#dc2626);padding:10px 14px;font-size:0.75rem;"><i class="fa-solid fa-pen" style="margin-right:4px"></i>DUZENLE</button>
+            <button class="btn-primary btn" onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);padding:10px 14px;font-size:0.75rem;"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>SATILDI</button>
+            <button class="result-image-btn" onclick="addImageToResult('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>RESIM</button>
+            <button class="result-image-btn" onclick="addImageToResult('camera')" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>KAMERA</button>
+            <button class="result-image-btn" onclick="openGoogleSearchForResult()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>INTERNET</button>
+        </div>
+    `;
+}
+function clearResult(){
+    document.getElementById("resultArea").innerHTML=`<div class="result-placeholder"><i class="fa-solid fa-camera" style="margin-right:8px"></i>BARKOD OKUTUN</div>`;
+    lastScannedProduct=null;
+}
+function closeResultAndOpenDetail(idx){ clearResult(); openProductDetailModal(idx); }
+function showInlineEdit(){
+    let p=lastScannedProduct;
+    document.getElementById("resultArea").innerHTML=`<button class="close-result-btn" onclick="clearResult()"><i class="fa-solid fa-xmark"></i></button><div style="padding:8px;"><input id="editName" value="${escapeHtml(p.name)}" maxlength="35" placeholder="Urun adi"><input id="editBarcode" value="${p.barcode}" placeholder="Barkod"><input id="editPrice" value="${p.price}" placeholder="Fiyat"><input id="editCost" value="${p.cost||''}" placeholder="Maliyet"><div id="inlineProfitBox" class="profit-box"></div><select id="editCategory">${p.category=="Dolap Urunleri"?"<option selected>Dolap Urunleri</option><option>Kuru Gida</option>":"<option>Dolap Urunleri</option><option selected>Kuru Gida</option>"}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}" type="number" placeholder="Stok"><input id="editExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveInlineEdit()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button><button class="btn-cancel" onclick="showResult(lastScannedProduct)">IPTAL</button></div></div>`;
+    setupPriceFields('editCost','editPrice','inlineProfitBox');
+}
+async function saveInlineEdit(){
+    let idx=findIdxByBarcode(lastScannedProduct.barcode);
+    if(idx===-1) idx=products.findIndex(p=>p.id===lastScannedProduct.id);
+    if(idx!==-1){
+        products[idx].name=document.getElementById("editName").value.trim().toUpperCase();
+        products[idx].barcode=normBarcode(document.getElementById("editBarcode").value);
+        products[idx].price=parseFloat(document.getElementById("editPrice").value);
+        products[idx].cost=parseFloat(document.getElementById("editCost").value)||null;
+        products[idx].category=document.getElementById("editCategory").value;
+        let _q=parseInt(document.getElementById("editQuantity").value);
+        if(isNaN(_q)||_q<=0)_q=1;
+        products[idx].quantity=_q;
+        products[idx].expiry=document.getElementById("editExpiry").value;
+        await saveProducts();
+        await updateUI();
+        showResult(products[idx]);
+        playBeep();
+    }
+}
+function openManualAddModal(){
+    let container=document.getElementById("manualAddFormContainer");
+    container.innerHTML=`<div><input id="manualAddBarcode" placeholder="Barkod (manuel gir)"><input id="manualAddName" placeholder="Urun adi (max 35)" maxlength="35"><input id="manualAddPrice" placeholder="Fiyat (€) — 549 → 5.49 otomatik"><input id="manualAddCost" placeholder="Maliyet (€) — 349 → 3.49 otomatik"><div id="manualAddProfitBox" class="profit-box"></div><select id="manualAddCategory"><option selected>Dolap Urunleri</option><option>Kuru Gida</option></select><input id="manualAddQuantity" placeholder="Stok" value="1" type="number"><input id="manualAddExpiry" type="date"><div class="image-buttons-group"><button onclick="openGoogleSearchForManualAdd()" style="background:linear-gradient(135deg,#10b981,#059669);flex:unset;width:100%;"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i>INTERNET'TEN GORSEL ARA</button></div><div class="image-buttons-group"><button onclick="captureImageForManualAdd('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>GALERI</button><button onclick="captureImageForManualAdd('camera')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>KAMERA</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProductFromModal()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button><button class="btn-cancel" onclick="closeManualAddModal()">IPTAL</button></div></div>`;
+    setupPriceFields('manualAddCost','manualAddPrice','manualAddProfitBox');
+    document.getElementById("manualAddModal").style.display="flex";
+}
+function closeManualAddModal(){
+    document.getElementById("manualAddModal").style.display="none";
+    document.getElementById("manualAddFormContainer").innerHTML="";
+    tempImageData=null;
+}
+async function saveNewProductFromModal(){
+    let barcode=normBarcode(document.getElementById("manualAddBarcode").value),
+        name=document.getElementById("manualAddName").value.trim().toUpperCase(),
+        price=parseFloat(document.getElementById("manualAddPrice").value),
+        cost=parseFloat(document.getElementById("manualAddCost").value)||null,
+        category=document.getElementById("manualAddCategory").value,
+        quantity=parseInt(document.getElementById("manualAddQuantity").value)||1,
+        expiry=document.getElementById("manualAddExpiry").value;
+    if(!name||!barcode||isNaN(price)){ showToast("Eksik bilgi!"); return; }
+    let existing=findIdxByBarcode(barcode);
+    if(existing!==-1 && confirm("Barkod var, uzerine yazilsin mi?"))
+        products[existing]={...products[existing], barcode, name, price, cost, category, quantity, expiry, image:tempImageData||products[existing].image};
+    else
+        products.push({barcode, name, price, cost, category, quantity, expiry, image:tempImageData, id:Date.now()});
+    await saveProducts();
+    tempImageData=null;
+    closeManualAddModal();
+    showToast(`Urun kaydedildi: ${name}`);
+    await updateUI();
+}
+function openGoogleSearchForManualAdd(){
+    let name=(document.getElementById("manualAddName")?.value||'').trim();
+    if(name) window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank');
+    else showToast("Once urun adi girin!");
+}
+async function captureImageForManualAdd(source){
+    let input=document.createElement("input");
+    input.type="file";
+    input.accept="image/*";
+    if(source==='camera') input.capture="environment";
+    input.onchange=async(e)=>{
+        let file=e.target.files[0];
+        if(file){
+            let reader=new FileReader();
+            reader.onload=async(ev)=>{
+                tempImageData=await compressImage(ev.target.result);
+                showToast("Resim hazir!");
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    input.click();
+}
+function openDrawer(){
+    document.getElementById("drawer").style.left="0";
+    document.getElementById("drawerOverlay").style.display="block";
+}
+function closeDrawer(){
+    document.getElementById("drawer").style.left="-255px";
+    document.getElementById("drawerOverlay").style.display="none";
+}
+
+async function backupData(){
+    try{
+        const backup={products:products, printQueue:printQueue, tarih:new Date().toISOString()};
+        const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+        const a=document.createElement("a");
+        a.href=URL.createObjectURL(blob);
+        const now=new Date();
+        const stamp=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+'_'+String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0');
+        a.download=`MarketPro_Yedek_${stamp}.json`;
+        a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+        showToast("Yedek telefona indirildi");
+    }catch(e){ showToast("Yedek alinamadi"); }
+}
+function backupToGoogleDrive(){
+    try{
+        let data={products:products, printQueue:printQueue, tarih:new Date().toISOString()};
+        let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+        let now=new Date();
+        let stamp=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+'_'+String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0');
+        let fileName=`MarketPro_Yedek_${stamp}.json`;
+        let a=document.createElement("a");
+        a.href=URL.createObjectURL(blob);
+        a.download=fileName;
+        a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+        showToast("Dosya indirildi. Google Drive'a yuklemek icin: drive.google.com");
+        setTimeout(()=>window.open('https://drive.google.com/drive/my-drive','_blank'),1000);
+    }catch(e){ showToast("Google Drive yedegi basarisiz"); }
+}
+
+async function restoreData(){
+    let input=document.createElement("input");
+    input.type="file";
+    input.accept=".json,application/json";
+    input.onchange=async(e)=>{
+        let file=e.target.files[0];
+        if(!file){ showToast("Dosya secilmedi"); return; }
+        let reader=new FileReader();
+        reader.onload=async(ev)=>{
+            try{
+                let data=JSON.parse(ev.target.result);
+                if(data.products && Array.isArray(data.products)){
+                    if(confirm(`${data.products.length} urun bulundu. Mevcut verilerin uzerine yazilsin mi?`)){
+                        products=data.products;
+                        if(data.printQueue && Array.isArray(data.printQueue)) printQueue=data.printQueue;
+                        await saveProducts();
+                        await loadPrintQueue();
+                        await updateUI();
+                        showToast("Yedek yuklendi!");
+                        playBeep();
+                    }
+                } else {
+                    showToast("Gecersiz yedek dosyasi!");
+                }
+            }catch(err){
+                showToast("Dosya okunamadi!");
+            }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
+
+function exportToCSV(){
+    if(!products.length){ showToast("Envanter bos!"); return; }
+    let csv="\uFEFFBarkod,Urun Adi,Fiyat,Maliyet,Kategori,Stok,SKT\n";
+    for(let p of products){
+        csv+=`${p.barcode},"${p.name.replace(/"/g,'""')}",${p.price},${p.cost||''},${p.category||''},${p.quantity},${p.expiry||''}\n`;
+    }
+    let blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+    let a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    let now=new Date();
+    let stamp=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    a.download=`MarketPro_Rapor_${stamp}.csv`;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    showToast("CSV raporu indirildi");
+}
+
+function printReport(){
+    if(!products.length){ showToast("Envanter bos!"); return; }
+    let rows=products.map(p=>{
+        let durum=p.quantity===0?'<span style="color:#ef4444">STOKSUZ</span>':
+                   (p.expiry && Math.ceil((new Date(p.expiry)-new Date())/86400000)<=7?'<span style="color:#f59e0b">ACIL</span>':'<span style="color:#10b981">NORMAL</span>');
+        return `<tr><td style="border:1px solid #ddd;padding:6px;font-size:0.85rem;">${escapeHtml(p.name)}</td><td style="border:1px solid #ddd;padding:6px;text-align:center;font-size:0.85rem;">${p.barcode}</td><td style="border:1px solid #ddd;padding:6px;text-align:right;font-size:0.85rem;">${p.price.toFixed(2)} €</td><td style="border:1px solid #ddd;padding:6px;text-align:center;font-size:0.85rem;">${p.quantity}</td><td style="border:1px solid #ddd;padding:6px;text-align:center;font-size:0.85rem;">${p.expiry||'-'}</td><td style="border:1px solid #ddd;padding:6px;text-align:center;font-size:0.85rem;">${durum}</td></tr>`;
+    }).join('');
+    let html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Envanter Raporu</title><style>body{font-family:system-ui,sans-serif;padding:20px;color:#333}table{width:100%;border-collapse:collapse}th{background:#f1f5f9;padding:8px;border:1px solid #ddd;text-align:left;font-size:0.85rem}h2{margin-bottom:12px}</style></head><body><h2>Market Pro - Envanter Raporu (${new Date().toLocaleDateString('tr-TR')})</h2><table><thead><tr><th>Urun</th><th>Barkod</th><th>Fiyat</th><th>Stok</th><th>SKT</th><th>Durum</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+    let w=window.open('','_blank');
+    if(!w){ showToast("Pencere engellendi!"); return; }
+    w.document.write(html);
+    w.document.close();
+    showToast("Rapor penceresi acildi");
+}
+
+async function compressAllImages(){
+    if(!products.length){ showToast("Envanter bos!"); return; }
+    let cnt=0;
+    for(let p of products){
+        if(p.image && p.image.length>50000){
+            try{
+                p.image=await compressImage(p.image,300,0.3);
+                cnt++;
+            }catch(e){}
+        }
+    }
+    await saveProducts();
+    showToast(cnt?`${cnt} resim sikistirildi`:"Sikistirilacak resim yok");
+}
+
+// Event listeners and init
+async function initApp(){
+    try {
+        await openIndexedDB();
+        await migrateFromLocalStorage();
+        await loadProducts();
+        await loadPrintQueue();
+    } catch(e) {
+        console.error("Baslangic hatasi:", e);
+        showToast("Baslangic hatasi olustu, konsolu kontrol edin");
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', () => openCameraModal('search'));
+    document.getElementById('addBtn').addEventListener('click', () => openCameraModal('add'));
+    document.getElementById('productSearchBtn').addEventListener('click', openInventoryModal);
+    document.getElementById('manualAddBtn').addEventListener('click', openManualAddModal);
+    document.getElementById('closeCameraModalBtn').addEventListener('click', closeCameraModal);
+
+    setInterval(() => {
+        let now = new Date();
+        document.getElementById('clockTime').innerText = now.toLocaleTimeString('tr-TR', {hour12:false});
+        document.getElementById('clockDate').innerText = now.toLocaleDateString('tr-TR', {day:'2-digit', month:'2-digit'});
+    }, 1000);
+}
+if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
+</script>
+</body>
+</html>
