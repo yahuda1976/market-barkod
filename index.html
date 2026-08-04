@@ -4,59 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>MARKET PRO - IndexedDB</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
-        body{background:#f2f2f7;display:flex;justify-content:center;min-height:100vh;padding:8px}
-        .app-container{max-width:550px;width:100%;background:#f2f2f7;border-radius:48px;padding:10px 16px}
-        .result-area{background:#3d3d3d;border-radius:40px;padding:20px;text-align:center;margin-bottom:12px;min-height:185px;border:1px solid #555;position:relative}
-        .result-placeholder{color:#aaa;font-size:1.1rem;font-weight:600}
-        .result-price{font-size:2.4rem;font-weight:900;color:#ff5555;margin:12px 0}
-        .result-name{font-size:1.4rem;font-weight:800;color:#ffaa88;text-transform:uppercase;margin-bottom:8px}
-        .product-image{max-width:100%;max-height:150px;border-radius:25px;margin:12px auto;display:block;object-fit:contain}
-        .close-result-btn{position:absolute;top:10px;right:15px;background:#c0392b;color:white;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center}
-        .btn{border:none;border-radius:60px;padding:20px 12px;color:white;font-weight:800;cursor:pointer;text-transform:uppercase;font-size:1rem;letter-spacing:0.5px;margin-top:6px;transition:0.1s}
-        .btn:active{transform:scale(0.97)}
-        .btn-primary{background:#3498db;box-shadow:0 5px 0 #21618c}
-        .btn-success{background:#2ecc71;box-shadow:0 5px 0 #1e8449}
-        .button-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:10px 0}
-        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);justify-content:center;align-items:center;z-index:1000}
-        .modal-content{background:#2a2a2a;width:90%;max-width:550px;border-radius:48px;padding:24px;max-height:85%;overflow-y:auto;color:white}
-        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-        .modal-title{color:#ff6666;font-weight:800;font-size:1.4rem}
-        .close-modal-btn{background:#c0392b;padding:8px 18px;border-radius:40px;font-size:1rem;cursor:pointer;color:white;border:none}
-        .inventory-search input{width:100%;padding:10px 16px;border-radius:60px;border:none;background:#555;color:white;font-size:0.9rem;margin-bottom:12px}
-        .product-list-simple{display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto}
-        .envanter-item{background:#3a3a3a;border-radius:40px;padding:6px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
-        .product-name-item{flex:1;cursor:pointer;font-weight:600;font-size:0.85rem;padding:6px 4px}
-        .btn-add-queue-list{background:#e67e22;border:none;border-radius:40px;padding:6px 12px;color:white;font-weight:bold;font-size:0.7rem;cursor:pointer}
-        .product-detail-card{border-radius:40px;padding:20px;text-align:center;font-size:1rem}
-        .detail-image{max-width:100%;max-height:180px;border-radius:25px;margin:12px auto;display:block}
-        input,select{width:100%;padding:16px;border-radius:60px;border:none;background:#555;color:white;font-size:1rem;margin:10px 0}
-        .detail-actions{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+        :root {
+            --bg-deep: #e0f2fe;
+            --bg-card: rgba(186, 217, 253, 0.55);
+            --glass-border: rgba(59, 130, 246, 0.2);
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-orange: #f59e0b;
+            --accent-purple: #8b5cf6;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',system-ui,-apple-system,sans-serif}
+        body{background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #e0f2fe 100%);display:flex;justify-content:center;min-height:100vh;padding:12px;color:var(--text-primary)}
+        .app-container{max-width:550px;width:100%;background:var(--bg-card);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:32px;padding:16px 18px;border:1px solid var(--glass-border);box-shadow:0 25px 50px -12px rgba(0,0,0,0.15);animation:fadeInUp 0.5s ease}
+        .result-area{background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(241,245,249,0.98));backdrop-filter:blur(12px);border-radius:28px;padding:24px;text-align:center;margin-bottom:14px;min-height:185px;border:1px solid var(--glass-border);position:relative;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);transition:all 0.3s ease}
+        .result-placeholder{color:var(--text-secondary);font-size:1.1rem;font-weight:600;letter-spacing:0.5px}
+        .result-price{font-size:2.6rem;font-weight:900;color:#f87171;margin:10px 0;font-family:'Outfit',sans-serif;text-shadow:0 2px 10px rgba(248,113,113,0.25)}
+        .result-name{font-size:1.3rem;font-weight:800;color:#fdba74;text-transform:uppercase;margin-bottom:6px;font-family:'Outfit',sans-serif;letter-spacing:0.5px}
+        .product-image{max-width:100%;max-height:150px;border-radius:20px;margin:12px auto;display:block;object-fit:contain;box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+        .close-result-btn{position:absolute;top:12px;right:14px;background:rgba(239,68,68,0.9);color:white;border:none;border-radius:50%;width:34px;height:34px;font-size:16px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;backdrop-filter:blur(4px)}
+        .close-result-btn:hover{transform:scale(1.1);background:rgba(239,68,68,1)}
+        .btn{border:none;border-radius:60px;padding:18px 12px;color:white;font-weight:800;cursor:pointer;text-transform:uppercase;font-size:0.9rem;letter-spacing:0.5px;margin-top:6px;transition:all 0.2s cubic-bezier(0.4,0,0.2,1);border:1px solid rgba(255,255,255,0.1);position:relative;overflow:hidden}
+        .btn::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(180deg,rgba(255,255,255,0.15),transparent);opacity:0.5;pointer-events:none}
+        .btn:active{transform:scale(0.96)}
+        .btn:hover{transform:translateY(-2px);box-shadow:0 10px 25px -5px rgba(0,0,0,0.3)}
+        .btn-primary{background:linear-gradient(135deg,#3b82f6,#2563eb);box-shadow:0 4px 15px rgba(59,130,246,0.3)}
+        .btn-success{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 4px 15px rgba(16,185,129,0.3)}
+        .button-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.92);backdrop-filter:blur(8px);justify-content:center;align-items:center;z-index:1000;animation:fadeIn 0.2s ease}
+        .modal-content{background:linear-gradient(145deg,rgba(224,242,254,0.97),rgba(191,219,254,0.93));width:92%;max-width:550px;border-radius:32px;padding:24px;max-height:88%;overflow-y:auto;color:var(--text-primary);border:1px solid var(--glass-border);box-shadow:0 25px 50px -12px rgba(0,0,0,0.15);animation:slideUp 0.35s cubic-bezier(0.16,1,0.3,1)}
+        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.06)}
+        .modal-title{color:#f87171;font-weight:900;font-size:1.3rem;font-family:'Outfit',sans-serif;letter-spacing:0.5px;display:flex;align-items:center;gap:8px}
+        .close-modal-btn{background:rgba(239,68,68,0.15);color:#f87171;padding:8px 18px;border-radius:40px;font-size:0.85rem;cursor:pointer;border:1px solid rgba(239,68,68,0.2);font-weight:700;transition:all 0.2s}
+        .close-modal-btn:hover{background:rgba(239,68,68,0.25)}
+        .inventory-search input{width:100%;padding:12px 18px;border-radius:60px;border:none;background:rgba(255,255,255,0.7);color:var(--text-primary);font-size:0.95rem;margin-bottom:14px;border:1px solid rgba(255,255,255,0.08);transition:all 0.2s}
+        .inventory-search input:focus{outline:none;background:rgba(255,255,255,0.1);border-color:rgba(59,130,246,0.4);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+        .product-list-simple{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow-y:auto;padding-right:4px}
+        .product-list-simple::-webkit-scrollbar{width:4px}
+        .product-list-simple::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:10px}
+        .envanter-item{background:rgba(255,255,255,0.55);border-radius:24px;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;transition:all 0.2s ease;border:1px solid transparent;animation:fadeInUp 0.3s ease forwards;opacity:0}
+        .envanter-item:hover{background:rgba(255,255,255,0.8);transform:translateX(4px);border-color:rgba(59,130,246,0.15)}
+        .product-name-item{flex:1;cursor:pointer;font-weight:700;font-size:0.88rem;padding:6px 2px;letter-spacing:0.2px}
+        .btn-add-queue-list{background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:40px;padding:7px 14px;color:white;font-weight:700;font-size:0.72rem;cursor:pointer;box-shadow:0 2px 8px rgba(245,158,11,0.25);transition:all 0.2s}
+        .btn-add-queue-list:hover{transform:scale(1.05)}
+        .product-detail-card{border-radius:32px;padding:24px;text-align:center;font-size:1rem;background:rgba(255,255,255,0.5);border:1px solid rgba(59,130,246,0.1)}
+        .detail-image{max-width:100%;max-height:180px;border-radius:24px;margin:14px auto;display:block;box-shadow:0 12px 32px rgba(0,0,0,0.3)}
+        input,select{width:100%;padding:16px 20px;border-radius:60px;border:none;background:rgba(255,255,255,0.7);color:var(--text-primary);font-size:0.95rem;margin:10px 0;border:1px solid rgba(255,255,255,0.08);transition:all 0.2s}
+        input:focus,select:focus{outline:none;background:rgba(255,255,255,0.1);border-color:rgba(59,130,246,0.4);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+        .detail-actions{display:flex;flex-direction:column;gap:10px;margin-top:18px}
         .button-row{display:flex;gap:10px;justify-content:center}
-        .button-row button{flex:1;background:#2c6e2f;border:none;border-radius:40px;padding:8px 4px;color:white;font-weight:600;font-size:0.8rem;cursor:pointer}
-        .full-width-btn{width:100%;background:#e67e22!important;margin-top:6px;padding:10px!important;font-size:0.9rem!important;border:none;border-radius:40px;color:white;font-weight:800;cursor:pointer}
-        .edit-form-buttons{display:flex;gap:12px;margin-top:12px}
-        .edit-form-buttons button{flex:1;padding:12px;border-radius:50px;font-weight:bold;border:none;cursor:pointer}
-        .btn-save{background:#2ecc71;color:white}
-        .btn-cancel{background:#95a5a6;color:white}
-        .image-buttons-group{display:flex;gap:12px;justify-content:center;margin:8px 0;flex-wrap:wrap}
-        .image-buttons-group button{flex:1;background:#c0392b;margin:0;padding:14px;border-radius:50px;color:white;font-weight:bold;border:none;cursor:pointer}
-        .profit-box{background:#1a3a1a;border-radius:20px;padding:12px 16px;margin:8px 0}
-        .profit-suggested{font-size:1rem;font-weight:800;color:#2ecc71}
-        .profit-margin{font-size:0.85rem;color:#aaa;margin-top:4px}
-        .profit-margin.good{color:#2ecc71}.profit-margin.ok{color:#f39c12}.profit-margin.bad{color:#e74c3c}
-        .expiry-red{background:#ff4444!important;color:white}
-        .expiry-yellow{background:#ffaa33!important;color:#1a1a1a}
-        .expiry-green{background:#2ecc71!important;color:white}
-        .expiry-zero-stock{background:#6c7a89!important;color:#ddd;opacity:0.8}
-        .expiry-no-date{background:#5a5a5a!important;color:#ccc}
+        .button-row button{flex:1;background:linear-gradient(135deg,#1e3a2f,#2c6e2f);border:none;border-radius:40px;padding:10px 4px;color:white;font-weight:700;font-size:0.78rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.08)}
+        .button-row button:hover{transform:translateY(-1px);filter:brightness(1.15)}
+        .full-width-btn{width:100%;background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:8px;padding:12px!important;font-size:0.9rem!important;border:none;border-radius:40px;color:white;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(245,158,11,0.25);transition:all 0.2s}
+        .full-width-btn:hover{transform:translateY(-1px);filter:brightness(1.1)}
+        .edit-form-buttons{display:flex;gap:12px;margin-top:14px}
+        .edit-form-buttons button{flex:1;padding:14px;border-radius:50px;font-weight:800;border:none;cursor:pointer;transition:all 0.2s;font-size:0.9rem}
+        .edit-form-buttons button:hover{transform:translateY(-1px)}
+        .btn-save{background:linear-gradient(135deg,#10b981,#059669);color:white;box-shadow:0 4px 12px rgba(16,185,129,0.25)}
+        .btn-cancel{background:linear-gradient(135deg,#64748b,#475569);color:white}
+        .image-buttons-group{display:flex;gap:12px;justify-content:center;margin:10px 0;flex-wrap:wrap}
+        .image-buttons-group button{flex:1;background:linear-gradient(135deg,#ef4444,#dc2626);margin:0;padding:14px;border-radius:50px;color:white;font-weight:700;border:none;cursor:pointer;transition:all 0.2s;font-size:0.85rem}
+        .image-buttons-group button:hover{transform:translateY(-1px);filter:brightness(1.1)}
+        .profit-box{background:linear-gradient(135deg,rgba(16,185,129,0.1),rgba(5,150,105,0.05));border-radius:20px;padding:14px 18px;margin:10px 0;border:1px solid rgba(16,185,129,0.15)}
+        .profit-suggested{font-size:1rem;font-weight:800;color:#34d399}
+        .profit-margin{font-size:0.85rem;color:var(--text-secondary);margin-top:4px}
+        .profit-margin.good{color:#34d399}.profit-margin.ok{color:#fbbf24}.profit-margin.bad{color:#f87171}
+        .expiry-red{background:linear-gradient(135deg,#fecaca,#fca5a5)!important;border:2px solid #ef4444!important;box-shadow:0 0 12px rgba(239,68,68,0.25)!important}
+        .expiry-yellow{background:linear-gradient(135deg,#fde68a,#fcd34d)!important;border:2px solid #f59e0b!important;box-shadow:0 0 12px rgba(245,158,11,0.25)!important}
+        .expiry-green{background:linear-gradient(135deg,#a7f3d0,#6ee7b7)!important;border:2px solid #10b981!important;box-shadow:0 0 12px rgba(16,185,129,0.25)!important}
+        .expiry-zero-stock{background:linear-gradient(135deg,#e2e8f0,#cbd5e1)!important;border:2px solid #64748b!important;box-shadow:0 0 12px rgba(100,116,139,0.2)!important;opacity:1}
+        .expiry-no-date{background:linear-gradient(135deg,#ddd6fe,#c4b5fd)!important;border:2px solid #8b5cf6!important;box-shadow:0 0 12px rgba(139,92,246,0.25)!important}
         .hidden{display:none}
         #toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px}
-        .toast{background:#333;color:white;padding:12px 20px;border-radius:40px;box-shadow:0 4px 12px rgba(0,0,0,0.3);font-size:0.9rem;animation:slideIn 0.3s ease,fadeOut 0.5s ease 2.5s forwards;pointer-events:none}
-        @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+        .toast{background:linear-gradient(135deg,rgba(255,255,255,0.95),rgba(241,245,249,0.98));color:var(--text-primary);padding:14px 24px;border-radius:40px;box-shadow:0 10px 30px rgba(0,0,0,0.15);font-size:0.9rem;font-weight:600;border:1px solid var(--glass-border);backdrop-filter:blur(12px);animation:slideInRight 0.4s cubic-bezier(0.16,1,0.3,1),fadeOut 0.5s ease 2.5s forwards;pointer-events:none;display:flex;align-items:center;gap:10px}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(30px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
         @keyframes fadeOut{to{opacity:0;visibility:hidden}}
         .label-grid-container{background:#fff;padding:0;margin:0;box-sizing:border-box;page-break-after:always;width:210mm;overflow:hidden}
         .label-grid{width:210mm;margin:0 auto;border-collapse:collapse;table-layout:fixed}
@@ -74,66 +105,228 @@
         .label-barcode{text-align:center;border-top:1px dashed #ccc;padding:1px 2px 1px}
         .barcode-svg{width:100%;height:14px}
         @media print{body *{visibility:hidden}.print-modal,.print-modal *{visibility:visible}.print-modal{position:absolute;top:0;left:0;width:100%}.label-grid-container{page-break-after:always}}
-        .drawer-btn{background:#2a2a2a;border:none;border-radius:40px;padding:14px 18px;color:white;font-weight:700;font-size:0.95rem;cursor:pointer;text-align:left;width:100%;transition:background 0.15s}
-        .drawer-btn:active{background:#3a3a3a}
-        .drawer-btn-red{background:#3a1a1a!important;color:#ff7070}
-        .drawer-group-title{font-size:0.7rem;font-weight:800;color:#888;letter-spacing:1.5px;text-transform:uppercase;padding:4px 6px 2px}
-        .drawer-sep{height:1px;background:#333;margin:4px 0}
-        .inventory-stats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-        .sayim-item{background:#333;border-radius:30px;padding:10px 14px;display:flex;align-items:center;gap:8px;margin-bottom:6px}
-        .sayim-name{flex:1;font-size:0.85rem;font-weight:700;color:white}
-        .sayim-mevcut{font-size:0.75rem;color:#aaa;white-space:nowrap}
-        .sayim-input{width:65px!important;padding:8px 10px!important;margin:0!important;text-align:center;font-weight:800;font-size:1rem}
-        .sayim-diff-pos{color:#2ecc71;font-weight:800;font-size:0.8rem;min-width:28px;text-align:center}
-        .sayim-diff-neg{color:#e74c3c;font-weight:800;font-size:0.8rem;min-width:28px;text-align:center}
-        .sayim-diff-zero{color:#aaa;font-size:0.8rem;min-width:28px;text-align:center}
-        #liveClock{background:linear-gradient(145deg,#0d0d0d,#1a1a1a);color:#00ff88;padding:8px 12px;border-radius:14px;font-family:'Courier New',monospace;font-weight:800;font-size:0.9rem;letter-spacing:1.5px;border:1px solid #00ff88;box-shadow:0 0 10px rgba(0,255,136,0.35);text-shadow:0 0 6px rgba(0,255,136,0.8);min-width:78px;text-align:center;white-space:nowrap}
-        #liveClock .clock-date{display:block;font-size:0.55rem;color:#00cc77;letter-spacing:0.8px;margin-top:1px}
-        .result-image-btn{background:#f39c12;border:none;border-radius:40px;padding:8px 16px;color:white;font-weight:700;font-size:0.8rem;cursor:pointer;margin:6px 4px}
+        .drawer-btn{background:rgba(147,197,253,0.32);border:none;border-radius:40px;padding:14px 18px;color:var(--text-primary);font-weight:700;font-size:0.9rem;cursor:pointer;text-align:left;width:100%;transition:all 0.2s;border:1px solid rgba(59,130,246,0.12);display:flex;align-items:center;gap:10px}
+        .drawer-btn:hover{background:rgba(147,197,253,0.55);border-color:rgba(59,130,246,0.25);transform:translateX(4px)}
+        .drawer-btn:active{background:rgba(147,197,253,0.7)}
+        .drawer-group-title{font-size:0.65rem;font-weight:800;color:var(--text-secondary);letter-spacing:2px;text-transform:uppercase;padding:6px 8px 4px}
+        .drawer-sep{height:1px;background:rgba(59,130,246,0.15);margin:6px 0}
+        .inventory-stats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+        .inventory-stats > div{transition:all 0.2s}
+        .inventory-stats > div:hover{transform:translateY(-1px)}
+        .sayim-item{background:rgba(255,255,255,0.55);border-radius:30px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:8px;border:1px solid rgba(59,130,246,0.1)}
+        .sayim-name{flex:1;font-size:0.85rem;font-weight:700;color:var(--text-primary)}
+        .sayim-mevcut{font-size:0.75rem;color:var(--text-secondary);white-space:nowrap}
+        .sayim-input{width:70px!important;padding:10px 12px!important;margin:0!important;text-align:center;font-weight:800;font-size:1rem;background:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.1);border-radius:16px;color:var(--text-primary)}
+        .sayim-input:focus{outline:none;border-color:rgba(59,130,246,0.4)}
+        .sayim-diff-pos{color:#34d399;font-weight:800;font-size:0.85rem;min-width:32px;text-align:center}
+        .sayim-diff-neg{color:#f87171;font-weight:800;font-size:0.85rem;min-width:32px;text-align:center}
+        .sayim-diff-zero{color:var(--text-secondary);font-size:0.85rem;min-width:32px;text-align:center}
+        #liveClock{background:linear-gradient(135deg,rgba(15,23,42,0.8),rgba(30,41,59,0.9));color:#34d399;padding:8px 14px;border-radius:16px;font-family:'Outfit',monospace;font-weight:800;font-size:0.85rem;letter-spacing:2px;border:1px solid rgba(52,211,153,0.2);box-shadow:0 0 20px rgba(52,211,153,0.15),inset 0 1px 0 rgba(255,255,255,0.05);text-shadow:0 0 8px rgba(52,211,153,0.4);min-width:84px;text-align:center;white-space:nowrap}
+        #liveClock .clock-date{display:block;font-size:0.6rem;color:#10b981;letter-spacing:1px;margin-top:2px;font-weight:600}
+        .result-image-btn{background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:40px;padding:9px 18px;color:white;font-weight:700;font-size:0.78rem;cursor:pointer;margin:6px 4px;box-shadow:0 4px 12px rgba(245,158,11,0.2);transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)}
+        .result-image-btn:hover{transform:translateY(-1px);filter:brightness(1.1)}
+        .app-header-title{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,#f87171,#fdba74);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:1px;text-shadow:none}
+        .nav-card{background:linear-gradient(135deg,#3b82f6,#2563eb);border:1px solid rgba(59,130,246,0.3);border-radius:18px;padding:12px 20px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all 0.3s ease;margin-top:12px}
+        .nav-card:hover{transform:translateY(-2px);background:linear-gradient(135deg,#2563eb,#1d4ed8);box-shadow:0 10px 25px -5px rgba(59,130,246,0.3)}
+        .nav-card .nav-title{font-size:0.9rem;font-weight:800;color:#ffffff;letter-spacing:0.5px}
+        .nav-card .nav-badge{background:rgba(255,255,255,0.25);border-radius:20px;padding:4px 14px;font-size:0.8rem;font-weight:800;color:#ffffff}
+        .menu-btn{background:rgba(255,255,255,0.06);border:none;border-radius:16px;padding:12px 18px;cursor:pointer;font-size:1.3rem;color:var(--text-primary);justify-self:start;transition:all 0.2s;border:1px solid rgba(255,255,255,0.08)}
+        .menu-btn:hover{background:rgba(255,255,255,0.12);transform:scale(1.05)}
+        .scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:78%;aspect-ratio:5/3;border-radius:18px;pointer-events:none;box-shadow:0 0 0 2000px rgba(0,0,0,0.5);}
+        .scan-corner{position:absolute;width:26px;height:26px;border:4px solid #22d3ee;filter:drop-shadow(0 0 4px rgba(34,211,238,0.8))}
+        .scan-corner.tl{top:-2px;left:-2px;border-right:none;border-bottom:none;border-top-left-radius:14px}
+        .scan-corner.tr{top:-2px;right:-2px;border-left:none;border-bottom:none;border-top-right-radius:14px}
+        .scan-corner.bl{bottom:-2px;left:-2px;border-right:none;border-top:none;border-bottom-left-radius:14px}
+        .scan-corner.br{bottom:-2px;right:-2px;border-left:none;border-top:none;border-bottom-right-radius:14px}
+        .scan-laser{position:absolute;left:4%;right:4%;height:3px;top:8%;background:linear-gradient(90deg,transparent,#22d3ee,#60a5fa,#22d3ee,transparent);box-shadow:0 0 10px #22d3ee,0 0 20px #3b82f6;border-radius:4px;animation:scanMove 1.8s ease-in-out infinite}
+        @keyframes scanMove{0%{top:8%}50%{top:92%}100%{top:8%}}
+        .torch-active{box-shadow:0 0 0 3px rgba(253,224,71,0.8)!important;filter:brightness(1.15)}
     </style>
 </head>
 <body>
-<div id="drawerOverlay" onclick="closeDrawer()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:500;"></div>
-<div id="drawer" style="position:fixed;top:0;left:-255px;width:245px;height:100%;background:#2a2a2a;z-index:600;transition:left 0.3s;box-shadow:4px 0 24px rgba(0,0,0,0.5);border-radius:0 28px 28px 0;">
-    <div style="background:#383838;padding:48px 24px 20px;border-radius:0 28px 0 0;"><div style="font-size:1.5rem;font-weight:900;color:#ffaa88;">🛒 MARKET PRO</div><div style="font-size:0.75rem;color:#aaa;margin-top:4px;">Envanter Yonetimi</div></div>
-    <div style="padding:12px;display:flex;flex-direction:column;gap:6px;overflow-y:auto;max-height:calc(100vh - 120px)">
-        <div class="drawer-group-title">📦 ENVANTER</div>
-        <button class="drawer-btn drawer-btn-red" onclick="closeDrawer();openUrgentModal();">⚠️ 7 GUN KALAN <span id="urgentCount" style="background:#c0392b;border-radius:20px;padding:2px 8px;font-size:0.75rem;margin-left:4px;">0</span></button>
-        <button class="drawer-btn" onclick="closeDrawer();openStokSayimModal();">🔢 STOK SAYIM MODU</button>
-        <div class="drawer-sep"></div><div class="drawer-group-title">🏷️ ETIKETLER</div>
-        <button class="drawer-btn" onclick="closeDrawer();managePrintQueue();">📝 ETIKET LISTESINI YONET</button>
-        <div class="drawer-sep"></div><div class="drawer-group-title">💾 YEDEKLEME</div>
-        <button class="drawer-btn" onclick="closeDrawer();backupData();">💾 TELEFONA YEDEK AL</button>
-        <button class="drawer-btn" onclick="closeDrawer();backupToGoogleDrive();">☁️ GOOGLE DRIVE'A YEDEKLE</button>
-        <button class="drawer-btn" onclick="closeDrawer();restoreData();">📂 YEDEKTEN GERI YUKLE</button>
-        <div class="drawer-sep"></div><div class="drawer-group-title">📊 RAPORLAR</div>
-        <button class="drawer-btn" onclick="closeDrawer();exportToCSV();">📑 CSV RAPORU INDIR</button>
-        <button class="drawer-btn" onclick="closeDrawer();printReport();">🖨️ ENVANTERI YAZDIR</button>
-        <div class="drawer-sep"></div><div class="drawer-group-title">🔧 DIGER</div>
-        <button class="drawer-btn" onclick="closeDrawer();compressAllImages();">🖼️ RESIMLERI SIKISTIR</button>
-        <button class="drawer-btn drawer-btn-red" onclick="closeDrawer();clearAllData();">🗑️ TUM VERILERI SIL</button>
+<div id="drawerOverlay" onclick="closeDrawer()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.7);backdrop-filter:blur(4px);z-index:500;"></div>
+<div id="drawer" style="position:fixed;top:0;left:-255px;width:245px;height:100%;background:linear-gradient(180deg,#f0f9ff,#e0f2fe);z-index:600;transition:left 0.35s cubic-bezier(0.16,1,0.3,1);box-shadow:8px 0 32px rgba(0,0,0,0.15);border-radius:0 32px 32px 0;border-right:1px solid rgba(0,0,0,0.06)">
+    <div style="background:rgba(255,255,255,0.5);padding:52px 24px 24px;border-radius:0 32px 0 0;border-bottom:1px solid rgba(0,0,0,0.06)"><div style="font-size:1.6rem;font-weight:900;color:#fdba74;font-family:'Outfit',sans-serif;letter-spacing:0.5px"><i class="fa-solid fa-basket-shopping" style="margin-right:8px"></i>MARKET PRO</div><div style="font-size:0.75rem;color:var(--text-secondary);margin-top:6px;font-weight:500">Envanter Yonetimi</div></div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:calc(100vh - 140px)">
+        <div class="drawer-group-title"><i class="fa-solid fa-boxes-stacked" style="margin-right:6px"></i>ENVANTER</div>
+        <button class="drawer-btn" onclick="closeDrawer();openStokSayimModal();"><i class="fa-solid fa-calculator" style="width:20px;text-align:center"></i> STOK SAYIM MODU</button>
+        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-tags" style="margin-right:6px"></i>ETIKETLER</div>
+        <button class="drawer-btn" onclick="closeDrawer();managePrintQueue();"><i class="fa-solid fa-list-check" style="width:20px;text-align:center"></i> ETIKET LISTESINI YONET</button>
+        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-cloud-arrow-down" style="margin-right:6px"></i>YEDEKLEME</div>
+        <button class="drawer-btn" onclick="closeDrawer();backupData();"><i class="fa-solid fa-download" style="width:20px;text-align:center"></i> TELEFONA YEDEK AL</button>
+        <button class="drawer-btn" onclick="closeDrawer();backupToGoogleDrive();"><i class="fa-brands fa-google-drive" style="width:20px;text-align:center"></i> GOOGLE DRIVE'A YEDEKLE</button>
+        <button class="drawer-btn" onclick="closeDrawer();restoreData();"><i class="fa-solid fa-upload" style="width:20px;text-align:center"></i> YEDEKTEN GERI YUKLE</button>
+        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-chart-pie" style="margin-right:6px"></i>RAPORLAR</div>
+        <button class="drawer-btn" onclick="closeDrawer();exportToCSV();"><i class="fa-solid fa-file-csv" style="width:20px;text-align:center"></i> CSV RAPORU INDIR</button>
+        <button class="drawer-btn" onclick="closeDrawer();printReport();"><i class="fa-solid fa-print" style="width:20px;text-align:center"></i> ENVANTERI YAZDIR</button>
+        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-sliders" style="margin-right:6px"></i>DIGER</div>
+        <button class="drawer-btn" onclick="closeDrawer();compressAllImages();"><i class="fa-solid fa-compress" style="width:20px;text-align:center"></i> RESIMLERI SIKISTIR</button>
     </div>
 </div>
 <div class="app-container">
-    <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px;margin-bottom:10px"><button onclick="openDrawer()" style="background:#2a2a2a;border:none;border-radius:16px;padding:12px 20px;cursor:pointer;font-size:1.65rem;color:white;justify-self:start">☰</button><div style="text-align:center;font-size:1.4rem;font-weight:900;color:#ff2222;letter-spacing:2px;text-shadow:0 0 8px #ff4444">MARKET PRO</div><div id="liveClock"><span id="clockTime">--:--:--</span><span class="clock-date" id="clockDate">--/--</span></div></div>
-    <div class="result-area" id="resultArea"><div class="result-placeholder">📷 BARKOD OKUTUN</div></div>
-    <div class="button-grid"><button class="btn btn-primary" id="searchBtn">📷 SORGULA</button><button class="btn btn-primary" id="addBtn">➕ URUN EKLE</button></div>
-    <div class="button-grid"><button class="btn btn-success" id="productSearchBtn">🔍 URUN ARA</button><button class="btn btn-success" id="manualAddBtn">✏️ MANUEL EKLE</button></div>
+    <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:6px;margin-bottom:14px">
+        <button onclick="openDrawer()" class="menu-btn"><i class="fa-solid fa-bars"></i></button>
+        <div style="text-align:center" class="app-header-title">MARKET PRO</div>
+        <div id="liveClock"><span id="clockTime">--:--:--</span><span class="clock-date" id="clockDate">--/--</span></div>
+    </div>
+    <div class="result-area" id="resultArea"><div class="result-placeholder"><i class="fa-solid fa-camera" style="margin-right:8px"></i>BARKOD OKUTUN</div></div>
+    <div class="button-grid">
+        <button class="btn btn-primary" id="searchBtn"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i>SORGULA</button>
+        <button class="btn btn-primary" id="addBtn"><i class="fa-solid fa-plus" style="margin-right:6px"></i>URUN EKLE</button>
+    </div>
+    <div class="button-grid">
+        <button class="btn btn-success" id="productSearchBtn"><i class="fa-solid fa-box" style="margin-right:6px"></i>URUN ARA</button>
+        <button class="btn btn-success" id="manualAddBtn"><i class="fa-solid fa-pen-to-square" style="margin-right:6px"></i>MANUEL EKLE</button>
+    </div>
     <div id="addFormContainer" class="hidden"></div>
-    <div onclick="openInventoryModal()" style="margin-top:10px;background:#3498db;border-radius:14px;padding:10px 18px;cursor:pointer;display:flex;align-items:center;justify-content:space-between"><div style="font-size:0.85rem;font-weight:900;color:white">📋 ENVANTERI GORUNTULE</div><div id="productCountBadge" style="background:rgba(255,255,255,0.25);border-radius:20px;padding:3px 12px;font-size:0.8rem;font-weight:900;color:white">0 cesit</div></div>
-    <div onclick="openUrgentModal()" style="margin-top:8px;background:#e8534a;border-radius:14px;padding:9px 18px;cursor:pointer;display:flex;align-items:center;justify-content:space-between"><div style="font-size:0.72rem;font-weight:900;color:white;white-space:nowrap">⏰ YAKLASAN SKT</div><div id="sktBarContent" style="font-size:0.72rem;color:rgba(255,255,255,0.92);font-weight:700;text-align:right;max-width:65%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">—</div></div>
+    <div onclick="openInventoryModal()" class="nav-card">
+        <div class="nav-title"><i class="fa-solid fa-clipboard-list" style="margin-right:8px"></i>ENVANTERI GORUNTULE</div>
+        <div id="productCountBadge" class="nav-badge">0 cesit</div>
+    </div>
 </div>
 <div id="toast-container"></div>
-<div id="cameraModal" class="modal" style="justify-content:center;align-items:center;flex-direction:column"><div style="width:90%;max-width:500px;background:#000;border-radius:40px;overflow:hidden"><video id="cameraVideo" autoplay muted playsinline style="width:100%"></video></div><button id="closeCameraModalBtn" style="background:#c0392b;margin-top:20px;padding:12px 25px;border-radius:40px;color:white;font-weight:bold">✖ KAPAT</button><div id="cameraModalStatus" style="color:#ffaa88;margin-top:12px">📷 KAMERA BASLATILIYOR...</div></div>
-<div id="inventoryModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">📦 ENVANTER</span><button class="close-modal-btn" onclick="closeInventoryModal()">✖ KAPAT</button></div><div id="inventoryStats" class="inventory-stats"></div><div class="inventory-search"><input type="text" id="inventorySearchInput" placeholder="🔍 Urun adi veya barkod..." autocomplete="off"></div><div id="modalProductList" class="product-list-simple"></div></div></div>
+<div id="cameraModal" class="modal" style="justify-content:center;align-items:center;flex-direction:column">
+    <div id="cameraViewportWrap" style="position:relative;width:90%;max-width:500px;background:#000;border-radius:40px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1)">
+        <video id="cameraVideo" autoplay muted playsinline style="width:100%;display:block"></video>
+        <div class="scan-frame">
+            <span class="scan-corner tl"></span><span class="scan-corner tr"></span><span class="scan-corner bl"></span><span class="scan-corner br"></span>
+            <div class="scan-laser"></div>
+        </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;justify-content:center">
+        <button id="closeCameraModalBtn" style="background:linear-gradient(135deg,#ef4444,#dc2626);padding:14px 28px;border-radius:40px;color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(239,68,68,0.3);transition:all 0.2s"><i class="fa-solid fa-xmark" style="margin-right:6px"></i>KAPAT</button>
+        <button id="torchToggleBtn" onclick="toggleTorch()" style="background:linear-gradient(135deg,#f59e0b,#d97706);padding:14px 24px;border-radius:40px;color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(245,158,11,0.3);transition:all 0.2s"><i class="fa-solid fa-bolt" style="margin-right:6px"></i>FENER</button>
+        <button onclick="manualBarcodeEntry()" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);padding:14px 24px;border-radius:40px;color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(139,92,246,0.3);transition:all 0.2s"><i class="fa-solid fa-keyboard" style="margin-right:6px"></i>ELLE GIR</button>
+    </div>
+    <div id="cameraModalStatus" style="color:#fdba74;margin-top:16px;font-weight:600;font-size:0.9rem"><i class="fa-solid fa-spinner fa-spin" style="margin-right:8px"></i>KAMERA BASLATILIYOR...</div>
+</div>
+<div id="inventoryModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa-solid fa-boxes-stacked" style="margin-right:8px"></i>ENVANTER</span>
+            <button class="close-modal-btn" onclick="closeInventoryModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button>
+        </div>
+        <div id="inventoryStats" class="inventory-stats"></div>
+        <div class="inventory-search"><input type="text" id="inventorySearchInput" placeholder="Urun adi veya barkod ara..." autocomplete="off"></div>
+        <div id="modalProductList" class="product-list-simple"></div>
+    </div>
+</div>
 <div id="productDetailModal" class="modal"><div class="modal-content" id="productDetailContent"></div></div>
-<div id="urgentModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">⚠️ 7 GUNDE SKT</span><button class="close-modal-btn" onclick="closeUrgentModal()">✖ KAPAT</button></div><div id="urgentProductList"></div></div></div>
-<div id="manualAddModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">✏️ MANUEL URUN EKLE</span><button class="close-modal-btn" onclick="closeManualAddModal()">✖ KAPAT</button></div><div id="manualAddFormContainer"></div></div></div>
-<div id="printModal" class="modal print-modal"><div class="modal-content" style="max-width:95%"><div class="modal-header"><span class="modal-title">🖨️ ENVANTER RAPORU</span><button class="close-modal-btn" onclick="document.getElementById('printModal').style.display='none'">✖ KAPAT</button></div><div id="printTableContainer" style="overflow-x:auto"></div><button onclick="window.print()" class="btn btn-primary" style="margin-top:15px">🖨️ YAZICIYI AC</button></div></div>
-<div id="queueModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">🏷️ ETIKET LISTESI</span><button class="close-modal-btn" onclick="closeQueueModal()">✖ KAPAT</button></div><div id="queueListContainer" style="max-height:50vh;overflow-y:auto"></div><div style="margin-top:16px"><button class="btn btn-primary" style="width:100%;background:#c0392b" onclick="clearPrintQueue()">🗑️ LISTEYI TEMIZLE</button></div></div></div>
-<div id="stokSayimModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">🔢 STOK SAYIM</span><button class="close-modal-btn" onclick="closeStokSayimModal()">✖ KAPAT</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px"><button id="sayimModListeBtn" onclick="setSayimMod('liste')" style="background:#3498db;border:none;border-radius:40px;padding:12px;color:white;font-weight:800;font-size:0.85rem;cursor:pointer">📋 LISTE MODU</button><button id="sayimModBarkodBtn" onclick="setSayimMod('barkod')" style="background:#2a2a2a;border:none;border-radius:40px;padding:12px;color:white;font-weight:800;font-size:0.85rem;cursor:pointer">📷 BARKOD MODU</button></div><div id="sayimListeContainer"><div style="font-size:0.75rem;color:#aaa;margin-bottom:8px">Sayilan miktari girin, fark otomatik hesaplanir.</div><input type="text" id="sayimSearchInput" placeholder="🔍 Urun ara..." style="margin-bottom:8px" oninput="renderSayimListe()"><div id="sayimListeItems" style="max-height:42vh;overflow-y:auto"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px"><button onclick="saveSayimListe()" style="background:#2ecc71;border:none;border-radius:40px;padding:14px;color:white;font-weight:800;cursor:pointer">💾 GUNCELLE</button><button onclick="resetSayimInputs()" style="background:#95a5a6;border:none;border-radius:40px;padding:14px;color:white;font-weight:800;cursor:pointer">🔄 SIFIRLA</button></div></div><div id="sayimBarkodContainer" style="display:none"><div style="font-size:0.75rem;color:#aaa;margin-bottom:8px">Barkodu okut → adet gir → tekrar tara. Bitince Kaydet.</div><button onclick="openSayimKamera()" style="width:100%;background:#3498db;border:none;border-radius:40px;padding:14px;color:white;font-weight:800;font-size:1rem;cursor:pointer;margin-bottom:12px">📷 KAMERA ILE TARA</button><div id="sayimBarkodListesi" style="max-height:38vh;overflow-y:auto"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px"><button onclick="saveSayimBarkod()" style="background:#2ecc71;border:none;border-radius:40px;padding:14px;color:white;font-weight:800;cursor:pointer">💾 GUNCELLE</button><button onclick="clearSayimBarkod()" style="background:#c0392b;border:none;border-radius:40px;padding:14px;color:white;font-weight:800;cursor:pointer">🗑️ TEMIZLE</button></div></div></div></div>
-<div id="angebotModal" class="modal"><div class="modal-content"><div class="modal-header"><span class="modal-title">🏷️ ANGEBOT HAZIRLA</span><button class="close-modal-btn" onclick="document.getElementById('angebotModal').style.display='none'">✖ KAPAT</button></div><div id="angebotProductName" style="font-size:1rem;font-weight:800;color:#ffaa88;margin-bottom:8px;text-align:center"></div><div style="background:#3a3a3a;border-radius:32px;padding:12px;margin-bottom:16px;"><div style="font-size:0.9rem;color:#ccc;">💰 Normal fiyat: <strong id="angebotOriginalPrice"></strong> €</div><input type="number" id="angebotDiscountPrice" step="0.01" placeholder="Indirimli fiyat (€)" style="margin:10px 0 0;padding:12px;"><div id="angebotError" style="color:#ff8888;font-size:0.75rem;margin-top:6px;"></div></div><div style="display:flex;flex-direction:column;gap:10px"><div style="color:#aaa;font-size:0.72rem;font-weight:800;letter-spacing:1px">📄 A4</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button onclick="generateAngebotWithDiscount('a4','portrait')" style="background:#5dade2;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A4 DIKEY</button><button onclick="printAngebotDirectWithDiscount('a4','portrait')" style="background:#3498db;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A4 DIKEY</button><button onclick="generateAngebotWithDiscount('a4','landscape')" style="background:#5dade2;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A4 YATAY</button><button onclick="printAngebotDirectWithDiscount('a4','landscape')" style="background:#2980b9;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A4 YATAY</button></div><div style="color:#aaa;font-size:0.72rem;font-weight:800;letter-spacing:1px">📄 A5</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button onclick="generateAngebotWithDiscount('a5','portrait')" style="background:#58d68d;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A5 DIKEY</button><button onclick="printAngebotDirectWithDiscount('a5','portrait')" style="background:#2ecc71;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A5 DIKEY</button><button onclick="generateAngebotWithDiscount('a5','landscape')" style="background:#58d68d;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ A5 YATAY</button><button onclick="printAngebotDirectWithDiscount('a5','landscape')" style="background:#27ae60;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ A5 YATAY</button></div><div style="color:#aaa;font-size:0.72rem;font-weight:800;letter-spacing:1px">🏷️ ETIKET (21'li / Coklu Urun)</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button onclick="showMultiLabelPreview()" style="background:#f0a500;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">👁️ ONIZLE</button><button onclick="printMultiLabelPoster()" style="background:#e67e22;border:none;border-radius:40px;padding:13px 6px;color:white;font-weight:800;font-size:0.78rem;cursor:pointer">🖨️ YAZDIR</button></div></div></div></div>
-<div id="angebotPreviewModal" class="modal" style="z-index:2000"><div class="modal-content" style="max-width:600px;max-height:95vh"><div class="modal-header"><span class="modal-title" id="angebotPreviewTitle">👁️ ONIZLEME</span><button class="close-modal-btn" onclick="closeAngebotPreview()">✖ KAPAT</button></div><div id="angebotPreviewContent" style="background:white;border-radius:20px;overflow:hidden;margin-bottom:16px"></div><button id="angebotPreviewPrintBtn" onclick="printCurrentAngebot()" style="width:100%;background:#e67e22;border:none;border-radius:40px;padding:16px;color:white;font-weight:800;font-size:1rem;cursor:pointer">🖨️ YAZDIR</button></div></div>
+<div id="urgentModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa-solid fa-triangle-exclamation" style="margin-right:8px"></i>7 GUNDE SKT</span>
+            <button class="close-modal-btn" onclick="closeUrgentModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button>
+        </div>
+        <div id="urgentProductList"></div>
+    </div>
+</div>
+<div id="manualAddModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa-solid fa-pen-to-square" style="margin-right:8px"></i>MANUEL URUN EKLE</span>
+            <button class="close-modal-btn" onclick="closeManualAddModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button>
+        </div>
+        <div id="manualAddFormContainer"></div>
+    </div>
+</div>
+<div id="printModal" class="modal print-modal">
+    <div class="modal-content" style="max-width:95%">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa-solid fa-print" style="margin-right:8px"></i>ENVANTER RAPORU</span>
+            <button class="close-modal-btn" onclick="document.getElementById('printModal').style.display='none'"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button>
+        </div>
+        <div id="printTableContainer" style="overflow-x:auto"></div>
+        <button onclick="window.print()" class="btn btn-primary" style="margin-top:16px"><i class="fa-solid fa-print" style="margin-right:8px"></i>YAZICIYI AC</button>
+    </div>
+</div>
+<div id="queueModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa-solid fa-tags" style="margin-right:8px"></i>ETIKET LISTESI</span>
+            <button class="close-modal-btn" onclick="closeQueueModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button>
+        </div>
+        <div id="queueListContainer" style="max-height:50vh;overflow-y:auto"></div>
+        <div style="margin-top:18px">
+            <button class="btn btn-primary" style="width:100%;background:linear-gradient(135deg,#ef4444,#dc2626)!important" onclick="clearPrintQueue()"><i class="fa-solid fa-trash-can" style="margin-right:8px"></i>LISTEYI TEMIZLE</button>
+        </div>
+    </div>
+</div>
+<div id="stokSayimModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa-solid fa-calculator" style="margin-right:8px"></i>STOK SAYIM</span>
+            <button class="close-modal-btn" onclick="closeStokSayimModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+            <button id="sayimModListeBtn" onclick="setSayimMod('liste')" style="background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;border-radius:40px;padding:14px;color:white;font-weight:800;font-size:0.85rem;cursor:pointer;box-shadow:0 4px 12px rgba(59,130,246,0.25);transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-list" style="margin-right:6px"></i>LISTE MODU</button>
+            <button id="sayimModBarkodBtn" onclick="setSayimMod('barkod')" style="background:rgba(255,255,255,0.06);border:none;border-radius:40px;padding:14px;color:white;font-weight:800;font-size:0.85rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.08)"><i class="fa-solid fa-camera" style="margin-right:6px"></i>BARKOD MODU</button>
+        </div>
+        <div id="sayimListeContainer">
+            <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:10px;font-weight:500">Sayilan miktari girin, fark otomatik hesaplanir.</div>
+            <input type="text" id="sayimSearchInput" placeholder="Urun ara..." style="margin-bottom:10px" oninput="renderSayimListe()">
+            <div id="sayimListeItems" style="max-height:42vh;overflow-y:auto"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+                <button onclick="saveSayimListe()" style="background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,0.25);transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>GUNCELLE</button>
+                <button onclick="resetSayimInputs()" style="background:linear-gradient(135deg,#64748b,#475569);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-rotate-right" style="margin-right:6px"></i>SIFIRLA</button>
+            </div>
+        </div>
+        <div id="sayimBarkodContainer" style="display:none">
+            <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:10px;font-weight:500">Barkodu okut → adet gir → tekrar tara. Bitince Kaydet.</div>
+            <button onclick="openSayimKamera()" style="width:100%;background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;font-size:1rem;cursor:pointer;margin-bottom:14px;box-shadow:0 4px 12px rgba(59,130,246,0.25);transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-camera" style="margin-right:8px"></i>KAMERA ILE TARA</button>
+            <div id="sayimBarkodListesi" style="max-height:38vh;overflow-y:auto"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+                <button onclick="saveSayimBarkod()" style="background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,0.25);transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>GUNCELLE</button>
+                <button onclick="clearSayimBarkod()" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(239,68,68,0.25);transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-trash-can" style="margin-right:6px"></i>TEMIZLE</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="angebotModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa-solid fa-tag" style="margin-right:8px"></i>ANGEBOT HAZIRLA</span>
+            <button class="close-modal-btn" onclick="document.getElementById('angebotModal').style.display='none'"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button>
+        </div>
+        <div id="angebotProductName" style="font-size:1.1rem;font-weight:800;color:#fdba74;margin-bottom:10px;text-align:center;font-family:'Outfit',sans-serif"></div>
+        <div style="background:rgba(255,255,255,0.04);border-radius:32px;padding:16px;margin-bottom:18px;border:1px solid rgba(255,255,255,0.06)">
+            <div style="font-size:0.95rem;color:var(--text-secondary);">Normal fiyat: <strong id="angebotOriginalPrice" style="color:var(--text-primary)"></strong> €</div>
+            <input type="number" id="angebotDiscountPrice" step="0.01" placeholder="Indirimli fiyat (€)" style="margin:12px 0 0;">
+            <div id="angebotError" style="color:#f87171;font-size:0.8rem;margin-top:8px;font-weight:600;"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="color:var(--text-secondary);font-size:0.75rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase">A4</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <button onclick="generateAngebotWithDiscount('a4','portrait')" style="background:linear-gradient(135deg,#60a5fa,#3b82f6);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-eye" style="margin-right:4px"></i>A4 DIKEY</button>
+                <button onclick="printAngebotDirectWithDiscount('a4','portrait')" style="background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-print" style="margin-right:4px"></i>A4 DIKEY</button>
+                <button onclick="generateAngebotWithDiscount('a4','landscape')" style="background:linear-gradient(135deg,#60a5fa,#3b82f6);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-eye" style="margin-right:4px"></i>A4 YATAY</button>
+                <button onclick="printAngebotDirectWithDiscount('a4','landscape')" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-print" style="margin-right:4px"></i>A4 YATAY</button>
+            </div>
+            <div style="color:var(--text-secondary);font-size:0.75rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase">A5</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <button onclick="generateAngebotWithDiscount('a5','portrait')" style="background:linear-gradient(135deg,#34d399,#10b981);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-eye" style="margin-right:4px"></i>A5 DIKEY</button>
+                <button onclick="printAngebotDirectWithDiscount('a5','portrait')" style="background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-print" style="margin-right:4px"></i>A5 DIKEY</button>
+                <button onclick="generateAngebotWithDiscount('a5','landscape')" style="background:linear-gradient(135deg,#34d399,#10b981);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-eye" style="margin-right:4px"></i>A5 YATAY</button>
+                <button onclick="printAngebotDirectWithDiscount('a5','landscape')" style="background:linear-gradient(135deg,#059669,#047857);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-print" style="margin-right:4px"></i>A5 YATAY</button>
+            </div>
+            <div style="color:var(--text-secondary);font-size:0.75rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase">ETIKET (21'li / Coklu Urun)</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <button onclick="showMultiLabelPreview()" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-eye" style="margin-right:4px"></i>ONIZLE</button>
+                <button onclick="printMultiLabelPoster()" style="background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-print" style="margin-right:4px"></i>YAZDIR</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="angebotPreviewModal" class="modal" style="z-index:2000">
+    <div class="modal-content" style="max-width:600px;max-height:95vh">
+        <div class="modal-header">
+            <span class="modal-title" id="angebotPreviewTitle"><i class="fa-solid fa-eye" style="margin-right:8px"></i>ONIZLEME</span>
+            <button class="close-modal-btn" onclick="closeAngebotPreview()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button>
+        </div>
+        <div id="angebotPreviewContent" style="background:white;border-radius:24px;overflow:hidden;margin-bottom:18px;box-shadow:0 20px 40px rgba(0,0,0,0.3)"></div>
+        <button id="angebotPreviewPrintBtn" onclick="printCurrentAngebot()" style="width:100%;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:40px;padding:18px;color:white;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 4px 15px rgba(245,158,11,0.3);transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-print" style="margin-right:8px"></i>YAZDIR</button>
+    </div>
+</div>
 <script>
 // ==============================================================
 //  INDEXEDDB KULLANIMI - SONSUZ DEPOLAMA
@@ -143,6 +336,7 @@ let inventoryFilterMode = 'all';
 let products = [];
 let printQueue = [];
 let currentStream = null, lastScannedProduct = null, quaggaActive = false;
+let currentCameraMode = 'search', currentVideoTrack = null;
 let tempImageData = null, currentEditingProductId = null, angebotProduct = null, sayimMod = 'liste', sayimBarkodMap = {}, sayimKameraMode = false;
 let currentAngebotSize = 'a4', currentAngebotOrientation = 'portrait';
 let currentDiscountPrice = null;
@@ -162,12 +356,12 @@ function playBeep() {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
-        osc.frequency.value = 880;
-        gain.gain.value = 0.15;
+        osc.frequency.value = 1200;
+        gain.gain.value = 0.12;
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
-        setTimeout(() => { try { osc.stop(); } catch(e) {} }, 120);
+        setTimeout(() => { try { osc.stop(); } catch(e) {} }, 100);
     } catch(e) {}
 }
 
@@ -232,7 +426,7 @@ async function migrateFromLocalStorage() {
             if (oldProducts && oldProducts.length) {
                 await saveProductsToIDB(oldProducts);
                 localStorage.removeItem('marketpro_products');
-                showToast("✅ Eski verileriniz IndexedDB'ye tasindi!");
+                showToast("Eski verileriniz IndexedDB'ye tasindi!");
             }
         }
         const oldQueue = localStorage.getItem('market_print_queue');
@@ -269,31 +463,316 @@ async function loadPrintQueue() {
 }
 function savePrintQueue() { saveMetadata('printQueue', printQueue); }
 
-function showToast(msg){ let c=document.getElementById("toast-container"),t=document.createElement("div");t.className="toast";t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3000); }
+function showToast(msg){ 
+    let c=document.getElementById("toast-container"),t=document.createElement("div");
+    t.className="toast";
+    t.innerHTML = `<i class="fa-solid fa-circle-info" style="color:#60a5fa"></i> ${msg}`;
+    c.appendChild(t);
+    setTimeout(()=>t.remove(),3000); 
+}
 function escapeHtml(s){ if(!s)return'';return s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 function escapeJsString(s){ if(!s)return'';return s.replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\'/g,"\\'"); }
-function getProductColorClass(p){ if(p.quantity===0) return "expiry-zero-stock"; if(!p.expiry) return "expiry-no-date"; let d=Math.ceil((new Date(p.expiry)-new Date())/86400000); if(isNaN(d)) return "expiry-no-date"; if(d<=7) return "expiry-red"; if(d<=14) return "expiry-yellow"; return "expiry-green"; }
-function getCategoryEmoji(cat){ return cat==="Dolap Urunleri"?"🥫":(cat==="Kuru Gida"?"🌾":"📦"); }
-function setupPriceFields(costId, priceId, boxId){ let costEl=document.getElementById(costId),priceEl=document.getElementById(priceId),boxEl=document.getElementById(boxId); if(!costEl||!priceEl||!boxEl)return; let manual=false; function recalc(){ let c=parseFloat(costEl.value),p=parseFloat(priceEl.value); if(isNaN(c)||c<=0){ boxEl.innerHTML='<div class="profit-suggested">💰 Maliyet gir, fiyat onerilsin</div>';return; } let sug=(c/0.53).toFixed(2); if(isNaN(p)||p<=0){ boxEl.innerHTML=`<div class="profit-suggested">💡 Onerilen: €${sug}</div><div class="profit-margin">(%47 kar)</div>`;return; } let m=((p-c)/p*100),cls=m>=45?'good':m>=30?'ok':'bad',emoji=m>=45?'✅':m>=30?'⚠️':'❌'; boxEl.innerHTML=`<div class="profit-suggested">💰 Satis: ${p.toFixed(2)}€ | Kar: ${(p-c).toFixed(2)}€</div><div class="profit-margin ${cls}">${emoji} Marj: %${m.toFixed(1)} | Oneri: €${sug}</div>`; } function autoDecimal(el){ let v=(el.value||'').trim().replace(',','.'); if(v===''||v.includes('.')) return; if(/^\d+$/.test(v)){ let n=parseInt(v,10); if(v.length>=3){ el.value=(n/100).toFixed(2); } else if(v.length===2||v.length===1){ el.value=parseFloat(v).toFixed(2); } } } costEl.addEventListener('input',()=>{ if(!manual){ let c=parseFloat(costEl.value); if(!isNaN(c)&&c>0)priceEl.value=(c/0.53).toFixed(2); } recalc(); }); costEl.addEventListener('blur',()=>{ autoDecimal(costEl); if(!manual){ let c=parseFloat(costEl.value); if(!isNaN(c)&&c>0)priceEl.value=(c/0.53).toFixed(2); } recalc(); }); priceEl.addEventListener('input',()=>{ manual=true; recalc(); }); priceEl.addEventListener('focus',()=>{ manual=true; }); priceEl.addEventListener('blur',()=>{ autoDecimal(priceEl); recalc(); }); recalc(); }
+function getProductColorClass(p){ 
+    if(p.quantity===0) return "expiry-zero-stock"; 
+    if(!p.expiry) return "expiry-no-date"; 
+    let d=Math.ceil((new Date(p.expiry)-new Date())/86400000); 
+    if(isNaN(d)) return "expiry-no-date"; 
+    if(d<=7) return "expiry-red"; 
+    if(d<=14) return "expiry-yellow"; 
+    return "expiry-green"; 
+}
+function getCategoryEmoji(cat){ 
+    return cat==="Dolap Urunleri"?"<i class='fa-solid fa-jar' style='margin-left:6px;opacity:0.7'></i>":
+           (cat==="Kuru Gida"?"<i class='fa-solid fa-wheat-awn' style='margin-left:6px;opacity:0.7'></i>":
+           "<i class='fa-solid fa-box' style='margin-left:6px;opacity:0.7'></i>"); 
+}
+function setupPriceFields(costId, priceId, boxId){ 
+    let costEl=document.getElementById(costId),priceEl=document.getElementById(priceId),boxEl=document.getElementById(boxId); 
+    if(!costEl||!priceEl||!boxEl)return; 
+    let manual=false; 
+    function recalc(){ 
+        let c=parseFloat(costEl.value),p=parseFloat(priceEl.value); 
+        if(isNaN(c)||c<=0){ boxEl.innerHTML='<div class="profit-suggested">Maliyet gir, fiyat onerilsin</div>';return; } 
+        let sug=(c/0.53).toFixed(2); 
+        if(isNaN(p)||p<=0){ boxEl.innerHTML=`<div class="profit-suggested">Onerilen: €${sug}</div><div class="profit-margin">(%47 kar)</div>`;return; } 
+        let m=((p-c)/p*100),cls=m>=45?'good':m>=30?'ok':'bad',emoji=m>=45?'✅':m>=30?'⚠️':'❌'; 
+        boxEl.innerHTML=`<div class="profit-suggested">Satis: ${p.toFixed(2)}€ | Kar: ${(p-c).toFixed(2)}€</div><div class="profit-margin ${cls}">${emoji} Marj: %${m.toFixed(1)} | Oneri: €${sug}</div>`; 
+    } 
+    function autoDecimal(el){ 
+        let v=(el.value||'').trim().replace(',','.'); 
+        if(v===''||v.includes('.')) return; 
+        if(/^\d+$/.test(v)){ 
+            let n=parseInt(v,10); 
+            if(v.length>=3){ el.value=(n/100).toFixed(2); } 
+            else if(v.length===2||v.length===1){ el.value=parseFloat(v).toFixed(2); } 
+        } 
+    } 
+    costEl.addEventListener('input',()=>{ 
+        if(!manual){ let c=parseFloat(costEl.value); if(!isNaN(c)&&c>0)priceEl.value=(c/0.53).toFixed(2); } 
+        recalc(); 
+    }); 
+    costEl.addEventListener('blur',()=>{ 
+        autoDecimal(costEl); 
+        if(!manual){ let c=parseFloat(costEl.value); if(!isNaN(c)&&c>0)priceEl.value=(c/0.53).toFixed(2); } 
+        recalc(); 
+    }); 
+    priceEl.addEventListener('input',()=>{ manual=true; recalc(); }); 
+    priceEl.addEventListener('focus',()=>{ manual=true; }); 
+    priceEl.addEventListener('blur',()=>{ autoDecimal(priceEl); recalc(); }); 
+    recalc(); 
+}
 function normBarcode(b){ return (b===null||b===undefined)?'':String(b).replace(/\s/g,'').trim(); }
-function findByBarcode(code){ let c=normBarcode(code); if(!c || c.length < 3) return null; let f=products.find(p=>normBarcode(p.barcode)===c); if(f) return f; let cNoZero=c.replace(/^0+/,''); f=products.find(p=>{ let pb=normBarcode(p.barcode).replace(/^0+/,''); return pb===cNoZero; }); return f||null; }
-function findIdxByBarcode(code){ let c=normBarcode(code); if(!c || c.length < 3) return -1; let i=products.findIndex(p=>normBarcode(p.barcode)===c); if(i!==-1) return i; let cNoZero=c.replace(/^0+/,''); return products.findIndex(p=>normBarcode(p.barcode).replace(/^0+/,'')===cNoZero); }
-async function updateUI(){ let today=new Date(); let urgent=products.filter(p=>p.expiry&&Math.ceil((new Date(p.expiry)-today)/86400000)<=7&&p.quantity>0); document.getElementById('urgentCount').innerText=urgent.length; document.getElementById('productCountBadge').innerText=products.length+' cesit'; let allExp=products.filter(p=>p.expiry&&p.quantity>0).sort((a,b)=>new Date(a.expiry)-new Date(b.expiry)); let sktEl=document.getElementById('sktBarContent'); if(sktEl){ if(allExp.length){let p=allExp[0];sktEl.innerText=p.name+' · '+Math.ceil((new Date(p.expiry)-today)/86400000)+' gun';}else sktEl.innerText='Yaklasan SKT yok'; } }
+function isValidChecksum(code){
+    // Sadece rakamlardan olusan standart uzunluktaki barkodlar (EAN-8/UPC-A/EAN-13) icin checksum dogrulamasi yapar.
+    // Kod128 gibi harf iceren veya farkli uzunluktaki kodlarda dogrulama atlanir (true doner).
+    if(!/^\d+$/.test(code)) return true;
+    let len = code.length;
+    if(len!==8 && len!==12 && len!==13) return true;
+    let digits = code.split('').map(Number);
+    let checkDigit = digits[len-1];
+    let payload = digits.slice(0, len-1);
+    let sum = 0;
+    if(len===13){
+        payload.forEach((d,i)=>{ sum += (i%2===0)? d : d*3; });
+    } else {
+        payload.forEach((d,i)=>{ sum += (i%2===0)? d*3 : d; });
+    }
+    let calc = (10 - (sum % 10)) % 10;
+    return calc === checkDigit;
+}
+async function toggleTorch(){
+    let btn=document.getElementById('torchToggleBtn');
+    if(!currentVideoTrack){ showToast('Kamera hazir degil'); return; }
+    try{
+        let capabilities = currentVideoTrack.getCapabilities ? currentVideoTrack.getCapabilities() : {};
+        if(!capabilities.torch){ showToast('Bu cihaz fener ozelligini desteklemiyor'); return; }
+        let settings = currentVideoTrack.getSettings ? currentVideoTrack.getSettings() : {};
+        let newState = !settings.torch;
+        await currentVideoTrack.applyConstraints({advanced:[{torch:newState}]});
+        if(btn) btn.classList.toggle('torch-active', newState);
+    }catch(e){ showToast('Fener acilamadi'); }
+}
+function manualBarcodeEntry(){
+    let code = prompt('Barkodu elle girin:');
+    if(!code || !code.trim()) return;
+    code = normBarcode(code);
+    if(code.length < 4){ showToast('Gecersiz barkod'); return; }
+    playBeep();
+    if(currentCameraMode === 'sayim'){
+        closeCameraModal();
+        let p=findByBarcode(code);
+        let nm=p?p.name:("Bilinmeyen: "+code);
+        let mev=sayimBarkodMap[code]||0;
+        let girilen=prompt(`📦 ${nm}\nSistem stogu: ${p?p.quantity:""}${mev>0?"\nOnceki sayim: "+mev:""}\n\nKac adet saydiniz?`,mev>0?String(mev):"1");
+        if(girilen!==null){
+            let adet=parseInt(girilen);
+            if(!isNaN(adet)&&adet>=0){
+                if(adet===0) delete sayimBarkodMap[code];
+                else sayimBarkodMap[code]=adet;
+                renderSayimBarkodListe();
+                showToast(adet===0?"Listeden cikarildi":`✅ ${nm} → ${adet} adet`);
+            } else showToast("Gecersiz miktar!");
+        }
+        return;
+    }
+    closeCameraModal();
+    if(currentCameraMode === 'add'){
+        showAddFormForBarcode(code);
+        return;
+    }
+    let found=findByBarcode(code);
+    if(found) showResult(found);
+    else showAddFormForBarcode(code);
+}
+function findByBarcode(code){ 
+    let c=normBarcode(code); 
+    if(!c || c.length < 3) return null; 
+    let f=products.find(p=>normBarcode(p.barcode)===c); 
+    if(f) return f; 
+    let cNoZero=c.replace(/^0+/,''); 
+    f=products.find(p=>{ let pb=normBarcode(p.barcode).replace(/^0+/,''); return pb===cNoZero; }); 
+    return f||null; 
+}
+function findIdxByBarcode(code){ 
+    let c=normBarcode(code); 
+    if(!c || c.length < 3) return -1; 
+    let i=products.findIndex(p=>normBarcode(p.barcode)===c); 
+    if(i!==-1) return i; 
+    let cNoZero=c.replace(/^0+/,''); 
+    return products.findIndex(p=>normBarcode(p.barcode).replace(/^0+/,'')===cNoZero); 
+}
+async function updateUI(){ 
+    let today=new Date(); 
+    let urgent=products.filter(p=>p.expiry&&Math.ceil((new Date(p.expiry)-today)/86400000)<=7&&p.quantity>0); 
+    let urgentBadge=document.getElementById('urgentCount');
+    if(urgentBadge) urgentBadge.innerText=urgent.length; 
+    document.getElementById('productCountBadge').innerText=products.length+' cesit'; 
+}
 
-function openInventoryModal(){ inventoryFilterMode='all'; document.getElementById("inventoryModal").style.display="flex"; let inp=document.getElementById("inventorySearchInput"); if(inp){inp.value="";inp.oninput=()=>renderInventoryList();} renderInventoryList(); }
+function openInventoryModal(){ 
+    inventoryFilterMode='all'; 
+    document.getElementById("inventoryModal").style.display="flex"; 
+    let inp=document.getElementById("inventorySearchInput"); 
+    if(inp){inp.value="";inp.oninput=()=>renderInventoryList();} 
+    renderInventoryList(); 
+}
 function closeInventoryModal(){ document.getElementById("inventoryModal").style.display="none"; }
-function renderInventoryList(){ let statsEl=document.getElementById("inventoryStats"); if(statsEl){ let total=products.length,active=products.filter(p=>p.quantity>0).length,zero=products.filter(p=>p.quantity===0).length,urgent=products.filter(p=>p.expiry&&p.quantity>0&&Math.ceil((new Date(p.expiry)-new Date())/86400000)<=7).length; let allStyle=inventoryFilterMode==='all'?'box-shadow:0 0 0 2px #fff;':''; let actStyle=inventoryFilterMode==='active'?'box-shadow:0 0 0 2px #fff;':''; let zeroStyle=inventoryFilterMode==='zero'?'box-shadow:0 0 0 2px #fff;':''; let urgStyle=inventoryFilterMode==='urgent'?'box-shadow:0 0 0 2px #fff;':''; statsEl.innerHTML=`<div onclick="setInventoryFilter('all')" style="cursor:pointer;background:#3498db;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;${allStyle}">📦 TOPLAM: ${total}</div><div onclick="setInventoryFilter('active')" style="cursor:pointer;background:#2ecc71;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;${actStyle}">✅ AKTIF: ${active}</div>`+(zero>0?`<div onclick="setInventoryFilter('zero')" style="cursor:pointer;background:#7f8c8d;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;${zeroStyle}">⬜ STOKSUZ: ${zero}</div>`:'')+(urgent>0?`<div onclick="setInventoryFilter('urgent')" style="cursor:pointer;background:#e74c3c;border-radius:30px;padding:5px 14px;font-size:0.72rem;font-weight:800;color:white;${urgStyle}">⚠️ ACIL: ${urgent}</div>`:''); } let container=document.getElementById("modalProductList"); let sv=(document.getElementById("inventorySearchInput")?.value||'').trim().toLowerCase(); let filtered=sv?products.filter(p=>p.name.toLowerCase().includes(sv)||p.barcode.includes(sv)):products; if(inventoryFilterMode==='active')filtered=filtered.filter(p=>p.quantity>0); else if(inventoryFilterMode==='zero')filtered=filtered.filter(p=>p.quantity===0); else if(inventoryFilterMode==='urgent')filtered=filtered.filter(p=>p.expiry&&p.quantity>0&&Math.ceil((new Date(p.expiry)-new Date())/86400000)<=7); let sorted=[...filtered].sort((a,b)=>{ if(!a.expiry&&!b.expiry)return a.name.localeCompare(b.name); if(!a.expiry)return 1; if(!b.expiry)return-1; return new Date(a.expiry)-new Date(b.expiry); }); if(!sorted.length){ container.innerHTML="<div style='text-align:center;padding:20px;color:#aaa;'>Bu grupta urun yok</div>"; return; } container.innerHTML=sorted.map(p=>{ let idx=products.findIndex(pr=>pr.id===p.id),cc=getProductColorClass(p); return `<div class="envanter-item ${cc}"><div class="product-name-item" onclick="openProductDetailModal(${idx})">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)} (${p.quantity})</div><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])">➕ ETIKET</button></div>`; }).join(''); }
+
+function renderInventoryList(){ 
+    let statsEl=document.getElementById("inventoryStats"); 
+    if(statsEl){ 
+        let total=products.length,active=products.filter(p=>p.quantity>0).length,zero=products.filter(p=>p.quantity===0).length,urgent=products.filter(p=>p.expiry&&p.quantity>0&&Math.ceil((new Date(p.expiry)-new Date())/86400000)<=7).length; 
+        let allStyle=inventoryFilterMode==='all'?'box-shadow:0 0 0 2px rgba(255,255,255,0.5);transform:translateY(-1px);':''; 
+        let actStyle=inventoryFilterMode==='active'?'box-shadow:0 0 0 2px rgba(255,255,255,0.5);transform:translateY(-1px);':''; 
+        let zeroStyle=inventoryFilterMode==='zero'?'box-shadow:0 0 0 2px rgba(255,255,255,0.5);transform:translateY(-1px);':''; 
+        let urgStyle=inventoryFilterMode==='urgent'?'box-shadow:0 0 0 2px rgba(255,255,255,0.5);transform:translateY(-1px);':''; 
+        statsEl.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;"><div onclick="setInventoryFilter('all')" style="cursor:pointer;background:linear-gradient(135deg,#3b82f6,#2563eb);border-radius:30px;padding:10px 12px;font-size:0.8rem;font-weight:800;color:white;text-align:center;${allStyle}"><i class="fa-solid fa-layer-group" style="margin-right:4px"></i>TOPLAM: ${total}</div><div onclick="setInventoryFilter('active')" style="cursor:pointer;background:linear-gradient(135deg,#10b981,#059669);border-radius:30px;padding:10px 12px;font-size:0.8rem;font-weight:800;color:white;text-align:center;${actStyle}"><i class="fa-solid fa-check" style="margin-right:4px"></i>AKTIF: ${active}</div>`+(zero>0?`<div onclick="setInventoryFilter('zero')" style="cursor:pointer;background:linear-gradient(135deg,#64748b,#475569);border-radius:30px;padding:10px 12px;font-size:0.8rem;font-weight:800;color:white;text-align:center;${zeroStyle}"><i class="fa-solid fa-square" style="margin-right:4px"></i>STOKSUZ: ${zero}</div>`:'')+(urgent>0?`<div onclick="setInventoryFilter('urgent')" style="cursor:pointer;background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:30px;padding:10px 12px;font-size:0.8rem;font-weight:800;color:white;text-align:center;${urgStyle}"><i class="fa-solid fa-triangle-exclamation" style="margin-right:4px"></i>ACIL: ${urgent}</div>`:'')+`</div>`; 
+    } 
+    let container=document.getElementById("modalProductList"); 
+    let sv=(document.getElementById("inventorySearchInput")?.value||'').trim().toLowerCase(); 
+    let filtered=sv?products.filter(p=>p.name.toLowerCase().includes(sv)||p.barcode.includes(sv)):products; 
+    if(inventoryFilterMode==='active')filtered=filtered.filter(p=>p.quantity>0); 
+    else if(inventoryFilterMode==='zero')filtered=filtered.filter(p=>p.quantity===0); 
+    else if(inventoryFilterMode==='urgent')filtered=filtered.filter(p=>p.expiry&&p.quantity>0&&Math.ceil((new Date(p.expiry)-new Date())/86400000)<=7); 
+    
+    // === SIRALAMA MANTIGI: TOPLAM MODUNDA RENK ONCELIGI ===
+    let sorted;
+    if (inventoryFilterMode === 'all') {
+        const colorPriority = {
+            'expiry-red': 0,
+            'expiry-yellow': 1,
+            'expiry-green': 2,
+            'expiry-zero-stock': 3,
+            'expiry-no-date': 4
+        };
+        sorted = [...filtered].sort((a, b) => {
+            let ca = getProductColorClass(a);
+            let cb = getProductColorClass(b);
+            let pa = colorPriority[ca] !== undefined ? colorPriority[ca] : 99;
+            let pb = colorPriority[cb] !== undefined ? colorPriority[cb] : 99;
+            if (pa !== pb) return pa - pb;
+            return a.name.localeCompare(b.name);
+        });
+    } else {
+        sorted = [...filtered].sort((a,b)=>{
+            if(!a.expiry && !b.expiry) return a.name.localeCompare(b.name);
+            if(!a.expiry) return 1;
+            if(!b.expiry) return -1;
+            return new Date(a.expiry) - new Date(b.expiry);
+        });
+    }
+    // =========================================================
+    if(!sorted.length){
+        container.innerHTML="<div style='text-align:center;padding:24px;color:var(--text-secondary);font-weight:500;'><i class='fa-solid fa-inbox' style='font-size:2rem;margin-bottom:8px;display:block;opacity:0.5'></i>Bu grupta urun yok</div>";
+        return;
+    }
+    container.innerHTML=sorted.map((p, index)=>{
+        let idx=products.findIndex(pr=>pr.id===p.id),cc=getProductColorClass(p);
+        return `<div class="envanter-item ${cc}" style="animation-delay:${index*0.03}s"><div class="product-name-item" onclick="openProductDetailModal(${idx})">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)} <span style="color:var(--text-secondary);font-weight:600">(${p.quantity})</span></div><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-plus" style="margin-right:3px;font-size:0.6rem"></i>ETIKET</button></div>`;
+    }).join('');
+}
 function setInventoryFilter(mode){ inventoryFilterMode=mode; renderInventoryList(); }
 
-function openProductDetailModal(idx){ let p=products[idx];currentEditingProductId=idx;let color=getProductColorClass(p);let modal=document.getElementById("productDetailModal"),content=document.getElementById("productDetailContent");content.innerHTML=`<div class="modal-header"><span class="modal-title">📄 URUN DETAYI</span><button class="close-modal-btn" onclick="closeProductDetailModal()">✖ KAPAT</button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.src='';">`:'<div>📷 RESIM YOK</div>'}<div><strong>${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<br>Barkod: ${p.barcode}<br>Fiyat: ${p.price.toFixed(2)} €<br>Stok: ${p.quantity}<br>SKT: ${p.expiry||"YOK"}</div><div class="detail-actions"><div class="button-row"><button onclick="toggleEditMode()" style="background:#f39c12;">✏️ DUZENLE</button><button onclick="deleteCurrentProduct()" style="background:#c0392b;">🗑️ SIL</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:#e67e22;">🛒 SATILDI</button><button onclick="addImageToCurrentProduct('gallery')">🖼️ GALERI</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')">📷 KAMERA</button><button onclick="openGoogleSearchForCurrent()">🔍 INTERNET</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])">➕ ETIKET LISTESINE EKLE</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:#8e44ad!important;margin-top:6px;">🏷️ ANGEBOT HAZIRLA</button></div><div id="editFields" style="display:none;margin-top:10px;"></div></div>`;modal.style.display="flex"; }
+function openProductDetailModal(idx){
+    let p=products[idx];currentEditingProductId=idx;let color=getProductColorClass(p);
+    let modal=document.getElementById("productDetailModal"),content=document.getElementById("productDetailContent");
+    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>URUN DETAYI</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:'<div style="padding:20px;color:var(--text-secondary);font-size:3rem;"><i class="fa-regular fa-image"></i><div style="font-size:0.9rem;margin-top:8px;">RESIM YOK</div></div>'}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<div style="color:var(--text-secondary);margin-top:6px;font-size:0.9rem;line-height:1.6;">Barkod: ${p.barcode}<br>Fiyat: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>Stok: <span style="font-weight:700">${p.quantity}</span><br>SKT: ${p.expiry||"YOK"}</div></div><div class="detail-actions"><div class="button-row"><button onclick="toggleEditMode()" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fa-solid fa-pen" style="margin-right:4px"></i>DUZENLE</button><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>SIL</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>SATILDI</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>GALERI</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>KAMERA</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>INTERNET</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>ETIKET LISTESINE EKLE</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:8px;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>ANGEBOT HAZIRLA</button></div><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
+    modal.style.display="flex";
+}
 function closeProductDetailModal(){ document.getElementById("productDetailModal").style.display="none";currentEditingProductId=null; }
-function toggleEditMode(){ let editDiv=document.getElementById("editFields"),p=products[currentEditingProductId];if(editDiv.style.display==="none"){editDiv.style.display="block";editDiv.innerHTML=`<input id="editName" value="${escapeHtml(p.name)}" maxlength="35"><input id="editBarcode" value="${p.barcode}"><input id="editPrice" value="${p.price}" placeholder="Fiyat (€)"><input id="editCost" value="${p.cost||''}" placeholder="Maliyet (€)"><div id="editProfitBox" class="profit-box"></div><select id="editCategory">${p.category=="Dolap Urunleri"?"<option selected>Dolap Urunleri</option><option>Kuru Gida</option>":"<option>Dolap Urunleri</option><option selected>Kuru Gida</option>"}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}"><input id="editExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveProductEdit()">💾 KAYDET</button><button class="btn-cancel" onclick="toggleEditMode()">IPTAL</button></div>`;setupPriceFields('editCost','editPrice','editProfitBox');}else{editDiv.style.display="none";editDiv.innerHTML="";} }
-async function saveProductEdit(){ let idx=currentEditingProductId;products[idx].name=document.getElementById("editName").value.trim().toUpperCase();products[idx].barcode=document.getElementById("editBarcode").value.trim();products[idx].price=parseFloat(document.getElementById("editPrice").value);products[idx].cost=parseFloat(document.getElementById("editCost").value)||null;products[idx].category=document.getElementById("editCategory").value;let _q=parseInt(document.getElementById("editQuantity").value);if(isNaN(_q)||_q<=0)_q=1;products[idx].quantity=_q;products[idx].expiry=document.getElementById("editExpiry").value;await saveProducts();await updateUI();openProductDetailModal(idx);playBeep(); }
-async function deleteCurrentProduct(){ if(confirm(`${products[currentEditingProductId].name} silinsin mi?`)){products.splice(currentEditingProductId,1);await saveProducts();await updateUI();closeProductDetailModal();closeInventoryModal();openInventoryModal();playBeep();} }
-async function addImageToCurrentProduct(source){ let input=document.createElement("input");input.type="file";input.accept="image/*";if(source==='camera')input.capture="environment";input.onchange=async(e)=>{let file=e.target.files[0];if(file){let reader=new FileReader();reader.onload=async(ev)=>{products[currentEditingProductId].image=await compressImage(ev.target.result);await saveProducts();openProductDetailModal(currentEditingProductId);playBeep();};reader.readAsDataURL(file);}};input.click(); }
-function openGoogleSearchForCurrent(){ let name=products[currentEditingProductId]?.name;if(name)window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank'); }
-async function compressImage(dataUrl,w=400,q=0.4){ return new Promise(r=>{let img=new Image();img.onload=()=>{let cnv=document.createElement('canvas'),ww=img.width,hh=img.height;if(ww>w){hh=hh*w/ww;ww=w;}cnv.width=ww;cnv.height=hh;cnv.getContext('2d').drawImage(img,0,0,ww,hh);r(cnv.toDataURL('image/jpeg',q));};img.src=dataUrl;}); }
-async function sellProduct(product,index){ if (!product) return; if (product.quantity <= 0) { showToast(`${product.name} zaten stoksuz`); return; } product.quantity--; await saveProducts(); await updateUI(); if (lastScannedProduct && lastScannedProduct.id === product.id) { showResult(products.find(pr => pr.id === product.id)); } if (product.quantity === 0) { showToast(`⚠️ ${product.name} STOK SIFIRLANDI`); } else { showToast(`${product.name} stok: ${product.quantity}`); playBeep(); } }
+function toggleEditMode(){
+    let editDiv=document.getElementById("editFields"),p=products[currentEditingProductId];
+    if(editDiv.style.display==="none"){
+        editDiv.style.display="block";
+        editDiv.innerHTML=`<input id="editName" value="${escapeHtml(p.name)}" maxlength="35" placeholder="Urun adi"><input id="editBarcode" value="${p.barcode}" placeholder="Barkod"><input id="editPrice" value="${p.price}" placeholder="Fiyat (€)"><input id="editCost" value="${p.cost||''}" placeholder="Maliyet (€)"><div id="editProfitBox" class="profit-box"></div><select id="editCategory">${p.category=="Dolap Urunleri"?"<option selected>Dolap Urunleri</option><option>Kuru Gida</option>":"<option>Dolap Urunleri</option><option selected>Kuru Gida</option>"}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}" placeholder="Stok" type="number"><input id="editExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveProductEdit()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button><button class="btn-cancel" onclick="toggleEditMode()">IPTAL</button></div>`;
+        setupPriceFields('editCost','editPrice','editProfitBox');
+    }else{editDiv.style.display="none";editDiv.innerHTML="";}
+}
+async function saveProductEdit(){
+    let idx=currentEditingProductId;
+    products[idx].name=document.getElementById("editName").value.trim().toUpperCase();
+    products[idx].barcode=document.getElementById("editBarcode").value.trim();
+    products[idx].price=parseFloat(document.getElementById("editPrice").value);
+    products[idx].cost=parseFloat(document.getElementById("editCost").value)||null;
+    products[idx].category=document.getElementById("editCategory").value;
+    let _q=parseInt(document.getElementById("editQuantity").value);
+    if(isNaN(_q)||_q<=0)_q=1;
+    products[idx].quantity=_q;
+    products[idx].expiry=document.getElementById("editExpiry").value;
+    await saveProducts();
+    await updateUI();
+    openProductDetailModal(idx);
+    playBeep();
+}
+async function deleteCurrentProduct(){
+    if(confirm(`${products[currentEditingProductId].name} silinsin mi?`)){
+        products.splice(currentEditingProductId,1);
+        await saveProducts();
+        await updateUI();
+        closeProductDetailModal();
+        closeInventoryModal();
+        openInventoryModal();
+        playBeep();
+    }
+}
+async function addImageToCurrentProduct(source){
+    let input=document.createElement("input");
+    input.type="file";
+    input.accept="image/*";
+    if(source==='camera')input.capture="environment";
+    input.onchange=async(e)=>{
+        let file=e.target.files[0];
+        if(file){
+            let reader=new FileReader();
+            reader.onload=async(ev)=>{
+                products[currentEditingProductId].image=await compressImage(ev.target.result);
+                await saveProducts();
+                openProductDetailModal(currentEditingProductId);
+                playBeep();
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    input.click();
+}
+function openGoogleSearchForCurrent(){
+    let name=products[currentEditingProductId]?.name;
+    if(name)window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank');
+}
+function openGoogleSearchForResult(){
+    let name=lastScannedProduct?.name;
+    if(name)window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank');
+    else showToast("Once bir urun okutun!");
+}
+async function compressImage(dataUrl,w=400,q=0.4){
+    return new Promise(r=>{
+        let img=new Image();
+        img.onload=()=>{
+            let cnv=document.createElement('canvas'),ww=img.width,hh=img.height;
+            if(ww>w){hh=hh*w/ww;ww=w;}
+            cnv.width=ww;cnv.height=hh;
+            cnv.getContext('2d').drawImage(img,0,0,ww,hh);
+            r(cnv.toDataURL('image/jpeg',q));
+        };
+        img.src=dataUrl;
+    });
+}
+async function sellProduct(product,index){
+    if (!product) return;
+    if (product.quantity <= 0) { showToast(`${product.name} zaten stoksuz`); return; }
+    product.quantity--;
+    await saveProducts();
+    await updateUI();
+    if (lastScannedProduct && lastScannedProduct.id === product.id) {
+        showResult(products.find(pr => pr.id === product.id));
+    }
+    if (product.quantity === 0) {
+        showToast(`⚠️ ${product.name} STOK SIFIRLANDI`);
+    } else {
+        showToast(`${product.name} stok: ${product.quantity}`);
+        playBeep();
+    }
+}
 
 async function addImageToResult(source) {
     if (!lastScannedProduct) { showToast("Once bir urun okut!"); return; }
@@ -319,19 +798,42 @@ async function addImageToResult(source) {
     input.click();
 }
 
-function addToPrintQueue(product){ if(!product || !product.id) return; printQueue.push(product.id); savePrintQueue(); showToast(`${product.name} etiket listesine eklendi.`); }
-function managePrintQueue(){ let c=document.getElementById("queueListContainer"); if(!printQueue.length){ c.innerHTML="<div>Liste bos</div>"; document.getElementById("queueModal").style.display="flex"; return; } let items=[]; for(let pid of printQueue){ let p=products.find(pr=>pr.id===pid); if(p) items.push(p); } c.innerHTML=items.map((p,i)=>`<div style="background:#3a3a3a;border-radius:40px;padding:10px;margin-bottom:8px;display:flex;justify-content:space-between;"><span>${escapeHtml(p.name)} (${p.price.toFixed(2)}€)</span><button onclick="removeFromQueue(${i})" style="background:#c0392b;border:none;border-radius:30px;padding:6px 12px;color:white;">CIKAR</button></div>`).join(''); document.getElementById("queueModal").style.display="flex"; }
+function addToPrintQueue(product){
+    if(!product || !product.id) return;
+    printQueue.push(product.id);
+    savePrintQueue();
+    showToast(`${product.name} etiket listesine eklendi.`);
+}
+function managePrintQueue(){
+    let c=document.getElementById("queueListContainer");
+    if(!printQueue.length){
+        c.innerHTML="<div style='text-align:center;padding:20px;color:var(--text-secondary);'><i class='fa-solid fa-inbox' style='font-size:2rem;margin-bottom:8px;display:block;opacity:0.5'></i>Liste bos</div>";
+        document.getElementById("queueModal").style.display="flex";
+        return;
+    }
+    let items=[];
+    for(let pid of printQueue){
+        let p=products.find(pr=>pr.id===pid);
+        if(p) items.push(p);
+    }
+    c.innerHTML=items.map((p,i)=>`<div style="background:rgba(255,255,255,0.04);border-radius:40px;padding:12px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,0.05);"><span style="font-weight:600;font-size:0.9rem;">${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-size:0.8rem;">(${p.price.toFixed(2)}€)</span></span><button onclick="removeFromQueue(${i})" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:30px;padding:6px 14px;color:white;font-weight:700;font-size:0.75rem;cursor:pointer;"><i class="fa-solid fa-xmark" style="margin-right:3px"></i>CIKAR</button></div>`).join('');
+    document.getElementById("queueModal").style.display="flex";
+}
 function removeFromQueue(i){ printQueue.splice(i,1);savePrintQueue();managePrintQueue(); }
-function clearPrintQueue(){ if(confirm("Etiket listesi tamamen temizlensin mi?")){ printQueue=[];savePrintQueue();managePrintQueue();showToast("Liste temizlendi"); } }
+function clearPrintQueue(){
+    if(confirm("Etiket listesi tamamen temizlensin mi?")){
+        printQueue=[];savePrintQueue();managePrintQueue();showToast("Liste temizlendi");
+    }
+}
 function closeQueueModal(){ document.getElementById("queueModal").style.display="none"; }
 
 function showMultiLabelPreview(){
-    if(!printQueue.length){ showToast("Etiket listesi bos! Once '➕ ETIKET' butonuyla urun ekleyin."); return; }
+    if(!printQueue.length){ showToast("Etiket listesi bos! Once 'ETIKET' butonuyla urun ekleyin."); return; }
     let modal=document.getElementById('angebotPreviewModal');
     let content=document.getElementById('angebotPreviewContent');
     let title=document.getElementById('angebotPreviewTitle');
     let totalPages=Math.ceil(printQueue.length/21);
-    title.innerText=`👁️ ${printQueue.length} Etiket — ${totalPages} Sayfa`;
+    title.innerHTML=`<i class="fa-solid fa-eye" style="margin-right:8px"></i>${printQueue.length} Etiket — ${totalPages} Sayfa`;
     let pw=210, ph=297;
     let pxW=Math.round(pw*3.779527), pxH=Math.round(ph*3.779527);
     let scale=Math.min((window.innerWidth*0.85-48)/pxW,(window.innerHeight*0.72)/pxH,1);
@@ -373,7 +875,7 @@ function showMultiLabelPreview(){
 function printMultiLabelPoster(){
     if(!printQueue.length){ showToast("Etiket listesi bos!"); return; }
     let w=window.open('','_blank');
-    if(!w){ showToast("⚠️ Acilir pencere engellendi! Tarayici ayarlarindan izin verin."); return; }
+    if(!w){ showToast("Acilir pencere engellendi! Tarayici ayarlarindan izin verin."); return; }
     let totalPages=Math.ceil(printQueue.length/21);
     let allPagesHtml='', barcodeInits='';
     for(let page=0;page<totalPages;page++){
@@ -425,16 +927,35 @@ body{margin:0;padding:0;background:white;}
     let jsLib = '<sc'+'ript src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></sc'+'ript>';
     let jsInit = '<sc'+'ript>\nwindow.addEventListener("load", function(){\n' + barcodeInits + '\nsetTimeout(function(){ try{window.focus();}catch(e){} window.print(); }, 800);\n});\n</sc'+'ript>';
     let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Etiket Poster</title>' + styleBlock + jsLib + '</head><body>';
-    html += '<div class="toolbar"><button onclick="window.print()">🖨️ YAZDIR</button></div>';
+    html += '<div class="toolbar"><button onclick="window.print()">YAZDIR</button></div>';
     html += '<div class="sheets">' + allPagesHtml + '</div>';
     html += jsInit + '</body></html>';
     w.document.write(html);
     w.document.close();
-    showToast("🖨️ Yazdirma penceresi acildi. Liste korunuyor.");
+    showToast("Yazdirma penceresi acildi. Liste korunuyor.");
 }
 
-function openAngebotModal(p){ angebotProduct=p; document.getElementById('angebotProductName').innerHTML=`${escapeHtml(p.name)} — ${p.price.toFixed(2)} €`; document.getElementById('angebotOriginalPrice').innerHTML=p.price.toFixed(2); document.getElementById('angebotDiscountPrice').value=''; document.getElementById('angebotError').innerHTML=''; document.getElementById('angebotModal').style.display='flex'; }
-function validateDiscountPrice(originalPrice, discountPrice){ if(discountPrice===null || discountPrice===undefined || isNaN(discountPrice)) return false; if(discountPrice>=originalPrice){ document.getElementById('angebotError').innerHTML='❌ Indirimli fiyat, normal fiyattan kucuk olmalidir!'; return false; } if(discountPrice<=0){ document.getElementById('angebotError').innerHTML='❌ Gecerli bir indirimli fiyat girin.'; return false; } document.getElementById('angebotError').innerHTML=''; return true; }
+function openAngebotModal(p){
+    angebotProduct=p;
+    document.getElementById('angebotProductName').innerHTML=`${escapeHtml(p.name)} — ${p.price.toFixed(2)} €`;
+    document.getElementById('angebotOriginalPrice').innerHTML=p.price.toFixed(2);
+    document.getElementById('angebotDiscountPrice').value='';
+    document.getElementById('angebotError').innerHTML='';
+    document.getElementById('angebotModal').style.display='flex';
+}
+function validateDiscountPrice(originalPrice, discountPrice){
+    if(discountPrice===null || discountPrice===undefined || isNaN(discountPrice)) return false;
+    if(discountPrice>=originalPrice){
+        document.getElementById('angebotError').innerHTML='<i class="fa-solid fa-circle-xmark" style="margin-right:4px"></i>Indirimli fiyat, normal fiyattan kucuk olmalidir!';
+        return false;
+    }
+    if(discountPrice<=0){
+        document.getElementById('angebotError').innerHTML='<i class="fa-solid fa-circle-xmark" style="margin-right:4px"></i>Gecerli bir indirimli fiyat girin.';
+        return false;
+    }
+    document.getElementById('angebotError').innerHTML='';
+    return true;
+}
 function generateAngebotWithDiscount(size, orientation){
     if(!angebotProduct) return;
     let discountVal=parseFloat(document.getElementById('angebotDiscountPrice').value);
@@ -444,9 +965,9 @@ function generateAngebotWithDiscount(size, orientation){
     let content=document.getElementById('angebotPreviewContent');
     let title=document.getElementById('angebotPreviewTitle');
     let labelMap={a4:'A4',a5:'A5'};
-    title.innerText=`👁️ ${labelMap[size]} ${orientation==='portrait'?'DIKEY':'YATAY'}`;
+    title.innerHTML=`<i class="fa-solid fa-eye" style="margin-right:8px"></i>${labelMap[size]} ${orientation==='portrait'?'DIKEY':'YATAY'}`;
     let printHTML=buildAngebotPrintHTML(size, orientation, angebotProduct, currentDiscountPrice);
-    printHTML=printHTML.replace('<div class="toolbar"><button onclick="window.print()">🖨️ YAZDIR</button></div>','');
+    printHTML=printHTML.replace('<div class="toolbar"><button onclick="window.print()">YAZDIR</button></div>','');
     let escaped=printHTML.replace(/"/g,'&quot;');
     let pwMM=210, phMM=297;
     if(size==='a4' && orientation==='landscape'){ pwMM=297; phMM=210; }
@@ -458,7 +979,16 @@ function generateAngebotWithDiscount(size, orientation){
     modal.style.display='flex';
     document.getElementById('angebotPreviewPrintBtn').onclick=()=>{ printAngebotDirectWithDiscount(size, orientation); };
 }
-function printAngebotDirectWithDiscount(size, orientation){ if(!angebotProduct) return; let discountVal=parseFloat(document.getElementById('angebotDiscountPrice').value); if(!validateDiscountPrice(angebotProduct.price, discountVal)) return; currentDiscountPrice=discountVal; let w=window.open('', '_blank'); if(!w){ showToast("⚠️ Acilir pencere engellendi! Izin verin."); return; } w.document.write(buildAngebotPrintHTML(size, orientation, angebotProduct, currentDiscountPrice)); w.document.close(); }
+function printAngebotDirectWithDiscount(size, orientation){
+    if(!angebotProduct) return;
+    let discountVal=parseFloat(document.getElementById('angebotDiscountPrice').value);
+    if(!validateDiscountPrice(angebotProduct.price, discountVal)) return;
+    currentDiscountPrice=discountVal;
+    let w=window.open('', '_blank');
+    if(!w){ showToast("Acilir pencere engellendi! Izin verin."); return; }
+    w.document.write(buildAngebotPrintHTML(size, orientation, angebotProduct, currentDiscountPrice));
+    w.document.close();
+}
 function printCurrentAngebot(){ printAngebotDirectWithDiscount(currentAngebotSize, currentAngebotOrientation); }
 function closeAngebotPreview(){ document.getElementById('angebotPreviewModal').style.display='none'; document.getElementById('angebotModal').style.display='flex'; }
 
@@ -495,78 +1025,193 @@ function buildAngebotPrintHTML(size,orientation,p,discountPrice){
         }
     }
     let jsBlock = '<sc'+'ript>window.addEventListener("load",function(){setTimeout(function(){try{window.focus();}catch(e){}window.print();},700);});</sc'+'ript>';
-    return '<!DOCTYPE html><html><head><meta charset="UTF-8">'+fontLink+'<style>.toolbar{position:fixed;top:0;left:0;width:100%;background:#222;color:white;padding:12px;text-align:center;z-index:99;font-family:system-ui,sans-serif;}.toolbar button{background:#e67e22;border:none;border-radius:30px;padding:12px 28px;color:white;font-weight:800;font-size:16px;cursor:pointer;}@media print{.toolbar{display:none!important;}}'+bodyCSS+'</style></head><body><div class="toolbar"><button onclick="window.print()">🖨️ YAZDIR</button></div>'+bodyHTML+jsBlock+'</body></html>';
+    return '<!DOCTYPE html><html><head><meta charset="UTF-8">'+fontLink+'<style>.toolbar{position:fixed;top:0;left:0;width:100%;background:#222;color:white;padding:12px;text-align:center;z-index:99;font-family:system-ui,sans-serif;}.toolbar button{background:#e67e22;border:none;border-radius:30px;padding:12px 28px;color:white;font-weight:800;font-size:16px;cursor:pointer;}@media print{.toolbar{display:none!important;}}'+bodyCSS+'</style></head><body><div class="toolbar"><button onclick="window.print()">YAZDIR</button></div>'+bodyHTML+jsBlock+'</body></html>';
 }
 
-function openUrgentModal(){ let today=new Date(); let urgent=products.filter(p=>p.expiry && p.quantity>0 && Math.ceil((new Date(p.expiry)-today)/86400000)<=7 && Math.ceil((new Date(p.expiry)-today)/86400000)>=0); urgent.sort((a,b)=>new Date(a.expiry)-new Date(b.expiry)); let c=document.getElementById("urgentProductList"); if(urgent.length===0){ c.innerHTML="<div>7 gun icinde SKT'si gececek ve stokta olan urun yok.</div>"; } else { c.innerHTML=urgent.map(p=>{ let d=Math.ceil((new Date(p.expiry)-today)/86400000); let cl=getProductColorClass(p); return `<div class="${cl}" style="border-radius:28px;padding:12px;margin-bottom:10px;"><strong>${escapeHtml(p.name)}</strong><br>SKT: ${p.expiry} (${d} gun)<br>Stok: ${p.quantity}</div>`; }).join(''); } document.getElementById("urgentModal").style.display="flex"; }
+function openUrgentModal(){
+    let today=new Date();
+    let urgent=products.filter(p=>p.expiry && p.quantity>0 && Math.ceil((new Date(p.expiry)-today)/86400000)<=7 && Math.ceil((new Date(p.expiry)-today)/86400000)>=0);
+    urgent.sort((a,b)=>new Date(a.expiry)-new Date(b.expiry));
+    let c=document.getElementById("urgentProductList");
+    if(urgent.length===0){
+        c.innerHTML="<div style='text-align:center;padding:20px;color:var(--text-secondary);'><i class='fa-solid fa-check-circle' style='font-size:2rem;margin-bottom:8px;display:block;opacity:0.5'></i>7 gun icinde SKT'si gececek ve stokta olan urun yok.</div>";
+    } else {
+        c.innerHTML=urgent.map(p=>{
+            let d=Math.ceil((new Date(p.expiry)-today)/86400000);
+            let cl=getProductColorClass(p);
+            return `<div class="${cl}" style="border-radius:28px;padding:14px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.05);"><strong style="font-size:1rem;">${escapeHtml(p.name)}</strong><div style="color:var(--text-secondary);margin-top:4px;font-size:0.85rem;">SKT: ${p.expiry} <span style="color:#f87171;font-weight:700">(${d} gun)</span><br>Stok: ${p.quantity}</div></div>`;
+        }).join('');
+    }
+    document.getElementById("urgentModal").style.display="flex";
+}
 function closeUrgentModal(){ document.getElementById("urgentModal").style.display="none"; }
 
-async function openCameraModal(mode){ let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus"); sayimKameraMode=false; modal.style.display="flex"; status.innerHTML="📷 BASLATILIYOR..."; try{ if(quaggaActive){ Quagga.stop(); quaggaActive=false; } if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; } let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}); video.srcObject=stream; currentStream=stream; video.play(); Quagga.init({inputStream:{name:"LiveStream",type:"LiveStream",target:video},decoder:{readers:["ean_reader","ean_8_reader","upc_reader","code_128_reader"]}},err=>{ if(err){ status.innerHTML="HATA"; return; } Quagga.start(); quaggaActive=true; status.innerHTML="🎥 BARKODU GOSTER..."; }); let scanCounts={}, locked=false; Quagga.offDetected(); Quagga.onDetected(data=>{ if(locked) return; let code=data.codeResult.code; if(!code||code.length<4) return; scanCounts[code]=(scanCounts[code]||0)+1; status.innerHTML="🎯 OKUNUYOR... ("+scanCounts[code]+"/2)"; if(scanCounts[code]<2) return; locked=true; playBeep(); closeCameraModal(); if(mode==='search'){ let found=findByBarcode(code); if(found) showResult(found); else { let cn=normBarcode(code); let pref=cn.replace(/^0+/,'').slice(0,7); let benzer=products.filter(p=>{ let pb=normBarcode(p.barcode).replace(/^0+/,''); return pref.length>=5 && (pb.startsWith(pref.slice(0,6)) || cn.slice(0,6)===pb.slice(0,6)); }).slice(0,5); let benzerHtml=benzer.length?`<div style="margin-top:12px;border-top:1px solid #555;padding-top:10px;"><div style="color:#ffaa88;font-size:0.8rem;margin-bottom:6px;">🔎 Benzer urunler (yanlis okuma olabilir):</div>`+benzer.map(p=>{ let i=products.findIndex(x=>x.id===p.id); return `<button onclick="closeResultAndOpenDetail(${i})" style="display:block;width:100%;text-align:left;background:#3a3a3a;border:none;border-radius:30px;padding:8px 12px;color:white;font-size:0.78rem;margin-bottom:5px;cursor:pointer;">${escapeHtml(p.name)} — ${p.barcode}</button>`; }).join('')+`</div>`:''; document.getElementById("resultArea").innerHTML=`<div style="color:white;padding:10px;">❌ "${code}" BULUNAMADI<br><button class="btn btn-primary" onclick="showAddFormForBarcode('${code}')" style="margin-top:10px;width:100%;">➕ EKLE</button>${benzerHtml}</div>`; } } else showAddFormForBarcode(code); }); } catch(e){ status.innerHTML="❌ KAMERA IZNI GEREKLI"; setTimeout(()=>closeCameraModal(),2000); } }
-async function openSayimKamera(){ let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus"); sayimKameraMode=true; document.getElementById("stokSayimModal").style.display="none"; modal.style.display="flex"; status.innerHTML="📷 SAYIM - BARKODU GOSTER..."; try{ if(quaggaActive){ Quagga.stop(); quaggaActive=false; } if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; } let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}); video.srcObject=stream; currentStream=stream; video.play(); Quagga.init({inputStream:{name:"LiveStream",type:"LiveStream",target:video},decoder:{readers:["ean_reader","ean_8_reader","upc_reader","code_128_reader"]}},err=>{ if(err){ status.innerHTML="HATA"; return; } Quagga.start(); quaggaActive=true; status.innerHTML="🎥 SAYIM: BARKODU GOSTER..."; }); let detected=false, scanCounts={}; Quagga.offDetected(); Quagga.onDetected(data=>{ if(detected) return; let code=data.codeResult.code; if(!code||code.length<4) return; scanCounts[code]=(scanCounts[code]||0)+1; status.innerHTML="🎯 OKUNUYOR... ("+scanCounts[code]+"/2)"; if(scanCounts[code]<2) return; detected=true; playBeep(); if(quaggaActive){ Quagga.stop(); quaggaActive=false; } if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; } modal.style.display="none"; document.getElementById("stokSayimModal").style.display="flex"; let p=findByBarcode(code); let nm=p?p.name:("Bilinmeyen: "+code); let mev=sayimBarkodMap[code]||0; let girilen=prompt("📦 "+nm+"\nSistem stogu: "+(p?p.quantity:"")+(mev>0?"\nOnceki sayim: "+mev:"")+"\n\nKac adet saydiniz?",mev>0?String(mev):"1"); if(girilen!==null){ let adet=parseInt(girilen); if(!isNaN(adet)&&adet>=0){ if(adet===0) delete sayimBarkodMap[code]; else sayimBarkodMap[code]=adet; renderSayimBarkodListe(); showToast(adet===0?"Listeden cikarildi":"✅ "+nm+" → "+adet+" adet"); } else showToast("❌ Gecersiz miktar!"); } sayimKameraMode=false; }); } catch(e){ modal.style.display="none"; document.getElementById("stokSayimModal").style.display="flex"; showToast("❌ Kamera acilamadi!"); sayimKameraMode=false; } }
-function closeCameraModal(){ if(quaggaActive){ Quagga.stop(); quaggaActive=false; } if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; } document.getElementById("cameraModal").style.display="none"; if(sayimKameraMode){ document.getElementById("stokSayimModal").style.display="flex"; sayimKameraMode=false; } }
+async function openCameraModal(mode){
+    let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
+    sayimKameraMode=false;
+    currentCameraMode=mode;
+    let torchBtn=document.getElementById('torchToggleBtn');
+    if(torchBtn) torchBtn.classList.remove('torch-active');
+    modal.style.display="flex";
+    status.innerHTML='<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px"></i>BASLATILIYOR...';
+    try{
+        if(quaggaActive){ Quagga.stop(); quaggaActive=false; }
+        if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
+        let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment", width:{ideal:1280}, height:{ideal:720}}});
+        video.srcObject=stream;
+        currentStream=stream;
+        currentVideoTrack=stream.getVideoTracks()[0]||null;
+        video.play();
+        Quagga.init({
+            inputStream:{
+                name:"LiveStream",
+                type:"LiveStream",
+                target:video,
+                area:{ top:"20%", right:"11%", left:"11%", bottom:"20%" }
+            },
+            locate:true,
+            numOfWorkers:(navigator.hardwareConcurrency? Math.min(navigator.hardwareConcurrency,4):2),
+            frequency:10,
+            decoder:{readers:["ean_reader","ean_8_reader","upc_reader","code_128_reader"], multiple:false}
+        },err=>{
+            if(err){ status.innerHTML='<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>HATA'; return; }
+            Quagga.start();
+            quaggaActive=true;
+            status.innerHTML='<i class="fa-solid fa-barcode" style="margin-right:6px"></i>BARKODU CERCEVEYE GETIR...';
+        });
+        let scanCounts={}, locked=false;
+        Quagga.offDetected();
+        Quagga.onDetected(data=>{
+            if(locked) return;
+            let code=data.codeResult.code;
+            if(!code||code.length<4) return;
+            if(!isValidChecksum(code)) return;
+            scanCounts[code]=(scanCounts[code]||0)+1;
+            status.innerHTML=`<i class="fa-solid fa-eye" style="margin-right:6px"></i>OKUNUYOR (${scanCounts[code]}/2)...`;
+            if(scanCounts[code]<2) return;
+            locked=true;
+            playBeep();
+            closeCameraModal();
+            if(mode==='search'){
+                let found=findByBarcode(code);
+                if(found) showResult(found);
+                else {
+                    let cn=normBarcode(code);
+                    let pref=cn.replace(/^0+/,'').slice(0,7);
+                    let benzer=products.filter(p=>{
+                        let pb=normBarcode(p.barcode).replace(/^0+/,'');
+                        return pref.length>=5 && (pb.startsWith(pref.slice(0,6)) || cn.slice(0,6)===pb.slice(0,6));
+                    }).slice(0,5);
+                    let benzerHtml=benzer.length?`<div style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;"><div style="color:#fdba74;font-size:0.8rem;margin-bottom:8px;font-weight:600;"><i class="fa-solid fa-lightbulb" style="margin-right:4px"></i>Benzer urunler:</div>`+benzer.map(p=>{
+                        let i=products.findIndex(x=>x.id===p.id);
+                        return `<button onclick="closeResultAndOpenDetail(${i})" style="display:block;width:100%;text-align:left;background:rgba(255,255,255,0.04);border:none;border-radius:30px;padding:10px 14px;color:white;font-size:0.8rem;margin-bottom:6px;cursor:pointer;border:1px solid rgba(255,255,255,0.05);transition:all 0.2s;"><i class="fa-solid fa-box" style="margin-right:6px;opacity:0.6"></i>${escapeHtml(p.name)} <span style="color:var(--text-secondary)">— ${p.barcode}</span></button>`;
+                    }).join('')+`</div>`:'';
+                    document.getElementById("resultArea").innerHTML=`<div style="color:white;padding:16px;"><div style="font-size:1.2rem;margin-bottom:8px;"><i class="fa-solid fa-circle-xmark" style="color:#ef4444;margin-right:6px"></i>"${code}" BULUNAMADI</div><button class="btn btn-primary" onclick="showAddFormForBarcode('${code}')" style="margin-top:12px;width:100%;"><i class="fa-solid fa-plus" style="margin-right:6px"></i>EKLE</button>${benzerHtml}</div>`;
+                }
+            } else showAddFormForBarcode(code);
+        });
+    } catch(e){
+        status.innerHTML='<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>KAMERA IZNI GEREKLI';
+        setTimeout(()=>closeCameraModal(),2000);
+    }
+}
+async function openSayimKamera(){
+    let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
+    sayimKameraMode=true;
+    currentCameraMode='sayim';
+    let torchBtn=document.getElementById('torchToggleBtn');
+    if(torchBtn) torchBtn.classList.remove('torch-active');
+    document.getElementById("stokSayimModal").style.display="none";
+    modal.style.display="flex";
+    status.innerHTML='<i class="fa-solid fa-barcode" style="margin-right:6px"></i>SAYIM - BARKODU CERCEVEYE GETIR...';
+    try{
+        if(quaggaActive){ Quagga.stop(); quaggaActive=false; }
+        if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
+        let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment", width:{ideal:1280}, height:{ideal:720}}});
+        video.srcObject=stream;
+        currentStream=stream;
+        currentVideoTrack=stream.getVideoTracks()[0]||null;
+        video.play();
+        Quagga.init({
+            inputStream:{
+                name:"LiveStream",
+                type:"LiveStream",
+                target:video,
+                area:{ top:"20%", right:"11%", left:"11%", bottom:"20%" }
+            },
+            locate:true,
+            numOfWorkers:(navigator.hardwareConcurrency? Math.min(navigator.hardwareConcurrency,4):2),
+            frequency:10,
+            decoder:{readers:["ean_reader","ean_8_reader","upc_reader","code_128_reader"], multiple:false}
+        },err=>{
+            if(err){ status.innerHTML='<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>HATA'; return; }
+            Quagga.start();
+            quaggaActive=true;
+            status.innerHTML='<i class="fa-solid fa-barcode" style="margin-right:6px"></i>SAYIM: BARKODU CERCEVEYE GETIR...';
+        });
+        let detected=false, scanCounts={};
+        Quagga.offDetected();
+        Quagga.onDetected(data=>{
+            if(detected) return;
+            let code=data.codeResult.code;
+            if(!code||code.length<4) return;
+            if(!isValidChecksum(code)) return;
+            scanCounts[code]=(scanCounts[code]||0)+1;
+            status.innerHTML=`<i class="fa-solid fa-eye" style="margin-right:6px"></i>OKUNUYOR (${scanCounts[code]}/2)...`;
+            if(scanCounts[code]<2) return;
+            detected=true;
+            playBeep();
+            if(quaggaActive){ Quagga.stop(); quaggaActive=false; }
+            if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
+            modal.style.display="none";
+            document.getElementById("stokSayimModal").style.display="flex";
+            let p=findByBarcode(code);
+            let nm=p?p.name:("Bilinmeyen: "+code);
+            let mev=sayimBarkodMap[code]||0;
+            let girilen=prompt(`📦 ${nm}\nSistem stogu: ${p?p.quantity:""}${mev>0?"\nOnceki sayim: "+mev:""}\n\nKac adet saydiniz?`,mev>0?String(mev):"1");
+            if(girilen!==null){
+                let adet=parseInt(girilen);
+                if(!isNaN(adet)&&adet>=0){
+                    if(adet===0) delete sayimBarkodMap[code];
+                    else sayimBarkodMap[code]=adet;
+                    renderSayimBarkodListe();
+                    showToast(adet===0?"Listeden cikarildi":`✅ ${nm} → ${adet} adet`);
+                } else showToast("Gecersiz miktar!");
+            }
+            sayimKameraMode=false;
+        });
+    } catch(e){
+        modal.style.display="none";
+        document.getElementById("stokSayimModal").style.display="flex";
+        showToast("Kamera acilamadi!");
+        sayimKameraMode=false;
+    }
+}
+function closeCameraModal(){
+    if(quaggaActive){ Quagga.stop(); quaggaActive=false; }
+    if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
+    currentVideoTrack=null;
+    document.getElementById("cameraModal").style.display="none";
+    if(sayimKameraMode){
+        document.getElementById("stokSayimModal").style.display="flex";
+        sayimKameraMode=false;
+    }
+}
 function openStokSayimModal(){ sayimBarkodMap={}; setSayimMod('liste'); document.getElementById("stokSayimModal").style.display="flex"; }
 function closeStokSayimModal(){ document.getElementById("stokSayimModal").style.display="none"; }
-function setSayimMod(mod){ sayimMod=mod; document.getElementById('sayimModListeBtn').style.background=mod==='liste'?'#3498db':'#2a2a2a'; document.getElementById('sayimModBarkodBtn').style.background=mod==='barkod'?'#3498db':'#2a2a2a'; document.getElementById('sayimListeContainer').style.display=mod==='liste'?'block':'none'; document.getElementById('sayimBarkodContainer').style.display=mod==='barkod'?'block':'none'; if(mod==='liste') renderSayimListe(); else renderSayimBarkodListe(); }
-function renderSayimListe(){ let s=(document.getElementById('sayimSearchInput')?.value||'').toLowerCase(); let f=products.filter(p=>!s||p.name.toLowerCase().includes(s)||p.barcode.includes(s)); let sorted=[...f].sort((a,b)=>a.name.localeCompare(b.name)); let c=document.getElementById('sayimListeItems'); if(!sorted.length){ c.innerHTML='<div style="color:#aaa;text-align:center;padding:16px">Urun bulunamadi</div>'; return; } c.innerHTML=sorted.map(p=>{ let preset=p.quantity===0?'value="1"':''; let diffInit=p.quantity===0?'<span class="sayim-diff-pos">+1</span>':'<span class="sayim-diff-zero">—</span>'; return `<div class="sayim-item"><div class="sayim-name">${escapeHtml(p.name)}</div><div class="sayim-mevcut">Su an:${p.quantity}</div><input type="number" class="sayim-input" id="sayim_${p.barcode}" placeholder="—" min="0" ${preset} oninput="updateSayimDiff('${p.barcode}',${p.quantity})"><span id="sayimdiff_${p.barcode}" class="${p.quantity===0?'sayim-diff-pos':'sayim-diff-zero'}">${p.quantity===0?'+1':'—'}</span></div>`; }).join(''); }
-function updateSayimDiff(bc,mev){ let inp=document.getElementById('sayim_'+bc),del=document.getElementById('sayimdiff_'+bc); if(!inp||!del) return; let v=parseInt(inp.value); if(isNaN(v)){ del.innerText='—'; del.className='sayim-diff-zero'; return; } let d=v-mev; if(d>0){ del.innerText='+'+d; del.className='sayim-diff-pos'; } else if(d<0){ del.innerText=String(d); del.className='sayim-diff-neg'; } else { del.innerText='✓'; del.className='sayim-diff-zero'; } }
-async function saveSayimListe(){ let cnt=0; products.forEach(p=>{ let inp=document.getElementById('sayim_'+p.barcode); if(inp && inp.value!==''){ let v=parseInt(inp.value); if(!isNaN(v)){ p.quantity=v; cnt++; } } }); if(!cnt){ showToast('Hic miktar girilmedi!'); return; } await saveProducts(); await updateUI(); showToast('✅ '+cnt+' urun guncellendi'); closeStokSayimModal(); }
-function resetSayimInputs(){ products.forEach(p=>{ let i=document.getElementById('sayim_'+p.barcode); if(i) i.value=''; let d=document.getElementById('sayimdiff_'+p.barcode); if(d){ d.innerText='—'; d.className='sayim-diff-zero'; } }); }
-function renderSayimBarkodListe(){ let c=document.getElementById('sayimBarkodListesi'); let keys=Object.keys(sayimBarkodMap); if(!keys.length){ c.innerHTML='<div style="color:#aaa;text-align:center;padding:16px">Henuz urun taranmadi</div>'; return; } c.innerHTML=keys.map(bc=>{ let p=products.find(x=>x.barcode===bc), nm=p?p.name:bc, mev=p?p.quantity:0, say=sayimBarkodMap[bc], d=say-mev; let dh=d>0?`<span class="sayim-diff-pos">+${d}</span>`:d<0?`<span class="sayim-diff-neg">${d}</span>`:`<span class="sayim-diff-zero">✓</span>`; return `<div class="sayim-item"><div class="sayim-name">${escapeHtml(nm)}</div><div class="sayim-mevcut">Su an:${mev}</div><div style="font-weight:900;color:#ffaa88;min-width:28px;text-align:center;">${say}x</div>${dh}<button onclick="removeSayimBarkod('${bc}')" style="background:#c0392b;border:none;border-radius:20px;padding:4px 10px;color:white;font-size:0.7rem;cursor:pointer;">✕</button></div>`; }).join(''); }
-function removeSayimBarkod(bc){ delete sayimBarkodMap[bc]; renderSayimBarkodListe(); }
-function clearSayimBarkod(){ if(confirm('Sayim listesi temizlensin mi?')){ sayimBarkodMap={}; renderSayimBarkodListe(); } }
-async function saveSayimBarkod(){ let keys=Object.keys(sayimBarkodMap); if(!keys.length){ showToast('Hic urun taranmadi!'); return; } let cnt=0; keys.forEach(bc=>{ let p=products.find(x=>x.barcode===bc); if(p){ p.quantity=sayimBarkodMap[bc]; cnt++; } }); await saveProducts(); await updateUI(); showToast('✅ '+cnt+' urun stogu guncellendi'); sayimBarkodMap={}; closeStokSayimModal(); }
-
-function showAddFormForBarcode(barcode){ let c=document.getElementById("addFormContainer"); c.classList.remove("hidden"); c.innerHTML=`<div style="background:#2a2a2a;padding:20px;border-radius:40px;margin-top:10px;"><strong style="color:white;display:block;margin-bottom:8px;">➕ YENI URUN</strong><input id="addBarcode" value="${barcode}"><input id="addName" placeholder="Urun adi (max 35)" maxlength="35"><input id="addPrice" placeholder="Fiyat (€) — 549 → 5.49 otomatik"><input id="addCost" placeholder="Maliyet (€) — 349 → 3.49 otomatik"><div id="addProfitBox" class="profit-box"><div class="profit-suggested">💰 Maliyet girilirse fiyat onerilir</div></div><select id="addCategory"><option selected>Dolap Urunleri</option><option>Kuru Gida</option></select><input id="addQuantity" placeholder="Stok" value="1" type="number"><input id="addExpiry" type="date"><div class="image-buttons-group"><button onclick="openGoogleSearchForAdd()" style="background:#27ae60;flex:unset;width:100%;">🔍 INTERNET'TEN GORSEL ARA</button></div><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')">🖼️ GALERI</button><button onclick="captureImageForAdd('camera')">📷 KAMERA</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProduct()">💾 KAYDET</button><button class="btn-cancel" onclick="closeAddForm()">IPTAL</button></div></div>`; setupPriceFields('addCost','addPrice','addProfitBox'); }
-async function saveNewProduct(){ let barcode=normBarcode(document.getElementById("addBarcode").value), name=document.getElementById("addName").value.trim().toUpperCase(), price=parseFloat(document.getElementById("addPrice").value), cost=parseFloat(document.getElementById("addCost").value)||null, category=document.getElementById("addCategory").value, quantity=parseInt(document.getElementById("addQuantity").value)||1, expiry=document.getElementById("addExpiry").value; if(!name||!barcode||isNaN(price)){ showToast("Eksik bilgi!"); return; } let existing=findIdxByBarcode(barcode); if(existing!==-1 && confirm("Barkod var, uzerine yazilsin mi?")) products[existing]={...products[existing], barcode, name, price, cost, category, quantity, expiry, image:tempImageData||products[existing].image}; else products.push({barcode, name, price, cost, category, quantity, expiry, image:tempImageData, id:Date.now()}); await saveProducts(); tempImageData=null; closeAddForm(); showToast("✅ Urun kaydedildi!"); await updateUI(); }
-function closeAddForm(){ document.getElementById("addFormContainer").classList.add("hidden"); document.getElementById("addFormContainer").innerHTML=""; tempImageData=null; }
-async function captureImageForAdd(source){ let input=document.createElement("input"); input.type="file"; input.accept="image/*"; if(source==='camera') input.capture="environment"; input.onchange=async(e)=>{ let file=e.target.files[0]; if(file){ let reader=new FileReader(); reader.onload=async(ev)=>{ tempImageData=await compressImage(ev.target.result); showToast("Resim hazir!"); }; reader.readAsDataURL(file); } }; input.click(); }
-function openGoogleSearchForAdd(){ let name=(document.getElementById("addName")?.value||'').trim(); if(name) window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank'); else showToast("Once urun adi girin!"); }
-
-function showResult(p){
-    if(!p) return;
-    lastScannedProduct=p;
-    let idx=products.findIndex(pr=>pr.id===p.id);
-    document.getElementById("resultArea").innerHTML=`
-        <button class="close-result-btn" onclick="clearResult()">✖</button>
-        ${p.image?`<img src="${p.image}" class="product-image" onerror="this.src='';">`:'<div style="color:#aaa;">📷 RESIM YOK</div>'}
-        <div class="result-name">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)}</div>
-        <div class="result-price">${p.price.toFixed(2)} €</div>
-        <div style="color:#aaa;">STOK: ${p.quantity} | SKT: ${p.expiry||"YOK"}</div>
-        <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-            <button class="btn-primary btn" onclick="showInlineEdit()" style="background:#c0392b;padding:10px;font-size:0.7rem;">📝 DUZENLE</button>
-            <button class="btn-primary btn" onclick="sellProduct(products[${idx}],${idx})" style="background:#e67e22;padding:10px;font-size:0.7rem;">🛒 SATILDI</button>
-            <button class="result-image-btn" onclick="addImageToResult('gallery')">🖼️ RESIM EKLE</button>
-            <button class="result-image-btn" onclick="addImageToResult('camera')" style="background:#27ae60;">📷 KAMERA</button>
-        </div>
-    `;
+function setSayimMod(mod){
+    sayimMod=mod;
+    document.getElementById('sayimModListeBtn').style.background=mod==='liste'?'linear-gradient(135deg,#3b82f6,#2563eb)':'rgba(255,255,255,0.06)';
+    document.getElementById('sayimModBarkodBtn').style.background=mod==='barkod'?'linear-gradient(135deg,#3b82f6,#2563eb)':'rgba(255,255,255,0.06)';
+    document.getElementById('sayimListeContainer').style.display=mod==='liste'?'block':'none';
+    document.getElementById('sayimBarkodContainer').style.display=mod==='barkod'?'block':'none';
+    if(mod==='liste') renderSayimListe();
+    else renderSayimBarkodListe();
 }
-function clearResult(){ document.getElementById("resultArea").innerHTML=`<div class="result-placeholder">📷 BARKOD OKUTUN</div>`; lastScannedProduct=null; }
-function closeResultAndOpenDetail(idx){ clearResult(); openProductDetailModal(idx); }
-function showInlineEdit(){ let p=lastScannedProduct; document.getElementById("resultArea").innerHTML=`<button class="close-result-btn" onclick="clearResult()">✖</button><div><input id="editName" value="${escapeHtml(p.name)}" maxlength="35"><input id="editBarcode" value="${p.barcode}"><input id="editPrice" value="${p.price}"><input id="editCost" value="${p.cost||''}"><div id="inlineProfitBox" class="profit-box"></div><select id="editCategory">${p.category=="Dolap Urunleri"?"<option selected>Dolap Urunleri</option><option>Kuru Gida</option>":"<option>Dolap Urunleri</option><option selected>Kuru Gida</option>"}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}"><input id="editExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveInlineEdit()">💾 KAYDET</button><button class="btn-cancel" onclick="showResult(lastScannedProduct)">IPTAL</button></div></div>`; setupPriceFields('editCost','editPrice','inlineProfitBox'); }
-async function saveInlineEdit(){ let idx=findIdxByBarcode(lastScannedProduct.barcode); if(idx===-1) idx=products.findIndex(p=>p.id===lastScannedProduct.id); if(idx!==-1){ products[idx].name=document.getElementById("editName").value.trim().toUpperCase(); products[idx].barcode=normBarcode(document.getElementById("editBarcode").value); products[idx].price=parseFloat(document.getElementById("editPrice").value); products[idx].cost=parseFloat(document.getElementById("editCost").value)||null; products[idx].category=document.getElementById("editCategory").value; let _q=parseInt(document.getElementById("editQuantity").value); if(isNaN(_q)||_q<=0)_q=1; products[idx].quantity=_q; products[idx].expiry=document.getElementById("editExpiry").value; await saveProducts(); await updateUI(); showResult(products[idx]); playBeep(); } }
-function openManualAddModal(){ let container=document.getElementById("manualAddFormContainer"); container.innerHTML=`<div><input id="manualAddBarcode" placeholder="Barkod (manuel gir)"><input id="manualAddName" placeholder="Urun adi (max 35)" maxlength="35"><input id="manualAddPrice" placeholder="Fiyat (€) — 549 → 5.49 otomatik"><input id="manualAddCost" placeholder="Maliyet (€) — 349 → 3.49 otomatik"><div id="manualAddProfitBox" class="profit-box"></div><select id="manualAddCategory"><option selected>Dolap Urunleri</option><option>Kuru Gida</option></select><input id="manualAddQuantity" placeholder="Stok" value="1" type="number"><input id="manualAddExpiry" type="date"><div class="image-buttons-group"><button onclick="openGoogleSearchForManualAdd()" style="background:#27ae60;flex:unset;width:100%;">🔍 INTERNET'TEN GORSEL ARA</button></div><div class="image-buttons-group"><button onclick="captureImageForManualAdd('gallery')">🖼️ GALERI</button><button onclick="captureImageForManualAdd('camera')">📷 KAMERA</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProductFromModal()">💾 KAYDET</button><button class="btn-cancel" onclick="closeManualAddModal()">IPTAL</button></div></div>`; setupPriceFields('manualAddCost','manualAddPrice','manualAddProfitBox'); document.getElementById("manualAddModal").style.display="flex"; }
-function closeManualAddModal(){ document.getElementById("manualAddModal").style.display="none"; document.getElementById("manualAddFormContainer").innerHTML=""; tempImageData=null; }
-async function saveNewProductFromModal(){ let barcode=normBarcode(document.getElementById("manualAddBarcode").value), name=document.getElementById("manualAddName").value.trim().toUpperCase(), price=parseFloat(document.getElementById("manualAddPrice").value), cost=parseFloat(document.getElementById("manualAddCost").value)||null, category=document.getElementById("manualAddCategory").value, quantity=parseInt(document.getElementById("manualAddQuantity").value)||1, expiry=document.getElementById("manualAddExpiry").value; if(!name||!barcode||isNaN(price)){ showToast("Eksik bilgi!"); return; } let existing=findIdxByBarcode(barcode); if(existing!==-1 && confirm("Barkod var, uzerine yazilsin mi?")) products[existing]={...products[existing], barcode, name, price, cost, category, quantity, expiry, image:tempImageData||products[existing].image}; else products.push({barcode, name, price, cost, category, quantity, expiry, image:tempImageData, id:Date.now()}); await saveProducts(); tempImageData=null; closeManualAddModal(); showToast(`✅ Urun kaydedildi: ${name}`); await updateUI(); }
-function openGoogleSearchForManualAdd(){ let name=(document.getElementById("manualAddName")?.value||'').trim(); if(name) window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank'); else showToast("Once urun adi girin!"); }
-async function captureImageForManualAdd(source){ let input=document.createElement("input"); input.type="file"; input.accept="image/*"; if(source==='camera') input.capture="environment"; input.onchange=async(e)=>{ let file=e.target.files[0]; if(file){ let reader=new FileReader(); reader.onload=async(ev)=>{ tempImageData=await compressImage(ev.target.result); showToast("Resim hazir!"); }; reader.readAsDataURL(file); } }; input.click(); }
-function openDrawer(){ document.getElementById("drawer").style.left="0"; document.getElementById("drawerOverlay").style.display="block"; }
-function closeDrawer(){ document.getElementById("drawer").style.left="-255px"; document.getElementById("drawerOverlay").style.display="none"; }
-
-async function backupData(){ try{ const backup={products:products, printQueue:printQueue, tarih:new Date().toISOString()}; const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); const now=new Date(); const stamp=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+'_'+String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0'); a.download=`MarketPro_Yedek_${stamp}.json`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); showToast("💾 Yedek telefona indirildi"); }catch(e){ showToast("❌ Yedek alinamadi"); } }
-function backupToGoogleDrive(){ try{ let data={products:products, printQueue:printQueue, tarih:new Date().toISOString()}; let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}); let now=new Date(); let stamp=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+'_'+String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0'); let fileName=`MarketPro_Yedek_${stamp}.json`; let file=new File([blob],fileName,{type:"application/json"}); if(navigator.canShare && navigator.canShare({files:[file]})){ navigator.share({files:[file], title:fileName, text:'Market Pro yedek dosyasi'}).then(()=>{ showToast("☁️ Paylasim acildi — Google Drive'i secin"); }).catch(()=>{ backupData(); }); } else { backupData(); } }catch(e){ backupData(); } }
-async function restoreData(){ let inp=document.createElement("input"); inp.type="file"; inp.accept="application/json"; inp.onchange=async e=>{ let file=e.target.files[0]; let r=new FileReader(); r.onload=async ev=>{ try{ let d=JSON.parse(ev.target.result); if(Array.isArray(d)){ products=d; await saveProductsToIDB(products); showToast("Yedek yuklendi"); setTimeout(()=>location.reload(),1500); } else if(d && Array.isArray(d.products)){ products=d.products; if(Array.isArray(d.printQueue)){ printQueue=d.printQueue; savePrintQueue(); } await saveProductsToIDB(products); showToast("Yedek yuklendi"); setTimeout(()=>location.reload(),1500); } else throw 0; } catch(err){ showToast("Hatali dosya!"); } }; r.readAsText(file); }; inp.click(); }
-async function clearAllData(){ if(confirm("TUM VERILER SILINECEK!")){ products=[]; await saveProductsToIDB(products); printQueue=[]; savePrintQueue(); showToast("Veriler silindi"); location.reload(); } }
-function exportToCSV(){ let rows=[["Ad","Barkod","Fiyat (€)","Stok","Maliyet (€)","Kar (€)","Kar%","SKT","Kategori"]]; for(let p of products){ let pr=(p.cost&&p.cost>0)?(p.price-p.cost):0, m=(p.cost&&p.cost>0&&p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0"; rows.push([`"${p.name}"`, p.barcode, p.price, p.quantity, p.cost||0, pr.toFixed(2), m, p.expiry||"", p.category]); } let csv=rows.map(r=>r.join(",")).join("\n"), blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}), a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="envanter_raporu.csv"; a.click(); URL.revokeObjectURL(a.href); showToast("CSV indirildi."); }
-function printReport(){ let html=`<style>table{width:100%;border-collapse:collapse;font-family:system-ui,sans-serif;font-size:0.85rem}th,td{border:1px solid #333;padding:6px 8px;text-align:left}th{background:#222;color:white;font-weight:800}tr:nth-child(even){background:#f5f5f5}</style><table><thead><tr><th>Ad</th><th>Barkod</th><th>Fiyat</th><th>Stok</th><th>Maliyet</th><th>Kar</th><th>Kar%</th><th>SKT</th><th>Kategori</th></tr></thead><tbody>`; for(let p of products){ let pr=(p.cost&&p.cost>0)?(p.price-p.cost):0, m=(p.cost&&p.cost>0&&p.price>0)?((p.price-p.cost)/p.price*100).toFixed(1):"0"; html+=`<tr><td>${escapeHtml(p.name)}</td><td>${p.barcode}</td><td>${p.price.toFixed(2)}</td><td>${p.quantity}</td><td>${p.cost?p.cost.toFixed(2):'0'}</td><td>${pr.toFixed(2)}</td><td>${m}%</td><td>${p.expiry||''}</td><td>${p.category}</td></tr>`; } html+=`</tbody></table>`; document.getElementById("printTableContainer").innerHTML=html; document.getElementById("printModal").style.display="flex"; }
-async function compressAllImages(){ let cnt=0; for(let p of products){ if(p.image && p.image.length>60000){ p.image=await compressImage(p.image); cnt++; } } if(cnt) await saveProducts(); showToast(cnt?`${cnt} resim sikistirildi`:"Sikistirilacak yok"); }
-function updateClock(){ let now=new Date(); let h=String(now.getHours()).padStart(2,'0'); let m=String(now.getMinutes()).padStart(2,'0'); let s=String(now.getSeconds()).padStart(2,'0'); let dd=String(now.getDate()).padStart(2,'0'); let mo=String(now.getMonth()+1).padStart(2,'0'); document.getElementById('clockTime').textContent=`${h}:${m}:${s}`; document.getElementById('clockDate').textContent=`${dd}/${mo}`; }
-document.getElementById("searchBtn").onclick=()=>openCameraModal('search');
-document.getElementById("addBtn").onclick=()=>openCameraModal('add');
-document.getElementById("productSearchBtn").onclick=()=>openInventoryModal();
-document.getElementById("manualAddBtn").onclick=openManualAddModal;
-document.getElementById("closeCameraModalBtn").onclick=closeCameraModal;
-
-(async function init(){ await openIndexedDB(); await migrateFromLocalStorage(); await loadProducts(); await loadPrintQueue(); await updateUI(); showToast("✅ Market Pro Hazir! (IndexedDB modu)"); updateClock(); setInterval(updateClock, 1000); })();
-</script>
-</body>
-</html>
+function renderSayimListe(){
+    let s=(document.getElementById('sayimSearchInput')?.value||'').toLowerCase();
+    let f=products.filter(p=>!s||p.name.toLowerCase().includes(s)||p.barcode.includes(s));
+    let sorted=[...f].sort((a,b)=>a.name.localeCompare(b.name));
+    let c=document.getElementById('sayimListeItems');
+    if(!sorted.length){
+        c.innerHTML='<div style="color:var(--text-secondary);text-align:center;padding:16px"><i class="fa-solid fa-inbox" style="font-size:1.5rem;
