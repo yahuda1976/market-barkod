@@ -331,8 +331,6 @@
 <script>
 // ==============================================================
 //  ZAMAN ASIMI (TIMEOUT) YARDIMCI FONKSIYONU
-//  Claude'nun tespit ettigi sorun: applyConstraints ve benzeri
-//  API'lar bazi telefonlarda sonsuz askida kalabiliyor.
 // ==============================================================
 function withTimeout(promise, ms, errorMsg) {
     let timer;
@@ -341,7 +339,6 @@ function withTimeout(promise, ms, errorMsg) {
     });
     return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
 }
-
 
 // ==============================================================
 //  INDEXEDDB KULLANIMI - SONSUZ DEPOLAMA
@@ -538,8 +535,6 @@ function setupPriceFields(costId, priceId, boxId){
 }
 function normBarcode(b){ return (b===null||b===undefined)?'':String(b).replace(/\s/g,'').trim(); }
 function isValidChecksum(code){
-    // Sadece rakamlardan olusan standart uzunluktaki barkodlar (EAN-8/UPC-A/EAN-13) icin checksum dogrulamasi yapar.
-    // Kod128 gibi harf iceren veya farkli uzunluktaki kodlarda dogrulama atlanir (true doner).
     if(!/^\d+$/.test(code)) return true;
     let len = code.length;
     if(len!==8 && len!==12 && len!==13) return true;
@@ -563,7 +558,6 @@ async function toggleTorch(){
         if(!capabilities.torch){ showToast('Bu cihaz fener ozelligini desteklemiyor'); return; }
         let settings = currentVideoTrack.getSettings ? currentVideoTrack.getSettings() : {};
         let newState = !settings.torch;
-        // Claude fix: applyConstraints sonsuz askida kalabilir, timeout ekle
         await withTimeout(
             currentVideoTrack.applyConstraints({advanced:[{torch:newState}]}),
             2000,
@@ -627,8 +621,6 @@ function findIdxByBarcode(code){
 async function updateUI(){ 
     let today=new Date(); 
     let urgent=products.filter(p=>p.expiry&&Math.ceil((new Date(p.expiry)-today)/86400000)<=7&&p.quantity>0); 
-    let urgentBadge=document.getElementById('urgentCount');
-    if(urgentBadge) urgentBadge.innerText=urgent.length; 
     document.getElementById('productCountBadge').innerText=products.length+' cesit'; 
 }
 
@@ -658,7 +650,6 @@ function renderInventoryList(){
     else if(inventoryFilterMode==='zero')filtered=filtered.filter(p=>p.quantity===0); 
     else if(inventoryFilterMode==='urgent')filtered=filtered.filter(p=>p.expiry&&p.quantity>0&&Math.ceil((new Date(p.expiry)-new Date())/86400000)<=7); 
     
-    // === SIRALAMA MANTIGI: TOPLAM MODUNDA RENK ONCELIGI ===
     let sorted;
     if (inventoryFilterMode === 'all') {
         const colorPriority = {
@@ -684,7 +675,6 @@ function renderInventoryList(){
             return new Date(a.expiry) - new Date(b.expiry);
         });
     }
-    // =========================================================
     if(!sorted.length){
         container.innerHTML="<div style='text-align:center;padding:24px;color:var(--text-secondary);font-weight:500;'><i class='fa-solid fa-inbox' style='font-size:2rem;margin-bottom:8px;display:block;opacity:0.5'></i>Bu grupta urun yok</div>";
         return;
@@ -1078,13 +1068,11 @@ async function openCameraModal(mode){
     modal.style.display="flex";
     status.innerHTML='<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px"></i>BASLATILIYOR...';
 
-    // Her durumda once temizlik yap
     try { if(quaggaActive){ Quagga.stop(); quaggaActive=false; } } catch(e){}
     try { if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; } } catch(e){}
     currentVideoTrack=null;
 
     try{
-        // Claude fix: getUserMedia bazen sonsuz bekler, 5 saniye timeout
         let stream = await withTimeout(
             navigator.mediaDevices.getUserMedia({video:{facingMode:"environment", width:{ideal:1280}, height:{ideal:720}}}),
             5000,
@@ -1093,9 +1081,8 @@ async function openCameraModal(mode){
         video.srcObject=stream;
         currentStream=stream;
         currentVideoTrack=stream.getVideoTracks()[0]||null;
-        video.play();
+        await video.play().catch(e => { throw new Error("Video oynatma hatasi: " + e.message); });
 
-        // Claude fix: Quagga.init callback bazen takilabilir, promise wrapper + timeout
         await withTimeout(
             new Promise((resolve, reject) => {
                 Quagga.init({
@@ -1167,13 +1154,11 @@ async function openSayimKamera(){
     modal.style.display="flex";
     status.innerHTML='<i class="fa-solid fa-barcode" style="margin-right:6px"></i>SAYIM - BARKODU CERCEVEYE GETIR...';
 
-    // Her durumda once temizlik
     try { if(quaggaActive){ Quagga.stop(); quaggaActive=false; } } catch(e){}
     try { if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; } } catch(e){}
     currentVideoTrack=null;
 
     try{
-        // Claude fix: getUserMedia timeout
         let stream = await withTimeout(
             navigator.mediaDevices.getUserMedia({video:{facingMode:"environment", width:{ideal:1280}, height:{ideal:720}}}),
             5000,
@@ -1182,9 +1167,8 @@ async function openSayimKamera(){
         video.srcObject=stream;
         currentStream=stream;
         currentVideoTrack=stream.getVideoTracks()[0]||null;
-        video.play();
+        await video.play().catch(e => { throw new Error("Video oynatma hatasi: " + e.message); });
 
-        // Claude fix: Quagga.init timeout
         await withTimeout(
             new Promise((resolve, reject) => {
                 Quagga.init({
@@ -1221,7 +1205,6 @@ async function openSayimKamera(){
             if(scanCounts[code]<2) return;
             detected=true;
             playBeep();
-            // Guvenli temizlik
             try { if(quaggaActive){ Quagga.stop(); quaggaActive=false; } } catch(e){}
             try { if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; } } catch(e){}
             currentVideoTrack=null;
@@ -1244,7 +1227,6 @@ async function openSayimKamera(){
         });
     } catch(e){
         console.error('Sayim kamera hatasi:', e);
-        // Guvenli geri donus
         try { if(quaggaActive){ Quagga.stop(); quaggaActive=false; } } catch(e){}
         try { if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; } } catch(e){}
         currentVideoTrack=null;
@@ -1255,7 +1237,6 @@ async function openSayimKamera(){
     }
 }
 function closeCameraModal(){
-    // Claude fix: Her track durdurma islemini try-catch ile sar
     try { if(quaggaActive){ Quagga.stop(); quaggaActive=false; } } catch(e){ console.warn('Quagga stop hatasi', e); }
     try { 
         if(currentStream){ 
@@ -1292,19 +1273,17 @@ function renderSayimListe(){
     }
     c.innerHTML=sorted.map(p=>{
         let preset=p.quantity===0?'value="1"':'';
-        
         let diffClass='sayim-diff-zero', diffText='—';
         let inputId='sayim-'+p.barcode;
-        let sayilanVal=document.getElementById(inputId)?document.getElementById(inputId).value:'';
         return '<div class="sayim-item">'+
             '<div class="sayim-name">'+escapeHtml(p.name)+'</div>'+
             '<div class="sayim-mevcut">Mevcut: '+p.quantity+'</div>'+
-            '<input type="number" class="sayim-input" id="'+inputId+'" data-barcode="'+p.barcode+'" placeholder="0" '+preset+' oninput="updateSayimDiff(''+p.barcode+'','+p.quantity+')">'+
+            '<input type="number" class="sayim-input" id="'+inputId+'" data-barcode="'+p.barcode+'" placeholder="0" '+preset+' oninput="updateSayimDiff(\''+p.barcode+'\','+p.quantity+')">'+
             '<div class="'+diffClass+'" id="diff-'+p.barcode+'">'+diffText+'</div>'+
         '</div>';
     }).join('');
-    setTimeout(function(){
-        sorted.forEach(function(p){
+    setTimeout(()=>{
+        sorted.forEach(p=>{
             let el=document.getElementById('sayim-'+p.barcode);
             if(el && sayimBarkodMap[p.barcode]!==undefined) el.value=sayimBarkodMap[p.barcode];
         });
@@ -1325,20 +1304,19 @@ function renderSayimBarkodListe(){
     let c=document.getElementById('sayimBarkodListesi');
     let items=Object.entries(sayimBarkodMap);
     if(!items.length){ c.innerHTML='<div style="color:var(--text-secondary);text-align:center;padding:16px"><i class="fa-solid fa-inbox" style="font-size:1.5rem;margin-bottom:6px;display:block;opacity:0.5"></i>Henüz barkod okutulmadı</div>'; return; }
-    c.innerHTML=items.map(function(item){
-        let bc=item[0], adet=item[1];
+    c.innerHTML=items.map(([bc, adet])=>{
         let p=findByBarcode(bc);
         let nm=p?p.name:('Bilinmeyen: '+bc);
         let mev=p?p.quantity:'?';
         let fark=p?adet-p.quantity:(adet-0);
         let diffClass=fark>0?'sayim-diff-pos':fark<0?'sayim-diff-neg':'sayim-diff-zero';
         let diffText=fark>0?'+'+fark:(fark<0?''+fark:'0');
-        return '<div class="sayim-item"><div class="sayim-name">'+escapeHtml(nm)+'</div><div class="sayim-mevcut">Mevcut: '+mev+'</div><div style="font-weight:800;font-size:1rem;">'+adet+'</div><div class="'+diffClass+'">'+diffText+'</div><button onclick="delete sayimBarkodMap[''+bc+''];renderSayimBarkodListe();" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:30px;padding:6px 12px;color:white;font-weight:700;font-size:0.75rem;cursor:pointer;"><i class="fa-solid fa-xmark"></i></button></div>';
+        return '<div class="sayim-item"><div class="sayim-name">'+escapeHtml(nm)+'</div><div class="sayim-mevcut">Mevcut: '+mev+'</div><div style="font-weight:800;font-size:1rem;">'+adet+'</div><div class="'+diffClass+'">'+diffText+'</div><button onclick="delete sayimBarkodMap[\''+bc+'\'];renderSayimBarkodListe();" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:30px;padding:6px 12px;color:white;font-weight:700;font-size:0.75rem;cursor:pointer;"><i class="fa-solid fa-xmark"></i></button></div>';
     }).join('');
 }
 async function saveSayimListe(){
     let updated=0;
-    products.forEach(function(p){
+    products.forEach(p=>{
         let el=document.getElementById('sayim-'+p.barcode);
         if(el && el.value!==''){
             let val=parseInt(el.value);
@@ -1352,7 +1330,7 @@ async function saveSayimListe(){
 }
 function resetSayimInputs(){
     if(!confirm('Tüm sayım değerleri sıfırlansın mı?')) return;
-    document.querySelectorAll('.sayim-input').forEach(function(el){el.value='';});
+    document.querySelectorAll('.sayim-input').forEach(el=>el.value='');
     sayimBarkodMap={};
     renderSayimListe();
     renderSayimBarkodListe();
@@ -1386,7 +1364,7 @@ function showAddFormForBarcode(code){
     let container=document.getElementById('addFormContainer');
     container.classList.remove('hidden');
     container.innerHTML='<div style="background:rgba(255,255,255,0.5);border-radius:28px;padding:20px;margin-top:12px;border:1px solid rgba(59,130,246,0.1);">'+
-        '<div style="font-size:1.1rem;font-weight:800;color:#f87171;margin-bottom:12px;font-family:'Outfit',sans-serif;"><i class="fa-solid fa-plus" style="margin-right:6px"></i>YENİ ÜRÜN EKLE</div>'+
+        '<div style="font-size:1.1rem;font-weight:800;color:#f87171;margin-bottom:12px;font-family:\'Outfit\',sans-serif;"><i class="fa-solid fa-plus" style="margin-right:6px"></i>YENİ ÜRÜN EKLE</div>'+
         '<input id="addBarcode" value="'+escapeHtml(code)+'" placeholder="Barkod" readonly style="background:rgba(255,255,255,0.4);">'+
         '<input id="addName" placeholder="Ürün adı" maxlength="35">'+
         '<input id="addCost" placeholder="Maliyet (€)" type="number" step="0.01">'+
@@ -1397,7 +1375,7 @@ function showAddFormForBarcode(code){
         '<input id="addExpiry" type="date" placeholder="SKT">'+
         '<div style="display:flex;gap:10px;margin-top:12px;">'+
             '<button onclick="saveNewProduct()" class="btn btn-success" style="flex:1;"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button>'+
-            '<button onclick="document.getElementById('addFormContainer').classList.add('hidden')" class="btn btn-primary" style="flex:1;background:linear-gradient(135deg,#64748b,#475569)!important;"><i class="fa-solid fa-xmark" style="margin-right:6px"></i>İPTAL</button>'+
+            '<button onclick="document.getElementById(\'addFormContainer\').classList.add(\'hidden\')" class="btn btn-primary" style="flex:1;background:linear-gradient(135deg,#64748b,#475569)!important;"><i class="fa-solid fa-xmark" style="margin-right:6px"></i>İPTAL</button>'+
         '</div>'+
     '</div>';
     setupPriceFields('addCost','addPrice','addProfitBox');
@@ -1425,16 +1403,16 @@ async function saveNewProduct(){
 function showResult(p){
     lastScannedProduct=p;
     let color=getProductColorClass(p);
-    let imgHtml=p.image?'<img src="'+p.image+'" class="product-image" onerror="this.style.display='none';">':'<div style="padding:12px;color:var(--text-secondary);font-size:2.5rem;"><i class="fa-regular fa-image"></i></div>';
-    document.getElementById('resultArea').innerHTML='<button class="close-result-btn" onclick="document.getElementById('resultArea').innerHTML='<div class=result-placeholder><i class=fa-solid fa-camera style=margin-right:8px></i>BARKOD OKUTUN</div>';lastScannedProduct=null;"><i class="fa-solid fa-xmark"></i></button>'+
+    let imgHtml=p.image?'<img src="'+p.image+'" class="product-image" onerror="this.style.display=\'none\';">':'<div style="padding:12px;color:var(--text-secondary);font-size:2.5rem;"><i class="fa-regular fa-image"></i></div>';
+    document.getElementById('resultArea').innerHTML='<button class="close-result-btn" onclick="document.getElementById(\'resultArea\').innerHTML=\'<div class=result-placeholder><i class=fa-solid fa-camera style=margin-right:8px></i>BARKOD OKUTUN</div>\';lastScannedProduct=null;"><i class="fa-solid fa-xmark"></i></button>'+
         '<div class="'+color+'" style="border-radius:24px;padding:16px;">'+
             imgHtml+
             '<div class="result-name">'+escapeHtml(p.name)+'</div>'+
             '<div class="result-price">'+p.price.toFixed(2)+' €</div>'+
             '<div style="color:var(--text-secondary);font-size:0.9rem;font-weight:600;">Stok: '+p.quantity+' | SKT: '+(p.expiry||'YOK')+'</div>'+
             '<div style="margin-top:10px;">'+
-                '<button class="result-image-btn" onclick="addImageToResult('camera')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>KAMERA</button>'+
-                '<button class="result-image-btn" onclick="addImageToResult('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>GALERİ</button>'+
+                '<button class="result-image-btn" onclick="addImageToResult(\'camera\')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>KAMERA</button>'+
+                '<button class="result-image-btn" onclick="addImageToResult(\'gallery\')"><i class="fa-solid fa-images" style="margin-right:4px"></i>GALERİ</button>'+
                 '<button class="result-image-btn" onclick="sellProduct(lastScannedProduct,products.findIndex(function(x){return x.id===lastScannedProduct.id;}))"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>SAT</button>'+
                 '<button class="result-image-btn" onclick="addToPrintQueue(lastScannedProduct)"><i class="fa-solid fa-tag" style="margin-right:4px"></i>ETİKET</button>'+
                 '<button class="result-image-btn" onclick="openGoogleSearchForResult()"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>ARA</button>'+
@@ -1480,7 +1458,7 @@ async function restoreData(){
 }
 function exportToCSV(){
     let csv='Barkod,Ürün Adı,Fiyat,Maliyet,Stok,SKT,Kategori\n';
-    products.forEach(function(p){
+    products.forEach(p=>{
         csv+=p.barcode+',"'+p.name+'",'+p.price+','+(p.cost||'')+','+p.quantity+','+(p.expiry||'')+','+(p.category||'')+'\n';
     });
     let blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
@@ -1495,7 +1473,7 @@ function exportToCSV(){
 function printReport(){
     let container=document.getElementById('printTableContainer');
     let html='<table style="width:100%;border-collapse:collapse;font-size:0.85rem;"><thead><tr style="background:#f1f5f9;"><th style="padding:8px;border:1px solid #cbd5e1;text-align:left;">Barkod</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:left;">Ürün</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:right;">Fiyat</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:right;">Stok</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:left;">SKT</th></tr></thead><tbody>';
-    products.slice().sort(function(a,b){return a.name.localeCompare(b.name);}).forEach(function(p){
+    products.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(p=>{
         html+='<tr><td style="padding:8px;border:1px solid #e2e8f0;">'+p.barcode+'</td><td style="padding:8px;border:1px solid #e2e8f0;">'+escapeHtml(p.name)+'</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:right;">'+p.price.toFixed(2)+' €</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:right;">'+p.quantity+'</td><td style="padding:8px;border:1px solid #e2e8f0;">'+(p.expiry||'—')+'</td></tr>';
     });
     html+='</tbody></table>';
@@ -1534,10 +1512,10 @@ function updateClock(){
 }
 
 // Event listeners
-document.getElementById('searchBtn').addEventListener('click',function(){openCameraModal('search');});
-document.getElementById('addBtn').addEventListener('click',function(){openCameraModal('add');});
+document.getElementById('searchBtn').addEventListener('click',()=>openCameraModal('search'));
+document.getElementById('addBtn').addEventListener('click',()=>openCameraModal('add'));
 document.getElementById('productSearchBtn').addEventListener('click',openInventoryModal);
-document.getElementById('manualAddBtn').addEventListener('click',function(){
+document.getElementById('manualAddBtn').addEventListener('click',()=>{
     document.getElementById('manualAddModal').style.display='flex';
     let c=document.getElementById('manualAddFormContainer');
     c.innerHTML='<input id="manualBarcode" placeholder="Barkod">'+
@@ -1586,9 +1564,9 @@ document.getElementById('closeCameraModalBtn').addEventListener('click',closeCam
     updateClock();
     setInterval(updateClock,1000);
     let today=new Date();
-    let urgent=products.filter(function(p){return p.expiry&&p.quantity>0&&Math.ceil((new Date(p.expiry)-today)/86400000)<=7&&Math.ceil((new Date(p.expiry)-today)/86400000)>=0;});
+    let urgent=products.filter(p=>p.expiry&&p.quantity>0&&Math.ceil((new Date(p.expiry)-today)/86400000)<=7&&Math.ceil((new Date(p.expiry)-today)/86400000)>=0);
     if(urgent.length>0){
-        setTimeout(function(){
+        setTimeout(()=>{
             if(confirm(urgent.length+' ürünün SKT\'si 7 gün içinde bitiyor. Görmek ister misin?')) openUrgentModal();
         },800);
     }
