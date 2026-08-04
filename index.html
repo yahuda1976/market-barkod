@@ -1295,17 +1295,16 @@ function renderSayimListe(){
         
         let diffClass='sayim-diff-zero', diffText='—';
         let inputId='sayim-'+p.barcode;
-        let sayilanVal=document.getElementById(inputId)?.value||'';
-        return `<div class="sayim-item">
-            <div class="sayim-name">${escapeHtml(p.name)}</div>
-            <div class="sayim-mevcut">Mevcut: ${p.quantity}</div>
-            <input type="number" class="sayim-input" id="${inputId}" data-barcode="${p.barcode}" placeholder="0" ${preset} oninput="updateSayimDiff('${p.barcode}',${p.quantity})">
-            <div class="${diffClass}" id="diff-${p.barcode}">${diffText}</div>
-        </div>`;
+        let sayilanVal=document.getElementById(inputId)?document.getElementById(inputId).value:'';
+        return '<div class="sayim-item">'+
+            '<div class="sayim-name">'+escapeHtml(p.name)+'</div>'+
+            '<div class="sayim-mevcut">Mevcut: '+p.quantity+'</div>'+
+            '<input type="number" class="sayim-input" id="'+inputId+'" data-barcode="'+p.barcode+'" placeholder="0" '+preset+' oninput="updateSayimDiff(''+p.barcode+'','+p.quantity+')">'+
+            '<div class="'+diffClass+'" id="diff-'+p.barcode+'">'+diffText+'</div>'+
+        '</div>';
     }).join('');
-    // Input değerlerini geri yükle
-    setTimeout(()=>{
-        sorted.forEach(p=>{
+    setTimeout(function(){
+        sorted.forEach(function(p){
             let el=document.getElementById('sayim-'+p.barcode);
             if(el && sayimBarkodMap[p.barcode]!==undefined) el.value=sayimBarkodMap[p.barcode];
         });
@@ -1326,19 +1325,20 @@ function renderSayimBarkodListe(){
     let c=document.getElementById('sayimBarkodListesi');
     let items=Object.entries(sayimBarkodMap);
     if(!items.length){ c.innerHTML='<div style="color:var(--text-secondary);text-align:center;padding:16px"><i class="fa-solid fa-inbox" style="font-size:1.5rem;margin-bottom:6px;display:block;opacity:0.5"></i>Henüz barkod okutulmadı</div>'; return; }
-    c.innerHTML=items.map(([bc,adet])=>{
+    c.innerHTML=items.map(function(item){
+        let bc=item[0], adet=item[1];
         let p=findByBarcode(bc);
         let nm=p?p.name:('Bilinmeyen: '+bc);
         let mev=p?p.quantity:'?';
         let fark=p?adet-p.quantity:(adet-0);
         let diffClass=fark>0?'sayim-diff-pos':fark<0?'sayim-diff-neg':'sayim-diff-zero';
         let diffText=fark>0?'+'+fark:(fark<0?''+fark:'0');
-        return `<div class="sayim-item"><div class="sayim-name">${escapeHtml(nm)}</div><div class="sayim-mevcut">Mevcut: ${mev}</div><div style="font-weight:800;font-size:1rem;">${adet}</div><div class="${diffClass}">${diffText}</div><button onclick="delete sayimBarkodMap['${bc}'];renderSayimBarkodListe();" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:30px;padding:6px 12px;color:white;font-weight:700;font-size:0.75rem;cursor:pointer;"><i class="fa-solid fa-xmark"></i></button></div>`;
+        return '<div class="sayim-item"><div class="sayim-name">'+escapeHtml(nm)+'</div><div class="sayim-mevcut">Mevcut: '+mev+'</div><div style="font-weight:800;font-size:1rem;">'+adet+'</div><div class="'+diffClass+'">'+diffText+'</div><button onclick="delete sayimBarkodMap[''+bc+''];renderSayimBarkodListe();" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:30px;padding:6px 12px;color:white;font-weight:700;font-size:0.75rem;cursor:pointer;"><i class="fa-solid fa-xmark"></i></button></div>';
     }).join('');
 }
 async function saveSayimListe(){
     let updated=0;
-    products.forEach(p=>{
+    products.forEach(function(p){
         let el=document.getElementById('sayim-'+p.barcode);
         if(el && el.value!==''){
             let val=parseInt(el.value);
@@ -1352,7 +1352,7 @@ async function saveSayimListe(){
 }
 function resetSayimInputs(){
     if(!confirm('Tüm sayım değerleri sıfırlansın mı?')) return;
-    document.querySelectorAll('.sayim-input').forEach(el=>el.value='');
+    document.querySelectorAll('.sayim-input').forEach(function(el){el.value='';});
     sayimBarkodMap={};
     renderSayimListe();
     renderSayimBarkodListe();
@@ -1360,9 +1360,11 @@ function resetSayimInputs(){
 }
 async function saveSayimBarkod(){
     let updated=0;
-    for(let [bc,adet] of Object.entries(sayimBarkodMap)){
-        let idx=findIdxByBarcode(bc);
-        if(idx!==-1){ products[idx].quantity=adet; updated++; }
+    for(let bc in sayimBarkodMap){
+        if(sayimBarkodMap.hasOwnProperty(bc)){
+            let idx=findIdxByBarcode(bc);
+            if(idx!==-1){ products[idx].quantity=sayimBarkodMap[bc]; updated++; }
+        }
     }
     await saveProducts();
     await updateUI();
@@ -1383,21 +1385,21 @@ function closeResultAndOpenDetail(idx){
 function showAddFormForBarcode(code){
     let container=document.getElementById('addFormContainer');
     container.classList.remove('hidden');
-    container.innerHTML=`<div style="background:rgba(255,255,255,0.5);border-radius:28px;padding:20px;margin-top:12px;border:1px solid rgba(59,130,246,0.1);">
-        <div style="font-size:1.1rem;font-weight:800;color:#f87171;margin-bottom:12px;font-family:'Outfit',sans-serif;"><i class="fa-solid fa-plus" style="margin-right:6px"></i>YENİ ÜRÜN EKLE</div>
-        <input id="addBarcode" value="${escapeHtml(code)}" placeholder="Barkod" readonly style="background:rgba(255,255,255,0.4);">
-        <input id="addName" placeholder="Ürün adı" maxlength="35">
-        <input id="addCost" placeholder="Maliyet (€)" type="number" step="0.01">
-        <input id="addPrice" placeholder="Satış fiyatı (€)" type="number" step="0.01">
-        <div id="addProfitBox" class="profit-box"></div>
-        <select id="addCategory"><option selected>Dolap Ürünleri</option><option>Kuru Gıda</option></select>
-        <input id="addQuantity" placeholder="Stok adedi" type="number" value="1">
-        <input id="addExpiry" type="date" placeholder="SKT">
-        <div style="display:flex;gap:10px;margin-top:12px;">
-            <button onclick="saveNewProduct()" class="btn btn-success" style="flex:1;"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button>
-            <button onclick="document.getElementById('addFormContainer').classList.add('hidden')" class="btn btn-primary" style="flex:1;background:linear-gradient(135deg,#64748b,#475569)!important;"><i class="fa-solid fa-xmark" style="margin-right:6px"></i>İPTAL</button>
-        </div>
-    </div>`;
+    container.innerHTML='<div style="background:rgba(255,255,255,0.5);border-radius:28px;padding:20px;margin-top:12px;border:1px solid rgba(59,130,246,0.1);">'+
+        '<div style="font-size:1.1rem;font-weight:800;color:#f87171;margin-bottom:12px;font-family:'Outfit',sans-serif;"><i class="fa-solid fa-plus" style="margin-right:6px"></i>YENİ ÜRÜN EKLE</div>'+
+        '<input id="addBarcode" value="'+escapeHtml(code)+'" placeholder="Barkod" readonly style="background:rgba(255,255,255,0.4);">'+
+        '<input id="addName" placeholder="Ürün adı" maxlength="35">'+
+        '<input id="addCost" placeholder="Maliyet (€)" type="number" step="0.01">'+
+        '<input id="addPrice" placeholder="Satış fiyatı (€)" type="number" step="0.01">'+
+        '<div id="addProfitBox" class="profit-box"></div>'+
+        '<select id="addCategory"><option selected>Dolap Ürünleri</option><option>Kuru Gıda</option></select>'+
+        '<input id="addQuantity" placeholder="Stok adedi" type="number" value="1">'+
+        '<input id="addExpiry" type="date" placeholder="SKT">'+
+        '<div style="display:flex;gap:10px;margin-top:12px;">'+
+            '<button onclick="saveNewProduct()" class="btn btn-success" style="flex:1;"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button>'+
+            '<button onclick="document.getElementById('addFormContainer').classList.add('hidden')" class="btn btn-primary" style="flex:1;background:linear-gradient(135deg,#64748b,#475569)!important;"><i class="fa-solid fa-xmark" style="margin-right:6px"></i>İPTAL</button>'+
+        '</div>'+
+    '</div>';
     setupPriceFields('addCost','addPrice','addProfitBox');
     document.getElementById('addName').focus();
 }
@@ -1412,7 +1414,7 @@ async function saveNewProduct(){
     if(!name){ showToast('Ürün adı gerekli'); return; }
     if(isNaN(price)||price<=0){ showToast('Geçerli fiyat girin'); return; }
     if(findByBarcode(barcode)){ showToast('Bu barkod zaten var'); return; }
-    let newProduct={barcode,name,price,cost,quantity,expiry:expiry||null,image:null,id:Date.now(),category};
+    let newProduct={barcode:barcode,name:name,price:price,cost:cost,quantity:quantity,expiry:expiry||null,image:null,id:Date.now(),category:category};
     products.push(newProduct);
     await saveProducts();
     await updateUI();
@@ -1423,24 +1425,24 @@ async function saveNewProduct(){
 function showResult(p){
     lastScannedProduct=p;
     let color=getProductColorClass(p);
-    let imgHtml=p.image?`<img src="${p.image}" class="product-image" onerror="this.style.display='none';">`:'<div style="padding:12px;color:var(--text-secondary);font-size:2.5rem;"><i class="fa-regular fa-image"></i></div>';
-    document.getElementById('resultArea').innerHTML=`<button class="close-result-btn" onclick="document.getElementById('resultArea').innerHTML='<div class=\'result-placeholder\'><i class=\'fa-solid fa-camera\' style=\'margin-right:8px\'></i>BARKOD OKUTUN</div>';lastScannedProduct=null;"><i class="fa-solid fa-xmark"></i></button>
-        <div class="${color}" style="border-radius:24px;padding:16px;">
-            ${imgHtml}
-            <div class="result-name">${escapeHtml(p.name)}</div>
-            <div class="result-price">${p.price.toFixed(2)} €</div>
-            <div style="color:var(--text-secondary);font-size:0.9rem;font-weight:600;">Stok: ${p.quantity} | SKT: ${p.expiry||'YOK'}</div>
-            <div style="margin-top:10px;">
-                <button class="result-image-btn" onclick="addImageToResult('camera')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>KAMERA</button>
-                <button class="result-image-btn" onclick="addImageToResult('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>GALERİ</button>
-                <button class="result-image-btn" onclick="sellProduct(lastScannedProduct,products.findIndex(x=>x.id===lastScannedProduct.id))"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>SAT</button>
-                <button class="result-image-btn" onclick="addToPrintQueue(lastScannedProduct)"><i class="fa-solid fa-tag" style="margin-right:4px"></i>ETİKET</button>
-                <button class="result-image-btn" onclick="openGoogleSearchForResult()"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>ARA</button>
-            </div>
-        </div>`;
+    let imgHtml=p.image?'<img src="'+p.image+'" class="product-image" onerror="this.style.display='none';">':'<div style="padding:12px;color:var(--text-secondary);font-size:2.5rem;"><i class="fa-regular fa-image"></i></div>';
+    document.getElementById('resultArea').innerHTML='<button class="close-result-btn" onclick="document.getElementById('resultArea').innerHTML='<div class=result-placeholder><i class=fa-solid fa-camera style=margin-right:8px></i>BARKOD OKUTUN</div>';lastScannedProduct=null;"><i class="fa-solid fa-xmark"></i></button>'+
+        '<div class="'+color+'" style="border-radius:24px;padding:16px;">'+
+            imgHtml+
+            '<div class="result-name">'+escapeHtml(p.name)+'</div>'+
+            '<div class="result-price">'+p.price.toFixed(2)+' €</div>'+
+            '<div style="color:var(--text-secondary);font-size:0.9rem;font-weight:600;">Stok: '+p.quantity+' | SKT: '+(p.expiry||'YOK')+'</div>'+
+            '<div style="margin-top:10px;">'+
+                '<button class="result-image-btn" onclick="addImageToResult('camera')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>KAMERA</button>'+
+                '<button class="result-image-btn" onclick="addImageToResult('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>GALERİ</button>'+
+                '<button class="result-image-btn" onclick="sellProduct(lastScannedProduct,products.findIndex(function(x){return x.id===lastScannedProduct.id;}))"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>SAT</button>'+
+                '<button class="result-image-btn" onclick="addToPrintQueue(lastScannedProduct)"><i class="fa-solid fa-tag" style="margin-right:4px"></i>ETİKET</button>'+
+                '<button class="result-image-btn" onclick="openGoogleSearchForResult()"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>ARA</button>'+
+            '</div>'+
+        '</div>';
 }
 function backupData(){
-    let data={products,printQueue,exportDate:new Date().toISOString()};
+    let data={products:products,printQueue:printQueue,exportDate:new Date().toISOString()};
     let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     let url=URL.createObjectURL(blob);
     let a=document.createElement('a');
@@ -1457,7 +1459,7 @@ async function restoreData(){
     let input=document.createElement('input');
     input.type='file';
     input.accept='.json';
-    input.onchange=async(e)=>{
+    input.onchange=async function(e){
         let file=e.target.files[0];
         if(!file) return;
         let text=await file.text();
@@ -1478,8 +1480,8 @@ async function restoreData(){
 }
 function exportToCSV(){
     let csv='Barkod,Ürün Adı,Fiyat,Maliyet,Stok,SKT,Kategori\n';
-    products.forEach(p=>{
-        csv+=`${p.barcode},"${p.name}",${p.price},${p.cost||''},${p.quantity},${p.expiry||''},${p.category||''}\n`;
+    products.forEach(function(p){
+        csv+=p.barcode+',"'+p.name+'",'+p.price+','+(p.cost||'')+','+p.quantity+','+(p.expiry||'')+','+(p.category||'')+'\n';
     });
     let blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
     let url=URL.createObjectURL(blob);
@@ -1493,8 +1495,8 @@ function exportToCSV(){
 function printReport(){
     let container=document.getElementById('printTableContainer');
     let html='<table style="width:100%;border-collapse:collapse;font-size:0.85rem;"><thead><tr style="background:#f1f5f9;"><th style="padding:8px;border:1px solid #cbd5e1;text-align:left;">Barkod</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:left;">Ürün</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:right;">Fiyat</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:right;">Stok</th><th style="padding:8px;border:1px solid #cbd5e1;text-align:left;">SKT</th></tr></thead><tbody>';
-    products.sort((a,b)=>a.name.localeCompare(b.name)).forEach(p=>{
-        html+=`<tr><td style="padding:8px;border:1px solid #e2e8f0;">${p.barcode}</td><td style="padding:8px;border:1px solid #e2e8f0;">${escapeHtml(p.name)}</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:right;">${p.price.toFixed(2)} €</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:right;">${p.quantity}</td><td style="padding:8px;border:1px solid #e2e8f0;">${p.expiry||'—'}</td></tr>`;
+    products.slice().sort(function(a,b){return a.name.localeCompare(b.name);}).forEach(function(p){
+        html+='<tr><td style="padding:8px;border:1px solid #e2e8f0;">'+p.barcode+'</td><td style="padding:8px;border:1px solid #e2e8f0;">'+escapeHtml(p.name)+'</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:right;">'+p.price.toFixed(2)+' €</td><td style="padding:8px;border:1px solid #e2e8f0;text-align:right;">'+p.quantity+'</td><td style="padding:8px;border:1px solid #e2e8f0;">'+(p.expiry||'—')+'</td></tr>';
     });
     html+='</tbody></table>';
     container.innerHTML=html;
@@ -1502,7 +1504,8 @@ function printReport(){
 }
 async function compressAllImages(){
     let count=0;
-    for(let p of products){
+    for(let i=0;i<products.length;i++){
+        let p=products[i];
         if(p.image && p.image.length>50000){
             p.image=await compressImage(p.image,300,0.3);
             count++;
@@ -1531,24 +1534,24 @@ function updateClock(){
 }
 
 // Event listeners
-document.getElementById('searchBtn').addEventListener('click',()=>openCameraModal('search'));
-document.getElementById('addBtn').addEventListener('click',()=>openCameraModal('add'));
+document.getElementById('searchBtn').addEventListener('click',function(){openCameraModal('search');});
+document.getElementById('addBtn').addEventListener('click',function(){openCameraModal('add');});
 document.getElementById('productSearchBtn').addEventListener('click',openInventoryModal);
-document.getElementById('manualAddBtn').addEventListener('click',()=>{
+document.getElementById('manualAddBtn').addEventListener('click',function(){
     document.getElementById('manualAddModal').style.display='flex';
     let c=document.getElementById('manualAddFormContainer');
-    c.innerHTML=`<input id="manualBarcode" placeholder="Barkod">
-        <input id="manualName" placeholder="Ürün adı" maxlength="35">
-        <input id="manualCost" placeholder="Maliyet (€)" type="number" step="0.01">
-        <input id="manualPrice" placeholder="Satış fiyatı (€)" type="number" step="0.01">
-        <div id="manualProfitBox" class="profit-box"></div>
-        <select id="manualCategory"><option selected>Dolap Ürünleri</option><option>Kuru Gıda</option></select>
-        <input id="manualQuantity" placeholder="Stok" type="number" value="1">
-        <input id="manualExpiry" type="date">
-        <div style="display:flex;gap:10px;margin-top:12px;">
-            <button onclick="saveManualAdd()" class="btn btn-success" style="flex:1;"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button>
-            <button onclick="closeManualAddModal()" class="btn btn-primary" style="flex:1;background:linear-gradient(135deg,#64748b,#475569)!important;"><i class="fa-solid fa-xmark" style="margin-right:6px"></i>İPTAL</button>
-        </div>`;
+    c.innerHTML='<input id="manualBarcode" placeholder="Barkod">'+
+        '<input id="manualName" placeholder="Ürün adı" maxlength="35">'+
+        '<input id="manualCost" placeholder="Maliyet (€)" type="number" step="0.01">'+
+        '<input id="manualPrice" placeholder="Satış fiyatı (€)" type="number" step="0.01">'+
+        '<div id="manualProfitBox" class="profit-box"></div>'+
+        '<select id="manualCategory"><option selected>Dolap Ürünleri</option><option>Kuru Gıda</option></select>'+
+        '<input id="manualQuantity" placeholder="Stok" type="number" value="1">'+
+        '<input id="manualExpiry" type="date">'+
+        '<div style="display:flex;gap:10px;margin-top:12px;">'+
+            '<button onclick="saveManualAdd()" class="btn btn-success" style="flex:1;"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button>'+
+            '<button onclick="closeManualAddModal()" class="btn btn-primary" style="flex:1;background:linear-gradient(135deg,#64748b,#475569)!important;"><i class="fa-solid fa-xmark" style="margin-right:6px"></i>İPTAL</button>'+
+        '</div>';
     setupPriceFields('manualCost','manualPrice','manualProfitBox');
     document.getElementById('manualBarcode').focus();
 });
@@ -1564,7 +1567,7 @@ async function saveManualAdd(){
     if(!name){ showToast('Ürün adı gerekli'); return; }
     if(isNaN(price)||price<=0){ showToast('Geçerli fiyat girin'); return; }
     if(findByBarcode(barcode)){ showToast('Bu barkod zaten var'); return; }
-    let newProduct={barcode,name,price,cost,quantity,expiry:expiry||null,image:null,id:Date.now(),category};
+    let newProduct={barcode:barcode,name:name,price:price,cost:cost,quantity:quantity,expiry:expiry||null,image:null,id:Date.now(),category:category};
     products.push(newProduct);
     await saveProducts();
     await updateUI();
@@ -1576,18 +1579,17 @@ function closeManualAddModal(){ document.getElementById('manualAddModal').style.
 document.getElementById('closeCameraModalBtn').addEventListener('click',closeCameraModal);
 
 // Init
-(async function init(){
+(async function(){
     await migrateFromLocalStorage();
     await loadProducts();
     await loadPrintQueue();
     updateClock();
     setInterval(updateClock,1000);
-    // Acil SKT kontrolü
     let today=new Date();
-    let urgent=products.filter(p=>p.expiry&&p.quantity>0&&Math.ceil((new Date(p.expiry)-today)/86400000)<=7&&Math.ceil((new Date(p.expiry)-today)/86400000)>=0);
+    let urgent=products.filter(function(p){return p.expiry&&p.quantity>0&&Math.ceil((new Date(p.expiry)-today)/86400000)<=7&&Math.ceil((new Date(p.expiry)-today)/86400000)>=0;});
     if(urgent.length>0){
-        setTimeout(()=>{
-            if(confirm(urgent.length+' ürünün SKT'si 7 gün içinde bitiyor. Görmek ister misin?')) openUrgentModal();
+        setTimeout(function(){
+            if(confirm(urgent.length+' ürünün SKT\'si 7 gün içinde bitiyor. Görmek ister misin?')) openUrgentModal();
         },800);
     }
 })();
