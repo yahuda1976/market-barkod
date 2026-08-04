@@ -1070,8 +1070,6 @@ async function openCameraModal(mode){
                 area:{ top:"20%", right:"11%", left:"11%", bottom:"20%" }
             },
             locate:true,
-            numOfWorkers:(navigator.hardwareConcurrency? Math.min(navigator.hardwareConcurrency,4):2),
-            frequency:10,
             decoder:{readers:["ean_reader","ean_8_reader","upc_reader","code_128_reader"], multiple:false}
         },err=>{
             if(err){ status.innerHTML='<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>HATA'; return; }
@@ -1140,8 +1138,6 @@ async function openSayimKamera(){
                 area:{ top:"20%", right:"11%", left:"11%", bottom:"20%" }
             },
             locate:true,
-            numOfWorkers:(navigator.hardwareConcurrency? Math.min(navigator.hardwareConcurrency,4):2),
-            frequency:10,
             decoder:{readers:["ean_reader","ean_8_reader","upc_reader","code_128_reader"], multiple:false}
         },err=>{
             if(err){ status.innerHTML='<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>HATA'; return; }
@@ -1214,4 +1210,9 @@ function renderSayimListe(){
     let sorted=[...f].sort((a,b)=>a.name.localeCompare(b.name));
     let c=document.getElementById('sayimListeItems');
     if(!sorted.length){
-        c.innerHTML='<div style="color:var(--text-secondary);text-align:center;padding:16px"><i class="fa-solid fa-inbox" style="font-size:1.5rem;
+        c.innerHTML='<div style="color:var(--text-secondary);text-align:center;padding:16px"><i class="fa-solid fa-inbox" style="font-size:1.5rem;margin-bottom:6px;display:block;opacity:0.5"></i>Urun bulunamadi</div>';
+        return;
+    }
+    c.innerHTML=sorted.map(p=>{
+        let preset=p.quantity===0?'value="1"':'';
+        let diffInit=p.quantity===0?'<span class="sayim-diff-pos">+1</span>':'<sp
