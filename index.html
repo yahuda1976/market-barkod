@@ -1078,6 +1078,29 @@
             text-shadow: 0 2px 12px rgba(239, 68, 68, 0.3) !important;
             letter-spacing: 0.5px;
         }
+        /* Düzenle butonu için */
+        .btn-edit-result {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border: none;
+            border-radius: 40px;
+            padding: 9px 18px;
+            color: white;
+            font-weight: 700;
+            font-size: 0.78rem;
+            cursor: pointer;
+            margin: 6px 4px;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+            transition: all 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.1)
+        }
+        .btn-edit-result:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.1)
+        }
+        /* Envanterde firma butonları kaldırıldı */
+        .firma-container-hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -1153,8 +1176,8 @@
                 <button class="close-modal-btn" onclick="closeInventoryModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button>
             </div>
             <div id="inventoryStats" class="inventory-stats"></div>
-            <!-- FİRMALAR butonu envanter içinde -->
-            <div id="firmaContainer" style="margin-bottom:12px;"></div>
+            <!-- FİRMALAR butonu envanterden KALDIRILDI -->
+            <div id="firmaContainer" style="display:none;"></div>
             <div class="inventory-search"><input type="text" id="inventorySearchInput" placeholder="Urun adi veya barkod ara..." autocomplete="off"></div>
             <div id="modalProductList" class="product-list-simple"></div>
         </div>
@@ -1426,13 +1449,13 @@
                 prods = [
                     { barcode: "4003998000470", name: "CAYKUR RIZE CAYI", price: 4.99, cost: 3.40, quantity: 12,
                         expiry: futureStr, image: null, id: Date.now() + 1, category: "Dolap Urunleri",
-                    firma: "Doga Gida" },
+                        firma: "Doga Gida" },
                     { barcode: "8690504003016", name: "ULKER CIKOLATA", price: 1.29, cost: 0.88, quantity: 30,
                         expiry: futureStr, image: null, id: Date.now() + 2, category: "Kuru Gida",
-                    firma: "Doga Gida" },
+                        firma: "Doga Gida" },
                     { barcode: "4006381333948", name: "FRITZ COLA 0.33L", price: 1.19, cost: 0.75, quantity: 24,
                         expiry: futureStr, image: null, id: Date.now() + 3, category: "Dolap Urunleri",
-                    firma: "Bereket Gida" }
+                        firma: "Bereket Gida" }
                 ];
                 await saveProductsToIDB(prods);
             }
@@ -1454,7 +1477,7 @@
 
         function savePrintQueue() { saveMetadata('printQueue', printQueue); }
 
-        // FIRMA ISLEMLERI
+        // FIRMA ISLEMLERI - SADECE FIRMA MODALI İÇİN
         async function loadFirmalar() {
             const f = await loadMetadata('firmalar');
             firmalar = Array.isArray(f) ? f : [];
@@ -1490,7 +1513,6 @@
             saveFirmalar();
             input.value = '';
             renderFirmaListesi();
-            renderFirmaButonlari();
             showToast(`✅ ${name} eklendi`);
         }
 
@@ -1504,9 +1526,6 @@
             });
             saveProducts();
             renderFirmaListesi();
-            renderFirmaButonlari();
-            if (selectedFirma === name) { selectedFirma = null;
-                renderInventoryList(); }
             showToast(`❌ ${name} silindi`);
         }
 
@@ -1522,32 +1541,6 @@
                     <button onclick="deleteFirma('${f}')" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:30px;padding:6px 14px;color:white;font-weight:700;font-size:0.75rem;cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
                 </div>
             `).join('');
-        }
-
-        function renderFirmaButonlari() {
-            let c = document.getElementById('firmaContainer');
-            if (!firmalar.length) {
-                c.innerHTML =
-                    `<button onclick="openFirmaModal()" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;border-radius:40px;padding:12px 20px;color:white;font-weight:800;font-size:0.9rem;cursor:pointer;width:100%;box-shadow:0 4px 12px rgba(139,92,246,0.3);"><i class="fa-solid fa-building" style="margin-right:6px"></i>FİRMALAR (0)</button>`;
-                return;
-            }
-            let html =
-                `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-        <button onclick="selectFirma(null)" style="background:${!selectedFirma ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.12)'};border:1px solid rgba(255,255,255,0.2);border-radius:30px;padding:8px 14px;color:white;font-weight:700;font-size:0.75rem;cursor:pointer;transition:all 0.2s;">TÜMÜ</button>`;
-            firmalar.forEach(f => {
-                html +=
-                    `<button onclick="selectFirma('${f}')" style="background:${selectedFirma === f ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.12)'};border:1px solid rgba(255,255,255,0.2);border-radius:30px;padding:8px 14px;color:white;font-weight:700;font-size:0.75rem;cursor:pointer;transition:all 0.2s;">${f}</button>`;
-            });
-            html +=
-                `<button onclick="openFirmaModal()" style="background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:30px;padding:8px 14px;color:white;font-weight:700;font-size:0.75rem;cursor:pointer;transition:all 0.2s;"><i class="fa-solid fa-plus"></i></button>`;
-            html += `</div>`;
-            c.innerHTML = html;
-        }
-
-        function selectFirma(firma) {
-            selectedFirma = firma;
-            renderFirmaButonlari();
-            renderInventoryList();
         }
 
         function openFirmaModal() {
@@ -1667,17 +1660,15 @@
 
         async function updateUI() {
             document.getElementById('productCountBadge').innerText = products.length + ' cesit';
-            renderFirmaButonlari();
+            // Envanterdeki firma butonlarını gizle - zaten kaldırıldı
         }
 
         function openInventoryModal() {
             inventoryFilterMode = 'all';
-            selectedFirma = null;
             document.getElementById("inventoryModal").style.display = "flex";
             let inp = document.getElementById("inventorySearchInput");
             if (inp) { inp.value = "";
                 inp.oninput = () => renderInventoryList(); }
-            renderFirmaButonlari();
             renderInventoryList();
         }
 
@@ -1712,10 +1703,7 @@
             let sv = (document.getElementById("inventorySearchInput")?.value || '').trim().toLowerCase();
             let filtered = sv ? products.filter(p => p.name.toLowerCase().includes(sv) || p.barcode.includes(sv)) : products;
 
-            // Firma filtresi
-            if (selectedFirma) {
-                filtered = filtered.filter(p => p.firma === selectedFirma);
-            }
+            // Firma filtresi KALDIRILDI - envanterde firma filtresi yok
 
             if (inventoryFilterMode === 'active') filtered = filtered.filter(p => p.quantity > 0);
             else if (inventoryFilterMode === 'zero') filtered = filtered.filter(p => p.quantity === 0);
@@ -2629,8 +2617,12 @@
             let imgHtml = p.image ? '<img src="' + p.image +
                 '" class="product-image" onerror="this.style.display=\'none\';">' :
                 '<div style="padding:12px;color:var(--text-secondary);font-size:2.5rem;"><i class="fa-regular fa-image"></i></div>';
-            // SKT'yi büyük kırmızı göster
-            let sktHtml = p.expiry ? `<span class="skt-large-red">SKT: ${p.expiry}</span>` : `<span class="skt-large-red">SKT: YOK</span>`;
+            let sktHtml = p.expiry ? `<span class="skt-large-red">SKT: ${p.expiry}</span>` :
+                `<span class="skt-large-red">SKT: YOK</span>`;
+
+            // Ürünün index'ini bul
+            let idx = products.findIndex(pr => pr.id === p.id);
+
             document.getElementById('resultArea').innerHTML =
                 '<button class="close-result-btn" onclick="document.getElementById(\'resultArea\').innerHTML=\'<div class=result-placeholder><i class=fa-solid fa-camera style=margin-right:8px></i>BARKOD OKUTUN</div>\';lastScannedProduct=null;"><i class="fa-solid fa-xmark"></i></button>' +
                 '<div class="' + color + '" style="border-radius:24px;padding:16px;">' +
@@ -2646,6 +2638,8 @@
                 '<button class="result-image-btn" onclick="sellProduct(lastScannedProduct,products.findIndex(function(x){return x.id===lastScannedProduct.id;}))"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>SAT</button>' +
                 '<button class="result-image-btn" onclick="addToPrintQueue(lastScannedProduct)"><i class="fa-solid fa-tag" style="margin-right:4px"></i>ETİKET</button>' +
                 '<button class="result-image-btn" onclick="openGoogleSearchForResult()"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>ARA</button>' +
+                // DÜZENLE butonu eklendi
+                `<button class="btn-edit-result" onclick="closeResultAndOpenDetail(${idx})"><i class="fa-solid fa-pen" style="margin-right:4px"></i>DÜZENLE</button>` +
                 '</div>' +
                 '</div>';
         }
