@@ -113,14 +113,11 @@
         .inventory-stats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
         .inventory-stats > div{transition:all 0.2s}
         .inventory-stats > div:hover{transform:translateY(-1px)}
-        .sayim-item{background:rgba(255,255,255,0.55);border-radius:30px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:8px;border:1px solid rgba(59,130,246,0.1)}
-        .sayim-name{flex:1;font-size:0.85rem;font-weight:700;color:var(--text-primary)}
-        .sayim-mevcut{font-size:0.75rem;color:var(--text-secondary);white-space:nowrap}
-        .sayim-input{width:70px!important;padding:10px 12px!important;margin:0!important;text-align:center;font-weight:800;font-size:1rem;background:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.1);border-radius:16px;color:var(--text-primary)}
-        .sayim-input:focus{outline:none;border-color:rgba(59,130,246,0.4)}
-        .sayim-diff-pos{color:#34d399;font-weight:800;font-size:0.85rem;min-width:32px;text-align:center}
-        .sayim-diff-neg{color:#f87171;font-weight:800;font-size:0.85rem;min-width:32px;text-align:center}
-        .sayim-diff-zero{color:var(--text-secondary);font-size:0.85rem;min-width:32px;text-align:center}
+        .company-item{background:rgba(255,255,255,0.55);border-radius:24px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;border:1px solid rgba(59,130,246,0.1);animation:fadeInUp 0.3s ease forwards;opacity:0}
+        .company-item:hover{background:rgba(255,255,255,0.8);transform:translateX(4px)}
+        .company-name{flex:1;font-weight:700;font-size:0.92rem}
+        .company-count{color:var(--text-secondary);font-size:0.78rem;font-weight:600}
+        .btn-remove-company{background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:20px;padding:6px 12px;color:white;font-size:0.72rem;font-weight:700;cursor:pointer}
         #liveClock{background:linear-gradient(135deg,rgba(15,23,42,0.8),rgba(30,41,59,0.9));color:#34d399;padding:8px 14px;border-radius:16px;font-family:'Outfit',monospace;font-weight:800;font-size:0.85rem;letter-spacing:2px;border:1px solid rgba(52,211,153,0.2);box-shadow:0 0 20px rgba(52,211,153,0.15),inset 0 1px 0 rgba(255,255,255,0.05);text-shadow:0 0 8px rgba(52,211,153,0.4);min-width:84px;text-align:center;white-space:nowrap}
         #liveClock .clock-date{display:block;font-size:0.6rem;color:#10b981;letter-spacing:1px;margin-top:2px;font-weight:600}
         .result-image-btn{background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:40px;padding:9px 18px;color:white;font-weight:700;font-size:0.78rem;cursor:pointer;margin:6px 4px;box-shadow:0 4px 12px rgba(245,158,11,0.2);transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)}
@@ -148,9 +145,7 @@
 <div id="drawer" style="position:fixed;top:0;left:-255px;width:245px;height:100%;background:linear-gradient(180deg,#f0f9ff,#e0f2fe);z-index:600;transition:left 0.35s cubic-bezier(0.16,1,0.3,1);box-shadow:8px 0 32px rgba(0,0,0,0.15);border-radius:0 32px 32px 0;border-right:1px solid rgba(0,0,0,0.06)">
     <div style="background:rgba(255,255,255,0.5);padding:52px 24px 24px;border-radius:0 32px 0 0;border-bottom:1px solid rgba(0,0,0,0.06)"><div style="font-size:1.6rem;font-weight:900;color:#fdba74;font-family:'Outfit',sans-serif;letter-spacing:0.5px"><i class="fa-solid fa-basket-shopping" style="margin-right:8px"></i>MARKET PRO</div><div style="font-size:0.75rem;color:var(--text-secondary);margin-top:6px;font-weight:500">Envanter Yonetimi</div></div>
     <div style="padding:16px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:calc(100vh - 140px)">
-        <div class="drawer-group-title"><i class="fa-solid fa-boxes-stacked" style="margin-right:6px"></i>ENVANTER</div>
-        <button class="drawer-btn" onclick="closeDrawer();openStokSayimModal();"><i class="fa-solid fa-calculator" style="width:20px;text-align:center"></i> STOK SAYIM MODU</button>
-        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-tags" style="margin-right:6px"></i>ETIKETLER</div>
+        <div class="drawer-group-title"><i class="fa-solid fa-tags" style="margin-right:6px"></i>ETIKETLER</div>
         <button class="drawer-btn" onclick="closeDrawer();managePrintQueue();"><i class="fa-solid fa-list-check" style="width:20px;text-align:center"></i> ETIKET LISTESINI YONET</button>
         <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-cloud-arrow-down" style="margin-right:6px"></i>YEDEKLEME</div>
         <button class="drawer-btn" onclick="closeDrawer();backupData();"><i class="fa-solid fa-download" style="width:20px;text-align:center"></i> TELEFONA YEDEK AL</button>
@@ -175,7 +170,7 @@
         <button class="btn btn-primary" id="addBtn"><i class="fa-solid fa-plus" style="margin-right:6px"></i>URUN EKLE</button>
     </div>
     <div class="button-grid">
-        <button class="btn btn-success" id="productSearchBtn"><i class="fa-solid fa-box" style="margin-right:6px"></i>URUN ARA</button>
+        <button class="btn btn-success" id="productSearchBtn"><i class="fa-solid fa-building" style="margin-right:6px"></i>FIRMALAR</button>
         <button class="btn btn-success" id="manualAddBtn"><i class="fa-solid fa-pen-to-square" style="margin-right:6px"></i>MANUEL EKLE</button>
     </div>
     <div id="addFormContainer" class="hidden"></div>
@@ -252,34 +247,17 @@
         </div>
     </div>
 </div>
-<div id="stokSayimModal" class="modal">
+<div id="companyModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <span class="modal-title"><i class="fa-solid fa-calculator" style="margin-right:8px"></i>STOK SAYIM</span>
-            <button class="close-modal-btn" onclick="closeStokSayimModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button>
+            <span class="modal-title"><i class="fa-solid fa-building" style="margin-right:8px"></i>FIRMALAR</span>
+            <button class="close-modal-btn" onclick="closeCompanyModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
-            <button id="sayimModListeBtn" onclick="setSayimMod('liste')" style="background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;border-radius:40px;padding:14px;color:white;font-weight:800;font-size:0.85rem;cursor:pointer;box-shadow:0 4px 12px rgba(59,130,246,0.25);transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-list" style="margin-right:6px"></i>LISTE MODU</button>
-            <button id="sayimModBarkodBtn" onclick="setSayimMod('barkod')" style="background:rgba(255,255,255,0.06);border:none;border-radius:40px;padding:14px;color:white;font-weight:800;font-size:0.85rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.08)"><i class="fa-solid fa-camera" style="margin-right:6px"></i>BARKOD MODU</button>
+        <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center">
+            <input type="text" id="newCompanyInput" placeholder="Yeni firma adi..." style="margin:0;flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();addCompany();}">
+            <button onclick="addCompany()" style="background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:50%;width:52px;height:52px;flex-shrink:0;color:white;font-size:1.2rem;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,0.3)"><i class="fa-solid fa-plus"></i></button>
         </div>
-        <div id="sayimListeContainer">
-            <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:10px;font-weight:500">Sayilan miktari girin, fark otomatik hesaplanir.</div>
-            <input type="text" id="sayimSearchInput" placeholder="Urun ara..." style="margin-bottom:10px" oninput="renderSayimListe()">
-            <div id="sayimListeItems" style="max-height:42vh;overflow-y:auto"></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
-                <button onclick="saveSayimListe()" style="background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,0.25);transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>GUNCELLE</button>
-                <button onclick="resetSayimInputs()" style="background:linear-gradient(135deg,#64748b,#475569);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-rotate-right" style="margin-right:6px"></i>SIFIRLA</button>
-            </div>
-        </div>
-        <div id="sayimBarkodContainer" style="display:none">
-            <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:10px;font-weight:500">Barkodu okut → adet gir → tekrar tara. Bitince Kaydet.</div>
-            <button onclick="openSayimKamera()" style="width:100%;background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;font-size:1rem;cursor:pointer;margin-bottom:14px;box-shadow:0 4px 12px rgba(59,130,246,0.25);transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-camera" style="margin-right:8px"></i>KAMERA ILE TARA</button>
-            <div id="sayimBarkodListesi" style="max-height:38vh;overflow-y:auto"></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
-                <button onclick="saveSayimBarkod()" style="background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,0.25);transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>GUNCELLE</button>
-                <button onclick="clearSayimBarkod()" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(239,68,68,0.25);transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-trash-can" style="margin-right:6px"></i>TEMIZLE</button>
-            </div>
-        </div>
+        <div id="companyListContainer"></div>
     </div>
 </div>
 <div id="angebotModal" class="modal">
@@ -334,12 +312,14 @@
 let db = null;
 let inventoryFilterMode = 'all';
 let products = [];
+let companies = [];
 let printQueue = [];
 let currentStream = null, lastScannedProduct = null;
 let currentCameraMode = 'search', currentVideoTrack = null, currentStopScan = null;
-let tempImageData = null, currentEditingProductId = null, angebotProduct = null, sayimMod = 'liste', sayimBarkodMap = {}, sayimKameraMode = false;
+let tempImageData = null, currentEditingProductId = null, angebotProduct = null;
 let currentAngebotSize = 'a4', currentAngebotOrientation = 'portrait';
 let currentDiscountPrice = null;
+let dbUnavailable = false;
 
 // ---- SES ----
 let audioCtx = null;
@@ -365,11 +345,19 @@ function playBeep() {
     } catch(e) {}
 }
 
-function openIndexedDB() {
+// ==============================================================
+//  INDEXEDDB ACMA - hata durumunda tek seferlik kurtarma denemesi
+// ==============================================================
+function openIndexedDBOnce() {
     return new Promise((resolve, reject) => {
-        const request = indexedDB.open("MarketProDB", 1);
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => { db = request.result; resolve(db); };
+        if (!window.indexedDB) { reject(new Error('IndexedDB bu tarayicida desteklenmiyor')); return; }
+        let request;
+        try {
+            request = indexedDB.open("MarketProDB", 1);
+        } catch(e) { reject(e); return; }
+        request.onerror = () => reject(request.error || new Error('IndexedDB acma hatasi'));
+        request.onblocked = () => reject(new Error('IndexedDB baska bir sekmede acik, kapatip tekrar deneyin'));
+        request.onsuccess = () => resolve(request.result);
         request.onupgradeneeded = (event) => {
             const dbRef = event.target.result;
             if (!dbRef.objectStoreNames.contains("products")) dbRef.createObjectStore("products", { keyPath: "id" });
@@ -377,46 +365,110 @@ function openIndexedDB() {
         };
     });
 }
+function deleteIndexedDBOnce() {
+    return new Promise((resolve) => {
+        try {
+            let req = indexedDB.deleteDatabase("MarketProDB");
+            req.onsuccess = () => resolve();
+            req.onerror = () => resolve();
+            req.onblocked = () => resolve();
+        } catch(e) { resolve(); }
+    });
+}
+async function openIndexedDB() {
+    try {
+        db = await openIndexedDBOnce();
+        dbUnavailable = false;
+        return db;
+    } catch (e) {
+        // Bozuk/eski bir veritabani baglantiyi engelliyor olabilir; bir kez temizleyip yeniden dene
+        console.warn('IndexedDB ilk denemede acilamadi, yeniden deneniyor...', e);
+        await deleteIndexedDBOnce();
+        try {
+            db = await openIndexedDBOnce();
+            dbUnavailable = false;
+            return db;
+        } catch (e2) {
+            console.error('IndexedDB hicbir sekilde acilamadi', e2);
+            dbUnavailable = true;
+            db = null;
+            throw e2;
+        }
+    }
+}
 async function loadProductsFromIDB() {
+    if (dbUnavailable) return loadProductsFromLocalFallback();
     if (!db) await openIndexedDB();
     return new Promise((resolve, reject) => {
-        const tx = db.transaction(["products"], "readonly");
-        const store = tx.objectStore("products");
-        const request = store.getAll();
-        request.onsuccess = () => resolve(request.result || []);
-        request.onerror = () => reject(request.error);
+        try {
+            const tx = db.transaction(["products"], "readonly");
+            const store = tx.objectStore("products");
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result || []);
+            request.onerror = () => reject(request.error);
+        } catch(e) { reject(e); }
     });
 }
 async function saveProductsToIDB(prods) {
+    if (dbUnavailable) return saveProductsToLocalFallback(prods);
     if (!db) await openIndexedDB();
     return new Promise((resolve, reject) => {
-        const tx = db.transaction(["products"], "readwrite");
-        const store = tx.objectStore("products");
-        store.clear();
-        for (let p of prods) store.put(p);
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
+        try {
+            const tx = db.transaction(["products"], "readwrite");
+            const store = tx.objectStore("products");
+            store.clear();
+            for (let p of prods) store.put(p);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+        } catch(e) { reject(e); }
     });
 }
 async function saveMetadata(key, value) {
+    if (dbUnavailable) return saveMetadataToLocalFallback(key, value);
     if (!db) await openIndexedDB();
     return new Promise((resolve, reject) => {
-        const tx = db.transaction(["metadata"], "readwrite");
-        const store = tx.objectStore("metadata");
-        store.put({ key: key, value: value });
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
+        try {
+            const tx = db.transaction(["metadata"], "readwrite");
+            const store = tx.objectStore("metadata");
+            store.put({ key: key, value: value });
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+        } catch(e) { reject(e); }
     });
 }
 async function loadMetadata(key) {
+    if (dbUnavailable) return loadMetadataFromLocalFallback(key);
     if (!db) await openIndexedDB();
     return new Promise((resolve, reject) => {
-        const tx = db.transaction(["metadata"], "readonly");
-        const store = tx.objectStore("metadata");
-        const req = store.get(key);
-        req.onsuccess = () => resolve(req.result ? req.result.value : null);
-        req.onerror = () => reject(req.error);
+        try {
+            const tx = db.transaction(["metadata"], "readonly");
+            const store = tx.objectStore("metadata");
+            const req = store.get(key);
+            req.onsuccess = () => resolve(req.result ? req.result.value : null);
+            req.onerror = () => reject(req.error);
+        } catch(e) { reject(e); }
     });
+}
+// ---- LOCALSTORAGE YEDEK MEKANIZMASI: IndexedDB tamamen kullanilamazsa devreye girer ----
+function loadProductsFromLocalFallback() {
+    try {
+        let raw = localStorage.getItem('marketpro_products_fallback');
+        return raw ? JSON.parse(raw) : [];
+    } catch(e) { return []; }
+}
+function saveProductsToLocalFallback(prods) {
+    try { localStorage.setItem('marketpro_products_fallback', JSON.stringify(prods)); } catch(e) {}
+    return Promise.resolve();
+}
+function saveMetadataToLocalFallback(key, value) {
+    try { localStorage.setItem('marketpro_meta_' + key, JSON.stringify(value)); } catch(e) {}
+    return Promise.resolve();
+}
+function loadMetadataFromLocalFallback(key) {
+    try {
+        let raw = localStorage.getItem('marketpro_meta_' + key);
+        return raw ? JSON.parse(raw) : null;
+    } catch(e) { return null; }
 }
 async function migrateFromLocalStorage() {
     try {
@@ -440,14 +492,20 @@ async function migrateFromLocalStorage() {
     } catch(e) { console.warn("Migration error", e); }
 }
 async function loadProducts() {
-    let prods = await loadProductsFromIDB();
-    if (!prods.length) {
+    let prods = [];
+    try {
+        prods = await loadProductsFromIDB();
+    } catch(e) {
+        console.error('Urunler yuklenemedi', e);
+        prods = [];
+    }
+    if (!prods || !prods.length) {
         prods = [
-            {barcode:"4003998000470",name:"CAYKUR RIZE CAYI",price:4.99,cost:3.40,quantity:12,expiry:"2025-12-15",image:null,id:Date.now()+1,category:"Dolap Urunleri"},
-            {barcode:"8690504003016",name:"ULKER CIKOLATA",price:1.29,cost:0.88,quantity:30,expiry:"2025-10-20",image:null,id:Date.now()+2,category:"Kuru Gida"},
-            {barcode:"4006381333948",name:"FRITZ COLA 0.33L",price:1.19,cost:0.75,quantity:24,expiry:"2026-06-01",image:null,id:Date.now()+3,category:"Dolap Urunleri"}
+            {barcode:"4003998000470",name:"CAYKUR RIZE CAYI",price:4.99,cost:3.40,quantity:12,expiry:"2025-12-15",image:null,id:Date.now()+1,category:"Dolap Urunleri",company:""},
+            {barcode:"8690504003016",name:"ULKER CIKOLATA",price:1.29,cost:0.88,quantity:30,expiry:"2025-10-20",image:null,id:Date.now()+2,category:"Kuru Gida",company:""},
+            {barcode:"4006381333948",name:"FRITZ COLA 0.33L",price:1.19,cost:0.75,quantity:24,expiry:"2026-06-01",image:null,id:Date.now()+3,category:"Dolap Urunleri",company:""}
         ];
-        await saveProductsToIDB(prods);
+        try { await saveProductsToIDB(prods); } catch(e) { console.warn('Baslangic urunleri kaydedilemedi', e); }
     }
     products = prods;
     await updateUI();
@@ -458,10 +516,19 @@ async function saveProducts() {
     return true;
 }
 async function loadPrintQueue() {
-    const q = await loadMetadata('printQueue');
-    printQueue = Array.isArray(q) ? q : [];
+    try {
+        const q = await loadMetadata('printQueue');
+        printQueue = Array.isArray(q) ? q : [];
+    } catch(e) { printQueue = []; }
 }
-function savePrintQueue() { saveMetadata('printQueue', printQueue); }
+function savePrintQueue() { saveMetadata('printQueue', printQueue).catch(()=>{}); }
+async function loadCompanies() {
+    try {
+        const c = await loadMetadata('companies');
+        companies = Array.isArray(c) ? c : [];
+    } catch(e) { companies = []; }
+}
+function saveCompanies() { saveMetadata('companies', companies).catch(()=>{}); }
 
 function showToast(msg){ 
     let c=document.getElementById("toast-container"),t=document.createElement("div");
@@ -485,6 +552,14 @@ function getCategoryEmoji(cat){
     return cat==="Dolap Urunleri"?"<i class='fa-solid fa-jar' style='margin-left:6px;opacity:0.7'></i>":
            (cat==="Kuru Gida"?"<i class='fa-solid fa-wheat-awn' style='margin-left:6px;opacity:0.7'></i>":
            "<i class='fa-solid fa-box' style='margin-left:6px;opacity:0.7'></i>"); 
+}
+function buildCompanyOptions(selected){
+    let opts = '<option value="">-- Firma sec --</option>';
+    let list = companies.slice().sort((a,b)=>a.localeCompare(b,'tr'));
+    for(let c of list){
+        opts += `<option value="${escapeHtml(c)}" ${selected===c?'selected':''}>${escapeHtml(c)}</option>`;
+    }
+    return opts;
 }
 function setupPriceFields(costId, priceId, boxId){ 
     let costEl=document.getElementById(costId),priceEl=document.getElementById(priceId),boxEl=document.getElementById(boxId); 
@@ -660,23 +735,6 @@ function manualBarcodeEntry(){
     code = normBarcode(code);
     if(code.length < 4){ showToast('Gecersiz barkod'); return; }
     playBeep();
-    if(currentCameraMode === 'sayim'){
-        closeCameraModal();
-        let p=findByBarcode(code);
-        let nm=p?p.name:("Bilinmeyen: "+code);
-        let mev=sayimBarkodMap[code]||0;
-        let girilen=prompt(`📦 ${nm}\nSistem stogu: ${p?p.quantity:""}${mev>0?"\nOnceki sayim: "+mev:""}\n\nKac adet saydiniz?`,mev>0?String(mev):"1");
-        if(girilen!==null){
-            let adet=parseInt(girilen);
-            if(!isNaN(adet)&&adet>=0){
-                if(adet===0) delete sayimBarkodMap[code];
-                else sayimBarkodMap[code]=adet;
-                renderSayimBarkodListe();
-                showToast(adet===0?"Listeden cikarildi":`✅ ${nm} → ${adet} adet`);
-            } else showToast("Gecersiz miktar!");
-        }
-        return;
-    }
     closeCameraModal();
     if(currentCameraMode === 'add'){
         showAddFormForBarcode(code);
@@ -778,7 +836,7 @@ function setInventoryFilter(mode){ inventoryFilterMode=mode; renderInventoryList
 function openProductDetailModal(idx){
     let p=products[idx];currentEditingProductId=idx;let color=getProductColorClass(p);
     let modal=document.getElementById("productDetailModal"),content=document.getElementById("productDetailContent");
-    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>URUN DETAYI</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:'<div style="padding:20px;color:var(--text-secondary);font-size:3rem;"><i class="fa-regular fa-image"></i><div style="font-size:0.9rem;margin-top:8px;">RESIM YOK</div></div>'}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<div style="color:var(--text-secondary);margin-top:6px;font-size:0.9rem;line-height:1.6;">Barkod: ${p.barcode}<br>Fiyat: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>Stok: <span style="font-weight:700">${p.quantity}</span><br>SKT: ${p.expiry||"YOK"}</div></div><div class="detail-actions"><div class="button-row"><button onclick="toggleEditMode()" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fa-solid fa-pen" style="margin-right:4px"></i>DUZENLE</button><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>SIL</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>SATILDI</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>GALERI</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>KAMERA</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>INTERNET</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>ETIKET LISTESINE EKLE</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:8px;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>ANGEBOT HAZIRLA</button></div><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
+    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>URUN DETAYI</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>KAPAT</button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:'<div style="padding:20px;color:var(--text-secondary);font-size:3rem;"><i class="fa-regular fa-image"></i><div style="font-size:0.9rem;margin-top:8px;">RESIM YOK</div></div>'}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<div style="color:var(--text-secondary);margin-top:6px;font-size:0.9rem;line-height:1.6;">Barkod: ${p.barcode}<br>Firma: <span style="font-weight:700">${p.company?escapeHtml(p.company):"BELIRTILMEDI"}</span><br>Fiyat: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>Stok: <span style="font-weight:700">${p.quantity}</span><br>SKT: ${p.expiry||"YOK"}</div></div><div class="detail-actions"><div class="button-row"><button onclick="toggleEditMode()" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fa-solid fa-pen" style="margin-right:4px"></i>DUZENLE</button><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>SIL</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>SATILDI</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>GALERI</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>KAMERA</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>INTERNET</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>ETIKET LISTESINE EKLE</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:8px;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>ANGEBOT HAZIRLA</button></div><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
     modal.style.display="flex";
 }
 function closeProductDetailModal(){ document.getElementById("productDetailModal").style.display="none";currentEditingProductId=null; }
@@ -786,7 +844,7 @@ function toggleEditMode(){
     let editDiv=document.getElementById("editFields"),p=products[currentEditingProductId];
     if(editDiv.style.display==="none"){
         editDiv.style.display="block";
-        editDiv.innerHTML=`<input id="editName" value="${escapeHtml(p.name)}" maxlength="35" placeholder="Urun adi"><input id="editBarcode" value="${p.barcode}" placeholder="Barkod"><input id="editPrice" value="${p.price}" placeholder="Fiyat (€)"><input id="editCost" value="${p.cost||''}" placeholder="Maliyet (€)"><div id="editProfitBox" class="profit-box"></div><select id="editCategory">${p.category=="Dolap Urunleri"?"<option selected>Dolap Urunleri</option><option>Kuru Gida</option>":"<option>Dolap Urunleri</option><option selected>Kuru Gida</option>"}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}" placeholder="Stok" type="number"><input id="editExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveProductEdit()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button><button class="btn-cancel" onclick="toggleEditMode()">IPTAL</button></div>`;
+        editDiv.innerHTML=`<input id="editName" value="${escapeHtml(p.name)}" maxlength="35" placeholder="Urun adi"><input id="editBarcode" value="${p.barcode}" placeholder="Barkod"><input id="editPrice" value="${p.price}" placeholder="Fiyat (€)"><input id="editCost" value="${p.cost||''}" placeholder="Maliyet (€)"><div id="editProfitBox" class="profit-box"></div><select id="editCategory">${p.category=="Dolap Urunleri"?"<option selected>Dolap Urunleri</option><option>Kuru Gida</option>":"<option>Dolap Urunleri</option><option selected>Kuru Gida</option>"}</select><select id="editCompany">${buildCompanyOptions(p.company||'')}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}" placeholder="Stok" type="number"><input id="editExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveProductEdit()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button><button class="btn-cancel" onclick="toggleEditMode()">IPTAL</button></div>`;
         setupPriceFields('editCost','editPrice','editProfitBox');
     }else{editDiv.style.display="none";editDiv.innerHTML="";}
 }
@@ -797,6 +855,7 @@ async function saveProductEdit(){
     products[idx].price=parseFloat(document.getElementById("editPrice").value);
     products[idx].cost=parseFloat(document.getElementById("editCost").value)||null;
     products[idx].category=document.getElementById("editCategory").value;
+    products[idx].company=document.getElementById("editCompany")?document.getElementById("editCompany").value:(products[idx].company||'');
     let _q=parseInt(document.getElementById("editQuantity").value);
     if(isNaN(_q)||_q<=0)_q=1;
     products[idx].quantity=_q;
@@ -928,6 +987,47 @@ function clearPrintQueue(){
     }
 }
 function closeQueueModal(){ document.getElementById("queueModal").style.display="none"; }
+
+// ==============================================================
+//  FIRMALAR (COMPANIES)
+// ==============================================================
+function openCompanyModal(){
+    document.getElementById("companyModal").style.display="flex";
+    let inp=document.getElementById("newCompanyInput");
+    if(inp) inp.value="";
+    renderCompanyList();
+}
+function closeCompanyModal(){ document.getElementById("companyModal").style.display="none"; }
+async function addCompany(){
+    let inp=document.getElementById("newCompanyInput");
+    let name=(inp.value||'').trim();
+    if(!name){ showToast("Firma adi girin!"); return; }
+    let exists=companies.find(c=>c.toLowerCase()===name.toLowerCase());
+    if(exists){ showToast("Bu firma zaten listede"); inp.value=""; return; }
+    companies.push(name);
+    saveCompanies();
+    inp.value="";
+    renderCompanyList();
+    showToast(`${name} eklendi`);
+}
+async function removeCompany(name){
+    if(!confirm(`"${name}" firmasi listeden silinsin mi? (Bu firmaya bagli urunlerin firma bilgisi bos kalir)`)) return;
+    companies=companies.filter(c=>c!==name);
+    saveCompanies();
+    renderCompanyList();
+}
+function renderCompanyList(){
+    let c=document.getElementById("companyListContainer");
+    if(!companies.length){
+        c.innerHTML="<div style='text-align:center;padding:20px;color:var(--text-secondary);'><i class='fa-solid fa-building' style='font-size:2rem;margin-bottom:8px;display:block;opacity:0.5'></i>Henuz firma eklenmedi</div>";
+        return;
+    }
+    let sorted=companies.slice().sort((a,b)=>a.localeCompare(b,'tr'));
+    c.innerHTML=sorted.map((name,i)=>{
+        let count=products.filter(p=>p.company===name).length;
+        return `<div class="company-item" style="animation-delay:${i*0.03}s"><div class="company-name"><i class="fa-solid fa-building" style="margin-right:6px;opacity:0.6"></i>${escapeHtml(name)}</div><div class="company-count">${count} urun</div><button class="btn-remove-company" onclick="removeCompany('${escapeJsString(name)}')"><i class="fa-solid fa-xmark"></i></button></div>`;
+    }).join('');
+}
 
 function showMultiLabelPreview(){
     if(!printQueue.length){ showToast("Etiket listesi bos! Once 'ETIKET' butonuyla urun ekleyin."); return; }
@@ -1150,7 +1250,6 @@ function closeUrgentModal(){ document.getElementById("urgentModal").style.displa
 
 async function openCameraModal(mode){
     let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
-    sayimKameraMode=false;
     currentCameraMode=mode;
     let torchBtn=document.getElementById('torchToggleBtn');
     if(torchBtn) torchBtn.classList.remove('torch-active');
@@ -1201,469 +1300,6 @@ async function openCameraModal(mode){
         setTimeout(()=>closeCameraModal(),2000);
     }
 }
-async function openSayimKamera(){
-    let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
-    sayimKameraMode=true;
-    currentCameraMode='sayim';
-    let torchBtn=document.getElementById('torchToggleBtn');
-    if(torchBtn) torchBtn.classList.remove('torch-active');
-    document.getElementById("stokSayimModal").style.display="none";
-    modal.style.display="flex";
-    status.innerHTML='<i class="fa-solid fa-barcode" style="margin-right:6px"></i>SAYIM - BARKODU CERCEVEYE GETIR...';
-    try{
-        if(currentStopScan){ currentStopScan(); currentStopScan=null; }
-        if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-        let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment", width:{ideal:1280}, height:{ideal:720}}});
-        video.srcObject=stream;
-        currentStream=stream;
-        currentVideoTrack=stream.getVideoTracks()[0]||null;
-        await video.play();
-        forceContinuousFocus(currentVideoTrack);
-        attachTapToFocus(video, ()=>currentVideoTrack);
-        status.innerHTML='<i class="fa-solid fa-barcode" style="margin-right:6px"></i>SAYIM: BARKODU CERCEVEYE GETIR (odaklamak icin ekrana dokun)...';
-        let detected=false, scanCounts={};
-        currentStopScan = await startBarcodeScan(video, code=>{
-            if(detected) return;
-            if(!code||code.length<4) return;
-            if(!isValidChecksum(code)) return;
-            scanCounts[code]=(scanCounts[code]||0)+1;
-            status.innerHTML=`<i class="fa-solid fa-eye" style="margin-right:6px"></i>OKUNUYOR (${scanCounts[code]}/2)...`;
-            if(scanCounts[code]<2) return;
-            detected=true;
-            playBeep();
-            if(currentStopScan){ currentStopScan(); currentStopScan=null; }
-            if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-            modal.style.display="none";
-            document.getElementById("stokSayimModal").style.display="flex";
-            let p=findByBarcode(code);
-            let nm=p?p.name:("Bilinmeyen: "+code);
-            let mev=sayimBarkodMap[code]||0;
-            let girilen=prompt(`📦 ${nm}\nSistem stogu: ${p?p.quantity:""}${mev>0?"\nOnceki sayim: "+mev:""}\n\nKac adet saydiniz?`,mev>0?String(mev):"1");
-            if(girilen!==null){
-                let adet=parseInt(girilen);
-                if(!isNaN(adet)&&adet>=0){
-                    if(adet===0) delete sayimBarkodMap[code];
-                    else sayimBarkodMap[code]=adet;
-                    renderSayimBarkodListe();
-                    showToast(adet===0?"Listeden cikarildi":`✅ ${nm} → ${adet} adet`);
-                } else showToast("Gecersiz miktar!");
-            }
-            sayimKameraMode=false;
-        });
-    } catch(e){
-        modal.style.display="none";
-        document.getElementById("stokSayimModal").style.display="flex";
-        showToast("Kamera acilamadi!");
-        sayimKameraMode=false;
-    }
-}
 function closeCameraModal(){
     if(currentStopScan){ currentStopScan(); currentStopScan=null; }
-    if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-    currentVideoTrack=null;
-    document.getElementById("cameraModal").style.display="none";
-    if(sayimKameraMode){
-        document.getElementById("stokSayimModal").style.display="flex";
-        sayimKameraMode=false;
-    }
-}
-function openStokSayimModal(){ sayimBarkodMap={}; setSayimMod('liste'); document.getElementById("stokSayimModal").style.display="flex"; }
-function closeStokSayimModal(){ document.getElementById("stokSayimModal").style.display="none"; }
-function setSayimMod(mod){
-    sayimMod=mod;
-    document.getElementById('sayimModListeBtn').style.background=mod==='liste'?'linear-gradient(135deg,#3b82f6,#2563eb)':'rgba(255,255,255,0.06)';
-    document.getElementById('sayimModBarkodBtn').style.background=mod==='barkod'?'linear-gradient(135deg,#3b82f6,#2563eb)':'rgba(255,255,255,0.06)';
-    document.getElementById('sayimListeContainer').style.display=mod==='liste'?'block':'none';
-    document.getElementById('sayimBarkodContainer').style.display=mod==='barkod'?'block':'none';
-    if(mod==='liste') renderSayimListe();
-    else renderSayimBarkodListe();
-}
-function renderSayimListe(){
-    let s=(document.getElementById('sayimSearchInput')?.value||'').toLowerCase();
-    let f=products.filter(p=>!s||p.name.toLowerCase().includes(s)||p.barcode.includes(s));
-    let sorted=[...f].sort((a,b)=>a.name.localeCompare(b.name));
-    let c=document.getElementById('sayimListeItems');
-    if(!sorted.length){
-        c.innerHTML='<div style="color:var(--text-secondary);text-align:center;padding:16px"><i class="fa-solid fa-inbox" style="font-size:1.5rem;margin-bottom:6px;display:block;opacity:0.5"></i>Urun bulunamadi</div>';
-        return;
-    }
-    c.innerHTML=sorted.map(p=>{
-        let preset=p.quantity===0?'value="1"':'';
-        let diffInit=p.quantity===0?'<span class="sayim-diff-pos">+1</span>':'<span class="sayim-diff-zero">—</span>';
-        return `<div class="sayim-item"><div class="sayim-name">${escapeHtml(p.name)}</div><div class="sayim-mevcut">Su an: ${p.quantity}</div><input type="number" class="sayim-input" id="sayim_${p.barcode}" placeholder="—" min="0" ${preset} oninput="updateSayimDiff('${p.barcode}',${p.quantity})"><span id="sayimdiff_${p.barcode}" class="${p.quantity===0?'sayim-diff-pos':'sayim-diff-zero'}">${p.quantity===0?'+1':'—'}</span></div>`;
-    }).join('');
-}
-function updateSayimDiff(bc,mev){
-    let inp=document.getElementById('sayim_'+bc),del=document.getElementById('sayimdiff_'+bc);
-    if(!inp||!del) return;
-    let v=parseInt(inp.value);
-    if(isNaN(v)){ del.innerText='—'; del.className='sayim-diff-zero'; return; }
-    let d=v-mev;
-    if(d>0){ del.innerText='+'+d; del.className='sayim-diff-pos'; }
-    else if(d<0){ del.innerText=String(d); del.className='sayim-diff-neg'; }
-    else { del.innerText='✓'; del.className='sayim-diff-zero'; }
-}
-async function saveSayimListe(){
-    let cnt=0;
-    products.forEach(p=>{
-        let inp=document.getElementById('sayim_'+p.barcode);
-        if(inp && inp.value!==''){
-            let v=parseInt(inp.value);
-            if(!isNaN(v)){ p.quantity=v; cnt++; }
-        }
-    });
-    if(!cnt){ showToast('Hic miktar girilmedi!'); return; }
-    await saveProducts();
-    await updateUI();
-    showToast('✅ '+cnt+' urun guncellendi');
-    closeStokSayimModal();
-}
-function resetSayimInputs(){
-    products.forEach(p=>{
-        let i=document.getElementById('sayim_'+p.barcode);
-        if(i) i.value='';
-        let d=document.getElementById('sayimdiff_'+p.barcode);
-        if(d){ d.innerText='—'; d.className='sayim-diff-zero'; }
-    });
-}
-function renderSayimBarkodListe(){
-    let c=document.getElementById('sayimBarkodListesi');
-    let keys=Object.keys(sayimBarkodMap);
-    if(!keys.length){
-        c.innerHTML='<div style="color:var(--text-secondary);text-align:center;padding:16px"><i class="fa-solid fa-barcode" style="font-size:1.5rem;margin-bottom:6px;display:block;opacity:0.5"></i>Henuz urun taranmadi</div>';
-        return;
-    }
-    c.innerHTML=keys.map(bc=>{
-        let p=products.find(x=>x.barcode===bc), nm=p?p.name:bc, mev=p?p.quantity:0, say=sayimBarkodMap[bc], d=say-mev;
-        let dh=d>0?`<span class="sayim-diff-pos">+${d}</span>`:d<0?`<span class="sayim-diff-neg">${d}</span>`:`<span class="sayim-diff-zero">✓</span>`;
-        return `<div class="sayim-item"><div class="sayim-name">${escapeHtml(nm)}</div><div class="sayim-mevcut">Su an: ${mev}</div><div style="font-weight:900;color:#fdba74;min-width:32px;text-align:center;">${say}x</div>${dh}<button onclick="removeSayimBarkod('${bc}')" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:20px;padding:5px 12px;color:white;font-size:0.75rem;cursor:pointer;"><i class="fa-solid fa-xmark"></i></button></div>`;
-    }).join('');
-}
-function removeSayimBarkod(bc){ delete sayimBarkodMap[bc]; renderSayimBarkodListe(); }
-function clearSayimBarkod(){
-    if(confirm('Sayim listesi temizlensin mi?')){ sayimBarkodMap={}; renderSayimBarkodListe(); }
-}
-async function saveSayimBarkod(){
-    let keys=Object.keys(sayimBarkodMap);
-    if(!keys.length){ showToast('Hic urun taranmadi!'); return; }
-    let cnt=0;
-    keys.forEach(bc=>{
-        let p=products.find(x=>x.barcode===bc);
-        if(p){ p.quantity=sayimBarkodMap[bc]; cnt++; }
-    });
-    await saveProducts();
-    await updateUI();
-    showToast('✅ '+cnt+' urun stogu guncellendi');
-    sayimBarkodMap={};
-    closeStokSayimModal();
-}
-
-function showAddFormForBarcode(barcode){
-    let c=document.getElementById("addFormContainer");
-    c.classList.remove("hidden");
-    c.innerHTML=`<div style="background:linear-gradient(145deg,rgba(30,41,59,0.9),rgba(15,23,42,0.95));padding:24px;border-radius:40px;margin-top:12px;border:1px solid rgba(255,255,255,0.06);box-shadow:0 20px 40px rgba(0,0,0,0.3);"><strong style="color:white;display:block;margin-bottom:12px;font-size:1.1rem;"><i class="fa-solid fa-plus" style="margin-right:8px;color:#3b82f6"></i>YENI URUN</strong><input id="addBarcode" value="${barcode}" placeholder="Barkod"><input id="addName" placeholder="Urun adi (max 35)" maxlength="35"><input id="addPrice" placeholder="Fiyat (€) — 549 → 5.49 otomatik"><input id="addCost" placeholder="Maliyet (€) — 349 → 3.49 otomatik"><div id="addProfitBox" class="profit-box"><div class="profit-suggested">Maliyet girilirse fiyat onerilir</div></div><select id="addCategory"><option selected>Dolap Urunleri</option><option>Kuru Gida</option></select><input id="addQuantity" placeholder="Stok" value="1" type="number"><input id="addExpiry" type="date"><div class="image-buttons-group"><button onclick="openGoogleSearchForAdd()" style="background:linear-gradient(135deg,#10b981,#059669);flex:unset;width:100%;"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i>INTERNET'TEN GORSEL ARA</button></div><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>GALERI</button><button onclick="captureImageForAdd('camera')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>KAMERA</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProduct()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button><button class="btn-cancel" onclick="closeAddForm()">IPTAL</button></div></div>`;
-    setupPriceFields('addCost','addPrice','addProfitBox');
-}
-async function saveNewProduct(){
-    let barcode=normBarcode(document.getElementById("addBarcode").value),
-        name=document.getElementById("addName").value.trim().toUpperCase(),
-        price=parseFloat(document.getElementById("addPrice").value),
-        cost=parseFloat(document.getElementById("addCost").value)||null,
-        category=document.getElementById("addCategory").value,
-        quantity=parseInt(document.getElementById("addQuantity").value)||1,
-        expiry=document.getElementById("addExpiry").value;
-    if(!name||!barcode||isNaN(price)){ showToast("Eksik bilgi!"); return; }
-    let existing=findIdxByBarcode(barcode);
-    if(existing!==-1 && confirm("Barkod var, uzerine yazilsin mi?"))
-        products[existing]={...products[existing], barcode, name, price, cost, category, quantity, expiry, image:tempImageData||products[existing].image};
-    else
-        products.push({barcode, name, price, cost, category, quantity, expiry, image:tempImageData, id:Date.now()});
-    await saveProducts();
-    tempImageData=null;
-    closeAddForm();
-    showToast("Urun kaydedildi!");
-    await updateUI();
-}
-function closeAddForm(){
-    document.getElementById("addFormContainer").classList.add("hidden");
-    document.getElementById("addFormContainer").innerHTML="";
-    tempImageData=null;
-}
-async function captureImageForAdd(source){
-    let input=document.createElement("input");
-    input.type="file";
-    input.accept="image/*";
-    if(source==='camera') input.capture="environment";
-    input.onchange=async(e)=>{
-        let file=e.target.files[0];
-        if(file){
-            let reader=new FileReader();
-            reader.onload=async(ev)=>{
-                tempImageData=await compressImage(ev.target.result);
-                showToast("Resim hazir!");
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-    input.click();
-}
-function openGoogleSearchForAdd(){
-    let name=(document.getElementById("addName")?.value||'').trim();
-    if(name) window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank');
-    else showToast("Once urun adi girin!");
-}
-
-function showResult(p){
-    if(!p) return;
-    lastScannedProduct=p;
-    let idx=products.findIndex(pr=>pr.id===p.id);
-    document.getElementById("resultArea").innerHTML=`
-        <button class="close-result-btn" onclick="clearResult()"><i class="fa-solid fa-xmark"></i></button>
-        ${p.image?`<img src="${p.image}" class="product-image" onerror="this.style.display='none';">`:'<div style="color:var(--text-secondary);font-size:3rem;padding:10px;"><i class="fa-regular fa-image"></i><div style="font-size:0.9rem;margin-top:6px;">RESIM YOK</div></div>'}
-        <div class="result-name">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)}</div>
-        <div class="result-price">${p.price.toFixed(2)} €</div>
-        <div style="color:var(--text-secondary);font-size:0.9rem;font-weight:500;">STOK: ${p.quantity} | SKT: ${p.expiry||"YOK"}</div>
-        <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-            <button class="btn-primary btn" onclick="showInlineEdit()" style="background:linear-gradient(135deg,#ef4444,#dc2626);padding:10px 14px;font-size:0.75rem;"><i class="fa-solid fa-pen" style="margin-right:4px"></i>DUZENLE</button>
-            <button class="btn-primary btn" onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);padding:10px 14px;font-size:0.75rem;"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>SATILDI</button>
-            <button class="result-image-btn" onclick="addImageToResult('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>RESIM</button>
-            <button class="result-image-btn" onclick="addImageToResult('camera')" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>KAMERA</button>
-            <button class="result-image-btn" onclick="openGoogleSearchForResult()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>INTERNET</button>
-        </div>
-    `;
-}
-function clearResult(){
-    document.getElementById("resultArea").innerHTML=`<div class="result-placeholder"><i class="fa-solid fa-camera" style="margin-right:8px"></i>BARKOD OKUTUN</div>`;
-    lastScannedProduct=null;
-}
-function closeResultAndOpenDetail(idx){ clearResult(); openProductDetailModal(idx); }
-function showInlineEdit(){
-    let p=lastScannedProduct;
-    document.getElementById("resultArea").innerHTML=`<button class="close-result-btn" onclick="clearResult()"><i class="fa-solid fa-xmark"></i></button><div style="padding:8px;"><input id="editName" value="${escapeHtml(p.name)}" maxlength="35" placeholder="Urun adi"><input id="editBarcode" value="${p.barcode}" placeholder="Barkod"><input id="editPrice" value="${p.price}" placeholder="Fiyat"><input id="editCost" value="${p.cost||''}" placeholder="Maliyet"><div id="inlineProfitBox" class="profit-box"></div><select id="editCategory">${p.category=="Dolap Urunleri"?"<option selected>Dolap Urunleri</option><option>Kuru Gida</option>":"<option>Dolap Urunleri</option><option selected>Kuru Gida</option>"}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}" type="number" placeholder="Stok"><input id="editExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveInlineEdit()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button><button class="btn-cancel" onclick="showResult(lastScannedProduct)">IPTAL</button></div></div>`;
-    setupPriceFields('editCost','editPrice','inlineProfitBox');
-}
-async function saveInlineEdit(){
-    let idx=findIdxByBarcode(lastScannedProduct.barcode);
-    if(idx===-1) idx=products.findIndex(p=>p.id===lastScannedProduct.id);
-    if(idx!==-1){
-        products[idx].name=document.getElementById("editName").value.trim().toUpperCase();
-        products[idx].barcode=normBarcode(document.getElementById("editBarcode").value);
-        products[idx].price=parseFloat(document.getElementById("editPrice").value);
-        products[idx].cost=parseFloat(document.getElementById("editCost").value)||null;
-        products[idx].category=document.getElementById("editCategory").value;
-        let _q=parseInt(document.getElementById("editQuantity").value);
-        if(isNaN(_q)||_q<=0)_q=1;
-        products[idx].quantity=_q;
-        products[idx].expiry=document.getElementById("editExpiry").value;
-        await saveProducts();
-        await updateUI();
-        showResult(products[idx]);
-        playBeep();
-    }
-}
-function openManualAddModal(){
-    let container=document.getElementById("manualAddFormContainer");
-    container.innerHTML=`<div><input id="manualAddBarcode" placeholder="Barkod (manuel gir)"><input id="manualAddName" placeholder="Urun adi (max 35)" maxlength="35"><input id="manualAddPrice" placeholder="Fiyat (€) — 549 → 5.49 otomatik"><input id="manualAddCost" placeholder="Maliyet (€) — 349 → 3.49 otomatik"><div id="manualAddProfitBox" class="profit-box"></div><select id="manualAddCategory"><option selected>Dolap Urunleri</option><option>Kuru Gida</option></select><input id="manualAddQuantity" placeholder="Stok" value="1" type="number"><input id="manualAddExpiry" type="date"><div class="image-buttons-group"><button onclick="openGoogleSearchForManualAdd()" style="background:linear-gradient(135deg,#10b981,#059669);flex:unset;width:100%;"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i>INTERNET'TEN GORSEL ARA</button></div><div class="image-buttons-group"><button onclick="captureImageForManualAdd('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>GALERI</button><button onclick="captureImageForManualAdd('camera')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>KAMERA</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProductFromModal()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>KAYDET</button><button class="btn-cancel" onclick="closeManualAddModal()">IPTAL</button></div></div>`;
-    setupPriceFields('manualAddCost','manualAddPrice','manualAddProfitBox');
-    document.getElementById("manualAddModal").style.display="flex";
-}
-function closeManualAddModal(){
-    document.getElementById("manualAddModal").style.display="none";
-    document.getElementById("manualAddFormContainer").innerHTML="";
-    tempImageData=null;
-}
-async function saveNewProductFromModal(){
-    let barcode=normBarcode(document.getElementById("manualAddBarcode").value),
-        name=document.getElementById("manualAddName").value.trim().toUpperCase(),
-        price=parseFloat(document.getElementById("manualAddPrice").value),
-        cost=parseFloat(document.getElementById("manualAddCost").value)||null,
-        category=document.getElementById("manualAddCategory").value,
-        quantity=parseInt(document.getElementById("manualAddQuantity").value)||1,
-        expiry=document.getElementById("manualAddExpiry").value;
-    if(!name||!barcode||isNaN(price)){ showToast("Eksik bilgi!"); return; }
-    let existing=findIdxByBarcode(barcode);
-    if(existing!==-1 && confirm("Barkod var, uzerine yazilsin mi?"))
-        products[existing]={...products[existing], barcode, name, price, cost, category, quantity, expiry, image:tempImageData||products[existing].image};
-    else
-        products.push({barcode, name, price, cost, category, quantity, expiry, image:tempImageData, id:Date.now()});
-    await saveProducts();
-    tempImageData=null;
-    closeManualAddModal();
-    showToast(`Urun kaydedildi: ${name}`);
-    await updateUI();
-}
-function openGoogleSearchForManualAdd(){
-    let name=(document.getElementById("manualAddName")?.value||'').trim();
-    if(name) window.open(`https://www.google.com/search?q=${encodeURIComponent(name)}&tbm=isch`,'_blank');
-    else showToast("Once urun adi girin!");
-}
-async function captureImageForManualAdd(source){
-    let input=document.createElement("input");
-    input.type="file";
-    input.accept="image/*";
-    if(source==='camera') input.capture="environment";
-    input.onchange=async(e)=>{
-        let file=e.target.files[0];
-        if(file){
-            let reader=new FileReader();
-            reader.onload=async(ev)=>{
-                tempImageData=await compressImage(ev.target.result);
-                showToast("Resim hazir!");
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-    input.click();
-}
-function openDrawer(){
-    document.getElementById("drawer").style.left="0";
-    document.getElementById("drawerOverlay").style.display="block";
-}
-function closeDrawer(){
-    document.getElementById("drawer").style.left="-255px";
-    document.getElementById("drawerOverlay").style.display="none";
-}
-
-async function backupData(){
-    try{
-        const backup={products:products, printQueue:printQueue, tarih:new Date().toISOString()};
-        const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
-        const a=document.createElement("a");
-        a.href=URL.createObjectURL(blob);
-        const now=new Date();
-        const stamp=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+'_'+String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0');
-        a.download=`MarketPro_Yedek_${stamp}.json`;
-        a.click();
-        setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-        showToast("Yedek telefona indirildi");
-    }catch(e){ showToast("Yedek alinamadi"); }
-}
-function backupToGoogleDrive(){
-    try{
-        let data={products:products, printQueue:printQueue, tarih:new Date().toISOString()};
-        let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
-        let now=new Date();
-        let stamp=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+'_'+String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0');
-        let fileName=`MarketPro_Yedek_${stamp}.json`;
-        let a=document.createElement("a");
-        a.href=URL.createObjectURL(blob);
-        a.download=fileName;
-        a.click();
-        setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-        showToast("Dosya indirildi. Google Drive'a yuklemek icin: drive.google.com");
-        setTimeout(()=>window.open('https://drive.google.com/drive/my-drive','_blank'),1000);
-    }catch(e){ showToast("Google Drive yedegi basarisiz"); }
-}
-
-async function restoreData(){
-    let input=document.createElement("input");
-    input.type="file";
-    input.accept=".json,application/json";
-    input.onchange=async(e)=>{
-        let file=e.target.files[0];
-        if(!file){ showToast("Dosya secilmedi"); return; }
-        let reader=new FileReader();
-        reader.onload=async(ev)=>{
-            try{
-                let data=JSON.parse(ev.target.result);
-                if(data.products && Array.isArray(data.products)){
-                    if(confirm(`${data.products.length} urun bulundu. Mevcut verilerin uzerine yazilsin mi?`)){
-                        products=data.products;
-                        if(data.printQueue && Array.isArray(data.printQueue)) printQueue=data.printQueue;
-                        await saveProducts();
-                        await loadPrintQueue();
-                        await updateUI();
-                        showToast("Yedek yuklendi!");
-                        playBeep();
-                    }
-                } else {
-                    showToast("Gecersiz yedek dosyasi!");
-                }
-            }catch(err){
-                showToast("Dosya okunamadi!");
-            }
-        };
-        reader.readAsText(file);
-    };
-    input.click();
-}
-
-function exportToCSV(){
-    if(!products.length){ showToast("Envanter bos!"); return; }
-    let csv="\uFEFFBarkod,Urun Adi,Fiyat,Maliyet,Kategori,Stok,SKT\n";
-    for(let p of products){
-        csv+=`${p.barcode},"${p.name.replace(/"/g,'""')}",${p.price},${p.cost||''},${p.category||''},${p.quantity},${p.expiry||''}\n`;
-    }
-    let blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
-    let a=document.createElement("a");
-    a.href=URL.createObjectURL(blob);
-    let now=new Date();
-    let stamp=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
-    a.download=`MarketPro_Rapor_${stamp}.csv`;
-    a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-    showToast("CSV raporu indirildi");
-}
-
-function printReport(){
-    if(!products.length){ showToast("Envanter bos!"); return; }
-    let rows=products.map(p=>{
-        let durum=p.quantity===0?'<span style="color:#ef4444">STOKSUZ</span>':
-                   (p.expiry && Math.ceil((new Date(p.expiry)-new Date())/86400000)<=7?'<span style="color:#f59e0b">ACIL</span>':'<span style="color:#10b981">NORMAL</span>');
-        return `<tr><td style="border:1px solid #ddd;padding:6px;font-size:0.85rem;">${escapeHtml(p.name)}</td><td style="border:1px solid #ddd;padding:6px;text-align:center;font-size:0.85rem;">${p.barcode}</td><td style="border:1px solid #ddd;padding:6px;text-align:right;font-size:0.85rem;">${p.price.toFixed(2)} €</td><td style="border:1px solid #ddd;padding:6px;text-align:center;font-size:0.85rem;">${p.quantity}</td><td style="border:1px solid #ddd;padding:6px;text-align:center;font-size:0.85rem;">${p.expiry||'-'}</td><td style="border:1px solid #ddd;padding:6px;text-align:center;font-size:0.85rem;">${durum}</td></tr>`;
-    }).join('');
-    let html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Envanter Raporu</title><style>body{font-family:system-ui,sans-serif;padding:20px;color:#333}table{width:100%;border-collapse:collapse}th{background:#f1f5f9;padding:8px;border:1px solid #ddd;text-align:left;font-size:0.85rem}h2{margin-bottom:12px}</style></head><body><h2>Market Pro - Envanter Raporu (${new Date().toLocaleDateString('tr-TR')})</h2><table><thead><tr><th>Urun</th><th>Barkod</th><th>Fiyat</th><th>Stok</th><th>SKT</th><th>Durum</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
-    let w=window.open('','_blank');
-    if(!w){ showToast("Pencere engellendi!"); return; }
-    w.document.write(html);
-    w.document.close();
-    showToast("Rapor penceresi acildi");
-}
-
-async function compressAllImages(){
-    if(!products.length){ showToast("Envanter bos!"); return; }
-    let cnt=0;
-    for(let p of products){
-        if(p.image && p.image.length>50000){
-            try{
-                p.image=await compressImage(p.image,300,0.3);
-                cnt++;
-            }catch(e){}
-        }
-    }
-    await saveProducts();
-    showToast(cnt?`${cnt} resim sikistirildi`:"Sikistirilacak resim yok");
-}
-
-// Event listeners and init
-async function initApp(){
-    try {
-        await openIndexedDB();
-        await migrateFromLocalStorage();
-        await loadProducts();
-        await loadPrintQueue();
-    } catch(e) {
-        console.error("Baslangic hatasi:", e);
-        showToast("Baslangic hatasi olustu, konsolu kontrol edin");
-    }
-
-    document.getElementById('searchBtn').addEventListener('click', () => openCameraModal('search'));
-    document.getElementById('addBtn').addEventListener('click', () => openCameraModal('add'));
-    document.getElementById('productSearchBtn').addEventListener('click', openInventoryModal);
-    document.getElementById('manualAddBtn').addEventListener('click', openManualAddModal);
-    document.getElementById('closeCameraModalBtn').addEventListener('click', closeCameraModal);
-
-    setInterval(() => {
-        let now = new Date();
-        document.getElementById('clockTime').innerText = now.toLocaleTimeString('tr-TR', {hour12:false});
-        document.getElementById('clockDate').innerText = now.toLocaleDateString('tr-TR', {day:'2-digit', month:'2-digit'});
-    }, 1000);
-}
-if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
-}
-</script>
-</body>
-</html>
+    if(currentStream){ currentStream.getTracks().forEach(t=>t.stop(
