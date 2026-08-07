@@ -493,6 +493,17 @@ const PHRASE_DICT = [
     ["urun stogu guncellendi", "Produktbestände aktualisiert", "product stocks updated"],
     ["SKT GUNCELLENDI!", "MHD AKTUALISIERT!", "EXPIRY UPDATED!"],
     ["urunun tarihi guncellendi", "Produktdaten aktualisiert", "products' dates updated"],
+    ["urunun suresi gecti", "Produkte sind abgelaufen", "products have expired"],
+    ["urun 7 gun icinde bitiyor", "Produkte laufen innerhalb von 7 Tagen ab", "products expire within 7 days"],
+    ["Detaylar icin dokun", "Fur Details antippen", "Tap for details"],
+    ["SURESI GECTI", "ABGELAUFEN", "EXPIRED"],
+    ["BUGUN BITIYOR", "LAUFT HEUTE AB", "EXPIRES TODAY"],
+    ["YARIN BITIYOR", "LAUFT MORGEN AB", "EXPIRES TOMORROW"],
+    ["gun once bitti", "Tag(e) abgelaufen", "day(s) ago expired"],
+    ["gun kaldi", "Tag(e) verbleibend", "day(s) left"],
+    ["Suresi gecen ya da 7 gun icinde bitecek urun yok. Her sey yolunda!", "Keine abgelaufenen oder in 7 Tagen ablaufenden Produkte. Alles bestens!", "No expired products or products expiring within 7 days. All good!"],
+    ["SURESI GECENLER", "ABGELAUFEN", "EXPIRED"],
+    ["YAKINDA BITENLER", "LAUFT BALD AB", "EXPIRING SOON"],
 ];
 function translateText(str){
     if(currentLang==='tr' || !str) return str;
@@ -561,7 +572,7 @@ const I18N = {
         lblSkt: 'SKT', lblBelirtilmedi: 'BELIRTILMEDI', lblSistem: 'Sistem', lblMevcut: 'Mevcut', lblEnYakinSkt: 'En yakin SKT',
         btnUzat: '+1 GUN UZAT', btnAt: 'SURESI GECTI, AT', btnDuzenle: 'DUZENLE', btnSil: 'SIL', btnSatildi: 'SATILDI',
         btnGaleri: 'GALERI', btnKamera: 'KAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ETIKET LISTESINE EKLE',
-        btnAngebotHazirla: 'ANGEBOT HAZIRLA'
+        btnAngebotHazirla: 'ANGEBOT HAZIRLA', lblEtiket: 'ETIKET'
     },
     de: {
         appSubtitle: 'Bestandsverwaltung', scanPlaceholder: 'BARCODE SCANNEN', btnSearch: 'SUCHEN', btnAdd: 'PRODUKT HINZUFUGEN',
@@ -586,7 +597,7 @@ const I18N = {
         lblSkt: 'MHD', lblBelirtilmedi: 'NICHT ANGEGEBEN', lblSistem: 'System', lblMevcut: 'Vorhanden', lblEnYakinSkt: 'Nächstes MHD',
         btnUzat: '+1 TAG VERLANGERN', btnAt: 'ABGELAUFEN, ENTSORGEN', btnDuzenle: 'BEARBEITEN', btnSil: 'LOSCHEN', btnSatildi: 'VERKAUFT',
         btnGaleri: 'GALERIE', btnKamera: 'KAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ZUR ETIKETTENLISTE HINZUFUGEN',
-        btnAngebotHazirla: 'ANGEBOT ERSTELLEN'
+        btnAngebotHazirla: 'ANGEBOT ERSTELLEN', lblEtiket: 'ETIKETT'
     },
     en: {
         appSubtitle: 'Inventory Management', scanPlaceholder: 'SCAN BARCODE', btnSearch: 'SEARCH', btnAdd: 'ADD PRODUCT',
@@ -611,7 +622,7 @@ const I18N = {
         lblSkt: 'Expiry', lblBelirtilmedi: 'NOT SPECIFIED', lblSistem: 'System', lblMevcut: 'Current', lblEnYakinSkt: 'Nearest expiry',
         btnUzat: '+1 DAY EXTEND', btnAt: 'EXPIRED, DISCARD', btnDuzenle: 'EDIT', btnSil: 'DELETE', btnSatildi: 'SOLD',
         btnGaleri: 'GALLERY', btnKamera: 'CAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ADD TO LABEL LIST',
-        btnAngebotHazirla: 'CREATE OFFER'
+        btnAngebotHazirla: 'CREATE OFFER', lblEtiket: 'LABEL'
     }
 };
 let currentLang = 'tr';
@@ -928,9 +939,9 @@ function expiredTag(p){
     if(!p.expiry) return '';
     let d=Math.ceil((new Date(p.expiry)-new Date())/86400000);
     if(isNaN(d)) return '';
-    if(d<0) return ' <span style="background:#b91c1c;color:white;font-weight:900;font-size:0.7rem;padding:3px 9px;border-radius:10px;margin-left:6px;vertical-align:middle;">SURESI GECTI</span>';
-    if(p.quantity>0 && d===0) return ' <span class="blink-badge" style="background:#dc2626;"><i class="fa-solid fa-bolt"></i> BUGUN BITIYOR</span>';
-    if(p.quantity>0 && d===1) return ' <span class="blink-badge" style="background:#ea580c;"><i class="fa-solid fa-bolt"></i> YARIN BITIYOR</span>';
+    if(d<0) return ' <span style="background:#b91c1c;color:white;font-weight:900;font-size:0.7rem;padding:3px 9px;border-radius:10px;margin-left:6px;vertical-align:middle;">'+translateText('SURESI GECTI')+'</span>';
+    if(p.quantity>0 && d===0) return ' <span class="blink-badge" style="background:#dc2626;"><i class="fa-solid fa-bolt"></i> '+translateText('BUGUN BITIYOR')+'</span>';
+    if(p.quantity>0 && d===1) return ' <span class="blink-badge" style="background:#ea580c;"><i class="fa-solid fa-bolt"></i> '+translateText('YARIN BITIYOR')+'</span>';
     return '';
 }
 function normBarcode(b){ return (b===null||b===undefined)?'':String(b).replace(/\s/g,'').trim(); }
@@ -1124,7 +1135,7 @@ async function updateUI(){
             let parts=[];
             if(expiredCount>0) parts.push(`${expiredCount} urunun suresi gecti`);
             if(soonCount>0) parts.push(`${soonCount} urun 7 gun icinde bitiyor`);
-            bannerText.innerHTML = '⚠️ ' + parts.join(' • ') + '<br><span style="font-weight:600;font-size:0.72rem;opacity:0.85;">Detaylar icin dokun</span>';
+            bannerText.innerHTML = '⚠️ ' + translateText(parts.join(' • ')) + '<br><span style="font-weight:600;font-size:0.72rem;opacity:0.85;">' + translateText('Detaylar icin dokun') + '</span>';
             banner.classList.remove('hidden');
         } else {
             banner.classList.add('hidden');
@@ -1212,7 +1223,7 @@ function renderInventoryList(){
     }
     container.innerHTML=sorted.map((p, index)=>{
         let idx=products.findIndex(pr=>pr.id===p.id),cc=getProductColorClass(p);
-        return `<div class="envanter-item ${cc}" style="animation-delay:${index*0.03}s"><div class="product-name-item" onclick="openProductDetailModal(${idx})">${getCategoryBadge(p.category)}${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-weight:600">(${p.quantity})</span>${expiredTag(p)}</div><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-plus" style="margin-right:3px;font-size:0.6rem"></i>ETIKET</button></div>`;
+        return `<div class="envanter-item ${cc}" style="animation-delay:${index*0.03}s"><div class="product-name-item" onclick="openProductDetailModal(${idx})">${getCategoryBadge(p.category)}${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-weight:600">(${p.quantity})</span>${expiredTag(p)}</div><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-plus" style="margin-right:3px;font-size:0.6rem"></i>${t('lblEtiket')}</button></div>`;
     }).join('');
 }
 function setInventoryFilter(mode){ inventoryFilterMode=mode; renderInventoryList(); }
@@ -1444,7 +1455,7 @@ function renderCompanyList(){
             let label = d<0 ? 'SURESI GECTI!' : formatDateDMY(nearest.expiry);
             nearestHtml=`<div style="font-size:0.72rem;color:${color};font-weight:800;margin-top:3px;"><i class="fa-solid fa-calendar-days" style="margin-right:4px"></i>${t('lblEnYakinSkt')}: ${label}</div>`;
         }
-        return `<div class="company-item" style="animation-delay:${i*0.03}s;align-items:center;" onclick="viewCompanyProducts('${escapeJsString(name)}')">${getCompanyAvatar(name)}<div style="flex:1;min-width:0;"><div class="company-name">${escapeHtml(name)}</div>${nearestHtml}</div><div class="company-count">${count} urun</div><button class="btn-remove-company" onclick="event.stopPropagation();removeCompany('${escapeJsString(name)}')"><i class="fa-solid fa-xmark"></i></button></div>`;
+        return `<div class="company-item" style="animation-delay:${i*0.03}s;align-items:center;" onclick="viewCompanyProducts('${escapeJsString(name)}')">${getCompanyAvatar(name)}<div style="flex:1;min-width:0;"><div class="company-name">${escapeHtml(name)}</div>${nearestHtml}</div><div class="company-count">${count} ${t('countSuffix')}</div><button class="btn-remove-company" onclick="event.stopPropagation();removeCompany('${escapeJsString(name)}')"><i class="fa-solid fa-xmark"></i></button></div>`;
     }).join('');
 }
 
@@ -1652,9 +1663,9 @@ function buildAngebotPrintHTML(size,orientation,p,discountPrice){
 function buildUrgentItemHtml(p, d){
     let cl=getProductColorClass(p);
     let isExpired = d<0;
-    let dayText = isExpired ? `${Math.abs(d)} gun once bitti` : (d===0 ? 'BUGUN BITIYOR' : `${d} gun kaldi`);
+    let dayText = isExpired ? translateText(`${Math.abs(d)} gun once bitti`) : (d===0 ? translateText('BUGUN BITIYOR') : translateText(`${d} gun kaldi`));
     let dayColor = isExpired ? '#7f1d1d' : '#f87171';
-    return `<div class="${cl}" style="border-radius:28px;padding:14px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.05);"><strong style="font-size:1rem;">${escapeHtml(p.name)}</strong><div style="color:var(--text-secondary);margin-top:4px;font-size:0.85rem;">SKT: ${formatDateDMY(p.expiry)} <span style="color:${dayColor};font-weight:800">(${dayText})</span><br>Stok: ${p.quantity}</div></div>`;
+    return `<div class="${cl}" style="border-radius:28px;padding:14px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.05);"><strong style="font-size:1rem;">${escapeHtml(p.name)}</strong><div style="color:var(--text-secondary);margin-top:4px;font-size:0.85rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)} <span style="color:${dayColor};font-weight:800">(${dayText})</span><br>${t('lblStok')}: ${p.quantity}</div></div>`;
 }
 function openUrgentModal(){
     let today=new Date();
@@ -1663,15 +1674,15 @@ function openUrgentModal(){
     let soon = withDays.filter(x=>x.d>=0 && x.d<=7).sort((a,b)=>a.d-b.d);
     let c=document.getElementById("urgentProductList");
     if(!expired.length && !soon.length){
-        c.innerHTML="<div style='text-align:center;padding:20px;color:var(--text-secondary);'><i class='fa-solid fa-check-circle' style='font-size:2rem;margin-bottom:8px;display:block;opacity:0.5'></i>Suresi gecen ya da 7 gun icinde bitecek urun yok. Her sey yolunda!</div>";
+        c.innerHTML="<div style='text-align:center;padding:20px;color:var(--text-secondary);'><i class='fa-solid fa-check-circle' style='font-size:2rem;margin-bottom:8px;display:block;opacity:0.5'></i>"+translateText("Suresi gecen ya da 7 gun icinde bitecek urun yok. Her sey yolunda!")+"</div>";
     } else {
         let html='';
         if(expired.length){
-            html += `<div style="color:#b91c1c;font-weight:900;font-size:0.8rem;letter-spacing:1px;margin:4px 0 10px;text-transform:uppercase;"><i class="fa-solid fa-skull-crossbones" style="margin-right:6px"></i>SURESI GECENLER (${expired.length})</div>`;
+            html += `<div style="color:#b91c1c;font-weight:900;font-size:0.8rem;letter-spacing:1px;margin:4px 0 10px;text-transform:uppercase;"><i class="fa-solid fa-skull-crossbones" style="margin-right:6px"></i>${translateText('SURESI GECENLER')} (${expired.length})</div>`;
             html += expired.map(x=>buildUrgentItemHtml(x.p, x.d)).join('');
         }
         if(soon.length){
-            html += `<div style="color:#d97706;font-weight:900;font-size:0.8rem;letter-spacing:1px;margin:${expired.length?'20px':'4px'} 0 10px;text-transform:uppercase;"><i class="fa-solid fa-clock" style="margin-right:6px"></i>YAKINDA BITENLER (${soon.length})</div>`;
+            html += `<div style="color:#d97706;font-weight:900;font-size:0.8rem;letter-spacing:1px;margin:${expired.length?'20px':'4px'} 0 10px;text-transform:uppercase;"><i class="fa-solid fa-clock" style="margin-right:6px"></i>${translateText('YAKINDA BITENLER')} (${soon.length})</div>`;
             html += soon.map(x=>buildUrgentItemHtml(x.p, x.d)).join('');
         }
         c.innerHTML=html;
