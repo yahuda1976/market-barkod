@@ -95,7 +95,7 @@
         @keyframes checkPop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.15);opacity:1}100%{transform:scale(1);opacity:1}}
         .celebrate-check{animation:checkPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both}
         @keyframes balloonGrow{0%{transform:translate(-50%,-50%) scale(0.2);opacity:0}15%{opacity:1}70%{transform:translate(-50%,-50%) scale(1.08)}85%{transform:translate(-50%,-50%) scale(1.2)}92%{transform:translate(-50%,-50%) scale(1.25)}100%{transform:translate(-50%,-50%) scale(1.7);opacity:0}}
-        .balloon-intro{position:fixed;top:50%;left:50%;z-index:100001;pointer-events:none;animation:balloonGrow 1.3s cubic-bezier(0.34,1.56,0.64,1) both}
+        .balloon-intro{position:fixed;top:50%;left:50%;z-index:100001;pointer-events:none;animation:balloonGrow 2.3s cubic-bezier(0.34,1.56,0.64,1) both}
         .balloon-shape{background:radial-gradient(circle at 35% 30%,#fdba74,#f87171 70%);border-radius:50% 50% 50% 50%/60% 60% 40% 40%;padding:26px 42px;box-shadow:0 10px 40px rgba(248,113,113,0.5);position:relative}
         .balloon-shape::after{content:'';position:absolute;bottom:-13px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:14px solid #f87171}
         .balloon-text{color:white;font-weight:900;font-size:1.3rem;font-family:'Outfit',sans-serif;text-align:center;white-space:nowrap;letter-spacing:0.5px;text-shadow:0 2px 6px rgba(0,0,0,0.25)}
@@ -191,24 +191,26 @@
 <body>
 <div id="drawerOverlay" onclick="closeDrawer()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.7);backdrop-filter:blur(4px);z-index:500;"></div>
 <div id="drawer" style="position:fixed;top:0;left:-255px;width:245px;height:100%;background:linear-gradient(180deg,#f0f9ff,#e0f2fe);z-index:600;transition:left 0.35s cubic-bezier(0.16,1,0.3,1);box-shadow:8px 0 32px rgba(0,0,0,0.15);border-radius:0 32px 32px 0;border-right:1px solid rgba(0,0,0,0.06)">
-    <div style="background:rgba(255,255,255,0.5);padding:52px 24px 24px;border-radius:0 32px 0 0;border-bottom:1px solid rgba(0,0,0,0.06)"><div style="font-size:1.6rem;font-weight:900;color:#fdba74;font-family:'Outfit',sans-serif;letter-spacing:0.5px"><i class="fa-solid fa-basket-shopping" style="margin-right:8px"></i>MARKET PRO</div><div style="font-size:0.75rem;color:var(--text-secondary);margin-top:6px;font-weight:500">Envanter Yonetimi</div></div>
+    <div style="background:rgba(255,255,255,0.5);padding:52px 24px 24px;border-radius:0 32px 0 0;border-bottom:1px solid rgba(0,0,0,0.06)"><div style="font-size:1.6rem;font-weight:900;color:#fdba74;font-family:'Outfit',sans-serif;letter-spacing:0.5px"><i class="fa-solid fa-basket-shopping" style="margin-right:8px"></i>MARKET PRO</div><div style="font-size:0.75rem;color:var(--text-secondary);margin-top:6px;font-weight:500" data-i18n="appSubtitle">Envanter Yonetimi</div></div>
     <div style="padding:16px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:calc(100vh - 140px)">
-        <div class="drawer-group-title"><i class="fa-solid fa-palette" style="margin-right:6px"></i>GORUNUM</div>
+        <div class="drawer-group-title"><i class="fa-solid fa-palette" style="margin-right:6px"></i><span data-i18n="drawerView">GORUNUM</span></div>
         <button class="drawer-btn" id="darkModeBtn" onclick="toggleDarkMode()"><i class="fa-solid fa-moon" style="width:20px;text-align:center"></i> KARANLIK MODA GEC</button>
-        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-clipboard-check" style="margin-right:6px"></i>SAYIM</div>
-        <button class="drawer-btn" onclick="closeDrawer();openSayimModal();"><i class="fa-solid fa-barcode" style="width:20px;text-align:center"></i> STOK SAYIMI YAP</button>
-        <button class="drawer-btn" onclick="closeDrawer();openBulkSktModal();"><i class="fa-solid fa-calendar-days" style="width:20px;text-align:center"></i> TOPLU SKT GUNCELLE</button>
-        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-tags" style="margin-right:6px"></i>ETIKETLER</div>
-        <button class="drawer-btn" onclick="closeDrawer();managePrintQueue();"><i class="fa-solid fa-list-check" style="width:20px;text-align:center"></i> ETIKET LISTESINI YONET</button>
-        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-cloud-arrow-down" style="margin-right:6px"></i>YEDEKLEME</div>
-        <button class="drawer-btn" onclick="closeDrawer();backupData();"><i class="fa-solid fa-download" style="width:20px;text-align:center"></i> TELEFONA YEDEK AL</button>
-        <button class="drawer-btn" onclick="closeDrawer();backupToGoogleDrive();"><i class="fa-brands fa-google-drive" style="width:20px;text-align:center"></i> GOOGLE DRIVE'A YEDEKLE</button>
-        <button class="drawer-btn" onclick="closeDrawer();restoreData();"><i class="fa-solid fa-upload" style="width:20px;text-align:center"></i> YEDEKTEN GERI YUKLE</button>
-        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-chart-pie" style="margin-right:6px"></i>RAPORLAR</div>
-        <button class="drawer-btn" onclick="closeDrawer();exportToCSV();"><i class="fa-solid fa-file-csv" style="width:20px;text-align:center"></i> CSV RAPORU INDIR</button>
-        <button class="drawer-btn" onclick="closeDrawer();printReport();"><i class="fa-solid fa-print" style="width:20px;text-align:center"></i> ENVANTERI YAZDIR</button>
-        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-sliders" style="margin-right:6px"></i>DIGER</div>
-        <button class="drawer-btn" onclick="closeDrawer();compressAllImages();"><i class="fa-solid fa-compress" style="width:20px;text-align:center"></i> RESIMLERI SIKISTIR</button>
+        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-clipboard-check" style="margin-right:6px"></i><span data-i18n="drawerSayim">SAYIM</span></div>
+        <button class="drawer-btn" onclick="closeDrawer();openSayimModal();"><i class="fa-solid fa-barcode" style="width:20px;text-align:center"></i> <span data-i18n="btnSayim">STOK SAYIMI YAP</span></button>
+        <button class="drawer-btn" onclick="closeDrawer();openBulkSktModal();"><i class="fa-solid fa-calendar-days" style="width:20px;text-align:center"></i> <span data-i18n="btnBulkSkt">TOPLU SKT GUNCELLE</span></button>
+        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-tags" style="margin-right:6px"></i><span data-i18n="drawerEtiket">ETIKETLER</span></div>
+        <button class="drawer-btn" onclick="closeDrawer();managePrintQueue();"><i class="fa-solid fa-list-check" style="width:20px;text-align:center"></i> <span data-i18n="btnEtiketYonet">ETIKET LISTESINI YONET</span></button>
+        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-cloud-arrow-down" style="margin-right:6px"></i><span data-i18n="drawerYedek">YEDEKLEME</span></div>
+        <button class="drawer-btn" onclick="closeDrawer();backupData();"><i class="fa-solid fa-download" style="width:20px;text-align:center"></i> <span data-i18n="btnYedekTelefon">TELEFONA YEDEK AL</span></button>
+        <button class="drawer-btn" onclick="closeDrawer();backupToGoogleDrive();"><i class="fa-brands fa-google-drive" style="width:20px;text-align:center"></i> <span data-i18n="btnYedekDrive">GOOGLE DRIVE'A YEDEKLE</span></button>
+        <button class="drawer-btn" onclick="closeDrawer();restoreData();"><i class="fa-solid fa-upload" style="width:20px;text-align:center"></i> <span data-i18n="btnYedekGeri">YEDEKTEN GERI YUKLE</span></button>
+        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-chart-pie" style="margin-right:6px"></i><span data-i18n="drawerRapor">RAPORLAR</span></div>
+        <button class="drawer-btn" onclick="closeDrawer();exportToCSV();"><i class="fa-solid fa-file-csv" style="width:20px;text-align:center"></i> <span data-i18n="btnCsv">CSV RAPORU INDIR</span></button>
+        <button class="drawer-btn" onclick="closeDrawer();printReport();"><i class="fa-solid fa-print" style="width:20px;text-align:center"></i> <span data-i18n="btnYazdir">ENVANTERI YAZDIR</span></button>
+        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-sliders" style="margin-right:6px"></i><span data-i18n="drawerDiger">DIGER</span></div>
+        <button class="drawer-btn" onclick="closeDrawer();compressAllImages();"><i class="fa-solid fa-compress" style="width:20px;text-align:center"></i> <span data-i18n="btnSikistir">RESIMLERI SIKISTIR</span></button>
+        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-language" style="margin-right:6px"></i><span data-i18n="drawerDil">DIL / LANGUAGE</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;"><button class="drawer-btn" style="text-align:center;padding:10px 4px;" onclick="setLanguage('tr')">TR</button><button class="drawer-btn" style="text-align:center;padding:10px 4px;" onclick="setLanguage('de')">DE</button><button class="drawer-btn" style="text-align:center;padding:10px 4px;" onclick="setLanguage('en')">EN</button></div>
     </div>
 </div>
 <div class="app-container">
@@ -221,18 +223,18 @@
         <i class="fa-solid fa-triangle-exclamation" style="color:white;font-size:1.4rem;flex-shrink:0;"></i>
         <div style="color:white;font-weight:800;font-size:0.85rem;line-height:1.35;" id="urgentBannerText"></div>
     </div>
-    <div class="result-area" id="resultArea"><div class="result-placeholder"><i class="fa-solid fa-camera" style="margin-right:8px"></i>BARKOD OKUTUN</div></div>
+    <div class="result-area" id="resultArea"><div class="result-placeholder"><i class="fa-solid fa-camera" style="margin-right:8px"></i><span data-i18n="scanPlaceholder">BARKOD OKUTUN</span></div></div>
     <div class="button-grid">
-        <button class="btn btn-primary" id="searchBtn"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i>SORGULA</button>
-        <button class="btn btn-primary" id="addBtn"><i class="fa-solid fa-plus" style="margin-right:6px"></i>URUN EKLE</button>
+        <button class="btn btn-primary" id="searchBtn"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i><span data-i18n="btnSearch">SORGULA</span></button>
+        <button class="btn btn-primary" id="addBtn"><i class="fa-solid fa-plus" style="margin-right:6px"></i><span data-i18n="btnAdd">URUN EKLE</span></button>
     </div>
     <div class="button-grid">
-        <button class="btn btn-success" id="productSearchBtn"><i class="fa-solid fa-building" style="margin-right:6px"></i>FIRMALAR</button>
-        <button class="btn btn-success" id="manualAddBtn"><i class="fa-solid fa-pen-to-square" style="margin-right:6px"></i>MANUEL EKLE</button>
+        <button class="btn btn-success" id="productSearchBtn"><i class="fa-solid fa-building" style="margin-right:6px"></i><span data-i18n="btnCompanies">FIRMALAR</span></button>
+        <button class="btn btn-success" id="manualAddBtn"><i class="fa-solid fa-pen-to-square" style="margin-right:6px"></i><span data-i18n="btnManualAdd">MANUEL EKLE</span></button>
     </div>
     <div id="addFormContainer" class="hidden"></div>
     <div onclick="openInventoryModal()" class="nav-card">
-        <div class="nav-title"><i class="fa-solid fa-clipboard-list" style="margin-right:8px"></i>ENVANTERI GORUNTULE</div>
+        <div class="nav-title"><i class="fa-solid fa-clipboard-list" style="margin-right:8px"></i><span data-i18n="navInventory">ENVANTERI GORUNTULE</span></div>
         <div id="productCountBadge" class="nav-badge">0 cesit</div>
     </div>
 </div>
@@ -457,6 +459,60 @@ function getCategoryBadge(category){
         ? {icon:'fa-jar',bg:'#3b82f6'}
         : (category==="Kuru Gida" ? {icon:'fa-wheat-awn',bg:'#f59e0b'} : {icon:'fa-box',bg:'#64748b'});
     return `<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:${conf.bg};color:white;font-size:0.62rem;margin-right:6px;flex-shrink:0;vertical-align:middle;">`+`<i class="fa-solid ${conf.icon}"></i></span>`;
+}
+const I18N = {
+    tr: {
+        appSubtitle: 'Envanter Yonetimi', scanPlaceholder: 'BARKOD OKUTUN', btnSearch: 'SORGULA', btnAdd: 'URUN EKLE',
+        btnCompanies: 'FIRMALAR', btnManualAdd: 'MANUEL EKLE', navInventory: 'ENVANTERI GORUNTULE', countSuffix: 'cesit',
+        drawerView: 'GORUNUM', darkOn: 'KARANLIK MODA GEC', darkOff: 'AYDINLIK MODA GEC',
+        drawerSayim: 'SAYIM', btnSayim: 'STOK SAYIMI YAP', btnBulkSkt: 'TOPLU SKT GUNCELLE',
+        drawerEtiket: 'ETIKETLER', btnEtiketYonet: 'ETIKET LISTESINI YONET',
+        drawerYedek: 'YEDEKLEME', btnYedekTelefon: 'TELEFONA YEDEK AL', btnYedekDrive: "GOOGLE DRIVE'A YEDEKLE", btnYedekGeri: 'YEDEKTEN GERI YUKLE',
+        drawerRapor: 'RAPORLAR', btnCsv: 'CSV RAPORU INDIR', btnYazdir: 'ENVANTERI YAZDIR',
+        drawerDiger: 'DIGER', btnSikistir: 'RESIMLERI SIKISTIR', drawerDil: 'DIL / LANGUAGE'
+    },
+    de: {
+        appSubtitle: 'Bestandsverwaltung', scanPlaceholder: 'BARCODE SCANNEN', btnSearch: 'SUCHEN', btnAdd: 'PRODUKT HINZUFUGEN',
+        btnCompanies: 'FIRMEN', btnManualAdd: 'MANUELL HINZUFUGEN', navInventory: 'BESTAND ANZEIGEN', countSuffix: 'Artikel',
+        drawerView: 'ANSICHT', darkOn: 'DUNKLER MODUS', darkOff: 'HELLER MODUS',
+        drawerSayim: 'INVENTUR', btnSayim: 'BESTAND ZAHLEN', btnBulkSkt: 'MHD MASSENUPDATE',
+        drawerEtiket: 'ETIKETTEN', btnEtiketYonet: 'ETIKETTENLISTE VERWALTEN',
+        drawerYedek: 'SICHERUNG', btnYedekTelefon: 'AUF TELEFON SICHERN', btnYedekDrive: 'IN GOOGLE DRIVE SICHERN', btnYedekGeri: 'AUS SICHERUNG WIEDERHERSTELLEN',
+        drawerRapor: 'BERICHTE', btnCsv: 'CSV-BERICHT HERUNTERLADEN', btnYazdir: 'BESTAND DRUCKEN',
+        drawerDiger: 'WEITERES', btnSikistir: 'BILDER KOMPRIMIEREN', drawerDil: 'SPRACHE / DIL'
+    },
+    en: {
+        appSubtitle: 'Inventory Management', scanPlaceholder: 'SCAN BARCODE', btnSearch: 'SEARCH', btnAdd: 'ADD PRODUCT',
+        btnCompanies: 'COMPANIES', btnManualAdd: 'MANUAL ADD', navInventory: 'VIEW INVENTORY', countSuffix: 'items',
+        drawerView: 'APPEARANCE', darkOn: 'SWITCH TO DARK MODE', darkOff: 'SWITCH TO LIGHT MODE',
+        drawerSayim: 'STOCKTAKE', btnSayim: 'DO STOCKTAKE', btnBulkSkt: 'BULK EXPIRY UPDATE',
+        drawerEtiket: 'LABELS', btnEtiketYonet: 'MANAGE LABEL LIST',
+        drawerYedek: 'BACKUP', btnYedekTelefon: 'BACKUP TO PHONE', btnYedekDrive: 'BACKUP TO GOOGLE DRIVE', btnYedekGeri: 'RESTORE FROM BACKUP',
+        drawerRapor: 'REPORTS', btnCsv: 'DOWNLOAD CSV REPORT', btnYazdir: 'PRINT INVENTORY',
+        drawerDiger: 'OTHER', btnSikistir: 'COMPRESS IMAGES', drawerDil: 'LANGUAGE / DIL'
+    }
+};
+let currentLang = 'tr';
+function applyLanguage(lang){
+    currentLang = lang;
+    let dict = I18N[lang] || I18N.tr;
+    document.querySelectorAll('[data-i18n]').forEach(el=>{
+        let key = el.getAttribute('data-i18n');
+        if(dict[key]) el.textContent = dict[key];
+    });
+    updateDarkModeButtonLabel();
+    let badge=document.getElementById('productCountBadge');
+    if(badge) badge.innerText = products.length + ' ' + dict.countSuffix;
+}
+function setLanguage(lang){
+    try{ localStorage.setItem('marketpro_lang', lang); }catch(e){}
+    applyLanguage(lang);
+    showToast(lang==='tr' ? 'Dil: Turkce' : (lang==='de' ? 'Sprache: Deutsch' : 'Language: English'));
+}
+function loadLanguagePreference(){
+    let saved='tr';
+    try{ saved = localStorage.getItem('marketpro_lang') || 'tr'; }catch(e){}
+    applyLanguage(saved);
 }
 function playBeep() {
     try {
@@ -931,7 +987,7 @@ async function updateUI(){
     let soonCount = withDays.filter(d=>d>=0&&d<=7).length;
     let urgentBadge=document.getElementById('urgentCount');
     if(urgentBadge) urgentBadge.innerText=soonCount; 
-    document.getElementById('productCountBadge').innerText=products.length+' cesit'; 
+    document.getElementById('productCountBadge').innerText=products.length+' '+((I18N[currentLang]||I18N.tr).countSuffix); 
 
     let banner=document.getElementById('urgentBanner');
     let bannerText=document.getElementById('urgentBannerText');
@@ -1630,8 +1686,8 @@ function showBalloonIntro(){
     el.className='balloon-intro';
     el.innerHTML=`<div class="balloon-shape"><div class="balloon-text">TOKAS MARKET</div></div>`;
     document.body.appendChild(el);
-    setTimeout(()=>{ fireConfetti(); }, 1050);
-    setTimeout(()=>{ el.remove(); }, 1400);
+    setTimeout(()=>{ fireConfetti(); }, 1850);
+    setTimeout(()=>{ el.remove(); }, 2300);
 }
 function showCelebration(title, subtitle){
     fireConfetti();
@@ -2051,9 +2107,10 @@ function updateDarkModeButtonLabel(){
     let btn = document.getElementById('darkModeBtn');
     if(!btn) return;
     let isDark = document.body.classList.contains('dark-mode');
+    let dict = I18N[currentLang] || I18N.tr;
     btn.innerHTML = isDark
-        ? '<i class="fa-solid fa-sun" style="width:20px;text-align:center"></i> AYDINLIK MODA GEC'
-        : '<i class="fa-solid fa-moon" style="width:20px;text-align:center"></i> KARANLIK MODA GEC';
+        ? `<i class="fa-solid fa-sun" style="width:20px;text-align:center"></i> ${dict.darkOff}`
+        : `<i class="fa-solid fa-moon" style="width:20px;text-align:center"></i> ${dict.darkOn}`;
 }
 function toggleDarkMode(){
     document.body.classList.toggle('dark-mode');
@@ -2064,6 +2121,7 @@ function toggleDarkMode(){
 }
 applyDarkModePreference();
 updateDarkModeButtonLabel();
+loadLanguagePreference();
 function openDrawer(){
     document.getElementById("drawer").style.left="0";
     document.getElementById("drawerOverlay").style.display="block";
