@@ -500,6 +500,8 @@ const PHRASE_DICT = [
     ["Fener acilamadi", "Taschenlampe konnte nicht aktiviert werden", "Could not turn on flashlight"],
     ["Gecersiz barkod", "Ungültiger Barcode", "Invalid barcode"],
     ["eklendi", "hinzugefügt", "added"],
+    ["resim sikistirildi", "Bilder komprimiert", "images compressed"],
+    ["Sikistirilacak resim yok", "Keine Bilder zum Komprimieren", "No images to compress"],
     ["SAYIM TAMAMLANDI!", "INVENTUR ABGESCHLOSSEN!", "STOCKTAKE COMPLETE!"],
     ["urun stogu guncellendi", "Produktbestände aktualisiert", "product stocks updated"],
     ["SKT GUNCELLENDI!", "MHD AKTUALISIERT!", "EXPIRY UPDATED!"],
@@ -1295,7 +1297,7 @@ function setInventoryFilter(mode){ inventoryFilterMode=mode; renderInventoryList
 function openProductDetailModal(idx){
     let p=products[idx];currentEditingProductId=idx;let color=getProductColorClass(p);
     let modal=document.getElementById("productDetailModal"),content=document.getElementById("productDetailContent");
-    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>${t('titleUrunDetayi')}</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>${t('btnKapat')}</button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<div style="color:#475569;margin-top:6px;font-size:0.9rem;line-height:1.6;">${t('lblBarkod')}: ${p.barcode}<br>${t('lblFirma')}: <span style="font-weight:700">${p.company?escapeHtml(p.company):t('lblBelirtilmedi')}</span><br>${t('lblFiyat')}: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>${t('lblStok')}: <span style="font-weight:700">${p.quantity}</span><br><span style="color:#ef4444;font-weight:900;font-size:1.05rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)}</span>${expiredTag(p)}</div></div><div class="detail-actions"><div class="button-row"><button onclick="extendExpiryOneDay()" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);"><i class="fa-solid fa-calendar-plus" style="margin-right:4px"></i>${t('btnUzat')}</button><button onclick="discardProduct()" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);"><i class="fa-solid fa-dumpster" style="margin-right:4px"></i>${t('btnAt')}</button></div><div class="button-row"><button onclick="toggleEditMode()" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fa-solid fa-pen" style="margin-right:4px"></i>${t('btnDuzenle')}</button><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:8px;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button><button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:8px;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button></div><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
+    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>${t('titleUrunDetayi')}</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>${t('btnKapat')}</button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<div style="color:#475569;margin-top:6px;font-size:0.9rem;line-height:1.6;">${t('lblBarkod')}: ${p.barcode}<br>${t('lblFiyat')}: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>${t('lblStok')}: <span style="font-weight:700">${p.quantity}</span><br><span style="color:#ef4444;font-weight:900;font-size:1.05rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)}</span>${expiredTag(p)}</div>${p.company?`<button onclick="closeProductDetailModal();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin-top:10px;background:rgba(30,41,59,0.08);border:1px solid rgba(30,41,59,0.15);border-radius:30px;padding:8px 16px;color:#1e293b;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}</div><div class="detail-actions"><button class="full-width-btn" onclick="toggleEditMode()" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:0;"><i class="fa-solid fa-pen" style="margin-right:6px"></i>${t('btnDuzenle')}</button><div class="button-row"><button onclick="discardProduct()" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);"><i class="fa-solid fa-dumpster" style="margin-right:4px"></i>${t('btnAt')}</button><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:8px;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button><button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:8px;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button></div><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
     modal.style.display="flex";
 }
 function closeProductDetailModal(){
@@ -1305,20 +1307,6 @@ function closeProductDetailModal(){
         returnToUrgentModal=false;
         openUrgentModal();
     }
-}
-async function extendExpiryOneDay(){
-    let idx=currentEditingProductId;
-    let p=products[idx];
-    if(!p) return;
-    if(!p.expiry){ showToast("Bu urunun SKT tarihi yok, once DUZENLE ile tarih ekleyin"); return; }
-    let d=new Date(p.expiry);
-    d.setDate(d.getDate()+1);
-    p.expiry = d.toISOString().slice(0,10);
-    await saveProducts();
-    await updateUI();
-    openProductDetailModal(idx);
-    showToast(`SKT 1 gun uzatildi: ${formatDateDMY(p.expiry)}`);
-    playBeep();
 }
 async function discardProduct(){
     let idx=currentEditingProductId;
@@ -1738,7 +1726,7 @@ function buildUrgentItemHtml(p, d){
     let dayText = isExpired ? translateText(`${Math.abs(d)} gun once bitti`) : (d===0 ? translateText('BUGUN BITIYOR') : translateText(`${d} gun kaldi`));
     let dayColor = isExpired ? '#7f1d1d' : '#f87171';
     let idx = products.findIndex(x=>x.id===p.id);
-    return `<div class="${cl}" style="border-radius:28px;padding:14px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.05);cursor:pointer;" onclick="returnToUrgentModal=true;document.getElementById('urgentModal').style.display='none';openProductDetailModal(${idx})"><strong style="font-size:1rem;">${escapeHtml(p.name)}</strong><div style="color:var(--text-secondary);margin-top:4px;font-size:0.85rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)} <span style="color:${dayColor};font-weight:800">(${dayText})</span><br>${t('lblStok')}: ${p.quantity}</div></div>`;
+    return `<div class="${cl}" style="border-radius:28px;padding:14px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.05);cursor:pointer;" onclick="returnToUrgentModal=true;document.getElementById('urgentModal').style.display='none';openProductDetailModal(${idx})"><strong style="font-size:1rem;">${escapeHtml(p.name)}</strong><div style="color:#475569;margin-top:4px;font-size:0.85rem;font-weight:600;">${t('lblSkt')}: ${formatDateDMY(p.expiry)} <span style="color:${dayColor};font-weight:800">(${dayText})</span><br>${t('lblStok')}: ${p.quantity}</div></div>`;
 }
 function openUrgentModal(){
     let today=new Date();
@@ -2151,33 +2139,21 @@ function showResult(p){
         ${p.image?`<img src="${p.image}" class="product-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}
         <div class="result-name">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)}</div>
         <div class="result-price">${p.price.toFixed(2)} €</div>
-        <div style="color:var(--text-secondary);font-size:0.9rem;font-weight:500;">${t('lblStok').toUpperCase()}: ${p.quantity}${p.company?" | "+t('lblFirma')+": "+escapeHtml(p.company):""}</div>
+        <div style="color:var(--text-secondary);font-size:0.9rem;font-weight:500;">${t('lblStok').toUpperCase()}: ${p.quantity}</div>
         <div style="color:#ef4444;font-size:1.25rem;font-weight:900;margin-top:6px;letter-spacing:0.5px;"><i class="fa-solid fa-calendar-days" style="margin-right:6px"></i>${t('lblSkt')}: ${formatDateDMY(p.expiry)}${expiredTag(p)}</div>
+        ${p.company?`<button onclick="clearResult();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin:10px auto 0;display:block;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.15);border-radius:30px;padding:8px 16px;color:inherit;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}
         <div class="detail-actions" style="margin-top:14px;">
-            <div class="button-row"><button onclick="extendExpiryFromResult()" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);"><i class="fa-solid fa-calendar-plus" style="margin-right:4px"></i>${t('btnUzat')}</button><button onclick="discardFromResult()" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);"><i class="fa-solid fa-dumpster" style="margin-right:4px"></i>${t('btnAt')}</button></div>
-            <div class="button-row"><button onclick="showInlineEdit()" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fa-solid fa-pen" style="margin-right:4px"></i>${t('btnDuzenle')}</button><button onclick="deleteFromResult()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button></div>
+            <button class="full-width-btn" onclick="showInlineEdit()" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:0;"><i class="fa-solid fa-pen" style="margin-right:6px"></i>${t('btnDuzenle')}</button>
+            <div class="button-row"><button onclick="discardFromResult()" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);"><i class="fa-solid fa-dumpster" style="margin-right:4px"></i>${t('btnAt')}</button><button onclick="deleteFromResult()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button></div>
             <div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToResult('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div>
             <div class="button-row"><button onclick="addImageToResult('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForResult()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div>
             <button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button>
             <button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:8px;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button>
+            <button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:8px;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button>
         </div>
     `;
 }
-async function extendExpiryFromResult(){
-    if(!lastScannedProduct) return;
-    let idx=products.findIndex(pr=>pr.id===lastScannedProduct.id);
-    if(idx===-1) return;
-    let p=products[idx];
-    if(!p.expiry){ showToast("Bu urunun SKT tarihi yok, once DUZENLE ile tarih ekleyin"); return; }
-    let d=new Date(p.expiry);
-    d.setDate(d.getDate()+1);
-    p.expiry = d.toISOString().slice(0,10);
-    await saveProducts();
-    await updateUI();
-    showResult(products[idx]);
-    showToast(`SKT 1 gun uzatildi: ${formatDateDMY(p.expiry)}`);
-    playBeep();
-}
+
 async function discardFromResult(){
     if(!lastScannedProduct) return;
     let idx=products.findIndex(pr=>pr.id===lastScannedProduct.id);
@@ -2507,7 +2483,7 @@ async function compressAllImages(){
         }
     }
     await saveProducts();
-    showToast(cnt?`${cnt} resim sikistirildi`:"Sikistirilacak resim yok");
+    showToast(cnt?translateText(`${cnt} resim sikistirildi`):translateText("Sikistirilacak resim yok"));
 }
 
 // Event listeners and init
