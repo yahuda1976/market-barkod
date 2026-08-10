@@ -422,6 +422,7 @@ let currentStream = null, lastScannedProduct = null;
 let currentCameraMode = 'search', currentVideoTrack = null, currentStopScan = null;
 let sayimMap = {}, sayimKameraMode = false;
 let returnToUrgentModal = false;
+let returnToInventoryModal = false;
 let bulkSktList = [], bulkSktKameraMode = false;
 let tempImageData = null, currentEditingProductId = null, angebotProduct = null;
 let currentAngebotSize = 'a4', currentAngebotOrientation = 'portrait';
@@ -1227,7 +1228,7 @@ function openInventoryModal(){
     inventoryFilterMode='all'; 
     companyFilter=null;
     let titleEl=document.getElementById("inventoryModalTitleText");
-    if(titleEl) titleEl.innerHTML='<i class="fa-solid fa-boxes-stacked" style="margin-right:8px"></i>ENVANTER';
+    if(titleEl) titleEl.innerHTML=`<i class="fa-solid fa-boxes-stacked" style="margin-right:8px"></i>${t('titleEnvanter')}`;
     document.getElementById("inventoryModal").style.display="flex"; 
     let inp=document.getElementById("inventorySearchInput"); 
     if(inp){inp.value="";inp.oninput=debounce(()=>renderInventoryList(),150);} 
@@ -1302,7 +1303,7 @@ function renderInventoryList(){
     }
     container.innerHTML=sorted.map((p, index)=>{
         let idx=products.findIndex(pr=>pr.id===p.id),cc=getProductColorClass(p);
-        return `<div class="envanter-item ${cc}" style="animation-delay:${index*0.03}s"><div class="product-name-item" onclick="openProductDetailModal(${idx})">${getCategoryBadge(p.category)}${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-weight:600">(${p.quantity})</span>${expiredTag(p)}</div><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-plus" style="margin-right:3px;font-size:0.6rem"></i>${t('lblEtiket')}</button></div>`;
+        return `<div class="envanter-item ${cc}" style="animation-delay:${index*0.03}s"><div class="product-name-item" onclick="returnToInventoryModal=true;document.getElementById('inventoryModal').style.display='none';openProductDetailModal(${idx})">${getCategoryBadge(p.category)}${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-weight:600">(${p.quantity})</span>${expiredTag(p)}</div><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-plus" style="margin-right:3px;font-size:0.6rem"></i>${t('lblEtiket')}</button></div>`;
     }).join('');
 }
 function setInventoryFilter(mode){ inventoryFilterMode=mode; renderInventoryList(); }
@@ -1319,6 +1320,11 @@ function closeProductDetailModal(){
     if(returnToUrgentModal){
         returnToUrgentModal=false;
         openUrgentModal();
+    }
+    if(returnToInventoryModal){
+        returnToInventoryModal=false;
+        document.getElementById("inventoryModal").style.display="flex";
+        renderInventoryList();
     }
 }
 async function discardProduct(){
