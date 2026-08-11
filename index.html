@@ -522,6 +522,8 @@ const PHRASE_DICT = [
     ["Suresi gecen ya da 7 gun icinde bitecek urun yok. Her sey yolunda!", "Keine abgelaufenen oder in 7 Tagen ablaufenden Produkte. Alles bestens!", "No expired products or products expiring within 7 days. All good!"],
     ["SURESI GECENLER", "ABGELAUFEN", "EXPIRED"],
     ["YAKINDA BITENLER", "LAUFT BALD AB", "EXPIRING SOON"],
+    ["Benzer urunler:", "Ahnliche Produkte:", "Similar products:"],
+    ["BULUNAMADI", "NICHT GEFUNDEN", "NOT FOUND"],
 ];
 function translateText(str){
     if(currentLang==='tr' || !str) return str;
@@ -1821,11 +1823,11 @@ async function openCameraModal(mode){
                         let pb=normBarcode(p.barcode).replace(/^0+/,'');
                         return pref.length>=5 && (pb.startsWith(pref.slice(0,6)) || cn.slice(0,6)===pb.slice(0,6));
                     }).slice(0,5);
-                    let benzerHtml=benzer.length?`<div style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;"><div style="color:#fdba74;font-size:0.8rem;margin-bottom:8px;font-weight:600;"><i class="fa-solid fa-lightbulb" style="margin-right:4px"></i>Benzer urunler:</div>`+benzer.map(p=>{
+                    let benzerHtml=benzer.length?`<div style="margin-top:14px;border-top:1px solid rgba(0,0,0,0.08);padding-top:12px;"><div style="color:#d97706;font-size:0.8rem;margin-bottom:8px;font-weight:700;"><i class="fa-solid fa-lightbulb" style="margin-right:4px"></i>${translateText('Benzer urunler:')}</div>`+benzer.map(p=>{
                         let i=products.findIndex(x=>x.id===p.id);
-                        return `<button onclick="closeResultAndOpenDetail(${i})" style="display:block;width:100%;text-align:left;background:rgba(255,255,255,0.04);border:none;border-radius:30px;padding:10px 14px;color:white;font-size:0.8rem;margin-bottom:6px;cursor:pointer;border:1px solid rgba(255,255,255,0.05);transition:all 0.2s;"><i class="fa-solid fa-box" style="margin-right:6px;opacity:0.6"></i>${escapeHtml(p.name)} <span style="color:var(--text-secondary)">— ${p.barcode}</span></button>`;
+                        return `<button onclick="closeResultAndOpenDetail(${i})" style="display:block;width:100%;text-align:left;background:rgba(255,255,255,0.5);border:none;border-radius:30px;padding:10px 14px;color:var(--text-primary);font-size:0.8rem;font-weight:600;margin-bottom:6px;cursor:pointer;border:1px solid rgba(0,0,0,0.06);transition:all 0.2s;"><i class="fa-solid fa-box" style="margin-right:6px;opacity:0.6"></i>${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-weight:500;">— ${p.barcode}</span></button>`;
                     }).join('')+`</div>`:'';
-                    document.getElementById("resultArea").innerHTML=`<div style="color:white;padding:16px;"><div style="font-size:1.2rem;margin-bottom:8px;"><i class="fa-solid fa-circle-xmark" style="color:#ef4444;margin-right:6px"></i>"${code}" BULUNAMADI</div><button class="btn btn-primary" onclick="showAddFormForBarcode('${code}')" style="margin-top:12px;width:100%;"><i class="fa-solid fa-plus" style="margin-right:6px"></i>EKLE</button>${benzerHtml}</div>`;
+                    document.getElementById("resultArea").innerHTML=`<div style="color:var(--text-primary);padding:16px;"><div style="font-size:1.2rem;margin-bottom:8px;font-weight:700;"><i class="fa-solid fa-circle-xmark" style="color:#ef4444;margin-right:6px"></i>"${code}" ${translateText('BULUNAMADI')}</div><button class="btn btn-primary" onclick="showAddFormForBarcode('${code}')" style="margin-top:12px;width:100%;"><i class="fa-solid fa-plus" style="margin-right:6px"></i>${t('btnAdd')}</button>${benzerHtml}</div>`;
                 }
             } else { playScanSound(null); showAddFormForBarcode(code); }
         });
