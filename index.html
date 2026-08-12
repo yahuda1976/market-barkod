@@ -1795,6 +1795,7 @@ function generateAngebotWithDiscount(size, orientation){
     title.innerHTML=`<i class="fa-solid fa-eye" style="margin-right:8px"></i>${labelMap[size]} ${orientation==='portrait'?'DIKEY':'YATAY'}`;
     let printHTML=buildAngebotPrintHTML(size, orientation, angebotProduct, currentDiscountPrice);
     printHTML=printHTML.replace('<div class="toolbar"><button onclick="window.print()">YAZDIR</button></div>','');
+    printHTML=printHTML.replace(/<script>window\.addEventListener\("load".*?<\/script>/s, '');
     let escaped=printHTML.replace(/"/g,'&quot;');
     let pwMM=210, phMM=297;
     if(size==='a4' && orientation==='landscape'){ pwMM=297; phMM=210; }
