@@ -313,6 +313,7 @@
             <span class="modal-title"><i class="fa-solid fa-truck" style="margin-right:8px"></i><span data-i18n="titleTeslimatGecmisi">TESLIMAT GECMISI</span></span>
             <button class="close-modal-btn" onclick="closeDeliveryHistoryModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i><span data-i18n="btnKapat">KAPAT</span></button>
         </div>
+        <select id="deliveryCompanySelect" style="margin-bottom:12px;"></select>
         <button onclick="logDeliveryToday()" style="width:100%;background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;font-size:1rem;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 12px rgba(16,185,129,0.25);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-circle-plus" style="margin-right:8px"></i><span data-i18n="btnBugunGeldi">BUGUN GELDI</span></button>
         <div id="deliveryHistoryList"></div>
     </div>
@@ -767,6 +768,9 @@ function logCompanyChange(product, newCompany){
 }
 async function openDeliveryHistoryModal(idx){
     currentDeliveryProductIdx = idx;
+    let p = products[idx];
+    let sel = document.getElementById('deliveryCompanySelect');
+    if(sel) sel.innerHTML = buildCompanyOptions(p.company||'');
     renderDeliveryHistoryList();
     document.getElementById('deliveryHistoryModal').style.display='flex';
 }
@@ -790,10 +794,17 @@ async function logDeliveryToday(){
     let idx = currentDeliveryProductIdx;
     let p = products[idx];
     if(!p) return;
+    let sel = document.getElementById('deliveryCompanySelect');
+    let chosenCompany = sel ? sel.value : (p.company||'');
+    if(chosenCompany !== (p.company||'')){
+        logCompanyChange(p, chosenCompany);
+        p.company = chosenCompany;
+    }
     if(!Array.isArray(p.deliveryHistory)) p.deliveryHistory=[];
-    p.deliveryHistory.push({date:new Date().toISOString(), company:p.company||''});
+    p.deliveryHistory.push({date:new Date().toISOString(), company:chosenCompany});
     if(p.deliveryHistory.length>30) p.deliveryHistory=p.deliveryHistory.slice(-30);
     await saveProducts();
+    await updateUI();
     renderDeliveryHistoryList();
     playBeep();
     showToast(translateText('Teslimat kaydedildi: bugun'));
