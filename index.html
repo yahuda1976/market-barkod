@@ -228,7 +228,7 @@
         <i class="fa-solid fa-triangle-exclamation" style="color:white;font-size:1.4rem;flex-shrink:0;"></i>
         <div style="color:white;font-weight:800;font-size:0.85rem;line-height:1.35;" id="urgentBannerText"></div>
     </div>
-    <div class="result-area" id="resultArea"><div class="result-placeholder"><i class="fa-solid fa-camera" style="margin-right:8px"></i><span data-i18n="scanPlaceholder">BARKOD OKUTUN</span></div></div>
+    <div class="result-area" onclick="openCameraModal('search')" style="cursor:pointer;"><div class="result-placeholder"><i class="fa-solid fa-camera" style="margin-right:8px"></i><span data-i18n="scanPlaceholder">BARKOD OKUTUN</span></div></div>
     <div class="button-grid">
         <button class="btn btn-primary" id="searchBtn"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i><span data-i18n="btnSearch">SORGULA</span></button>
         <button class="btn btn-primary" id="addBtn"><i class="fa-solid fa-plus" style="margin-right:6px"></i><span data-i18n="btnAdd">URUN EKLE</span></button>
@@ -237,10 +237,19 @@
         <button class="btn btn-success" id="productSearchBtn"><i class="fa-solid fa-building" style="margin-right:6px"></i><span data-i18n="btnCompanies">FIRMALAR</span></button>
         <button class="btn btn-success" id="manualAddBtn"><i class="fa-solid fa-pen-to-square" style="margin-right:6px"></i><span data-i18n="btnManualAdd">MANUEL EKLE</span></button>
     </div>
-    <div id="addFormContainer" class="hidden"></div>
     <div onclick="openInventoryModal()" class="nav-card">
         <div class="nav-title"><i class="fa-solid fa-clipboard-list" style="margin-right:8px"></i><span data-i18n="navInventory">ENVANTERI GORUNTULE</span></div>
         <div id="productCountBadge" class="nav-badge">0 cesit</div>
+    </div>
+</div>
+<div id="resultModal" class="modal"><div class="modal-content"><div class="result-area" id="resultArea" style="margin:0;"></div></div></div>
+<div id="addFormModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa-solid fa-plus" style="margin-right:8px"></i><span data-i18n="btnAdd">URUN EKLE</span></span>
+            <button class="close-modal-btn" onclick="closeAddForm()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i><span data-i18n="btnKapat">KAPAT</span></button>
+        </div>
+        <div id="addFormContainer"></div>
     </div>
 </div>
 <div id="toast-container"></div>
@@ -1907,7 +1916,8 @@ async function openCameraModal(mode){
                         let i=products.findIndex(x=>x.id===p.id);
                         return `<button onclick="closeResultAndOpenDetail(${i})" style="display:block;width:100%;text-align:left;background:rgba(255,255,255,0.5);border:none;border-radius:30px;padding:10px 14px;color:var(--text-primary);font-size:0.8rem;font-weight:600;margin-bottom:6px;cursor:pointer;border:1px solid rgba(0,0,0,0.06);transition:all 0.2s;"><i class="fa-solid fa-box" style="margin-right:6px;opacity:0.6"></i>${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-weight:500;">— ${p.barcode}</span></button>`;
                     }).join('')+`</div>`:'';
-                    document.getElementById("resultArea").innerHTML=`<div style="color:var(--text-primary);padding:16px;"><div style="font-size:1.2rem;margin-bottom:8px;font-weight:700;"><i class="fa-solid fa-circle-xmark" style="color:#ef4444;margin-right:6px"></i>"${code}" ${translateText('BULUNAMADI')}</div><button class="btn btn-primary" onclick="showAddFormForBarcode('${code}')" style="margin-top:12px;width:100%;"><i class="fa-solid fa-plus" style="margin-right:6px"></i>${t('btnAdd')}</button>${benzerHtml}</div>`;
+                    document.getElementById("resultModal").style.display="flex";
+                    document.getElementById("resultArea").innerHTML=`<div style="color:var(--text-primary);padding:16px;"><button class="close-result-btn" onclick="clearResult()"><i class="fa-solid fa-xmark"></i></button><div style="font-size:1.2rem;margin-bottom:8px;font-weight:700;"><i class="fa-solid fa-circle-xmark" style="color:#ef4444;margin-right:6px"></i>"${code}" ${translateText('BULUNAMADI')}</div><button class="btn btn-primary" onclick="showAddFormForBarcode('${code}')" style="margin-top:12px;width:100%;"><i class="fa-solid fa-plus" style="margin-right:6px"></i>${t('btnAdd')}</button>${benzerHtml}</div>`;
                 }
             } else { playScanSound(null); showAddFormForBarcode(code); }
         });
@@ -2176,8 +2186,9 @@ async function openBulkSktKamera(){
 }
 
 function showAddFormForBarcode(barcode){
+    document.getElementById("resultModal").style.display="none";
+    document.getElementById("addFormModal").style.display="flex";
     let c=document.getElementById("addFormContainer");
-    c.classList.remove("hidden");
     let existing=findByBarcode(barcode);
     let exName=existing?escapeHtml(existing.name):'';
     let exPrice=existing?existing.price:'';
@@ -2187,7 +2198,7 @@ function showAddFormForBarcode(barcode){
     let exCompany=existing?(existing.company||''):'';
     let exCatOptions = (existing&&existing.category==="Kuru Gida")?`<option value="Dolap Urunleri">${t('catDolap')}</option><option value="Kuru Gida" selected>${t('catKuru')}</option>`:`<option value="Dolap Urunleri" selected>${t('catDolap')}</option><option value="Kuru Gida">${t('catKuru')}</option>`;
     let headerText = existing ? `<i class="fa-solid fa-triangle-exclamation" style="margin-right:8px;color:#f59e0b"></i>${t('headerUrunZatenKayitli')}` : `<i class="fa-solid fa-plus" style="margin-right:8px;color:#3b82f6"></i>${t('headerYeniUrun')}`;
-    c.innerHTML=`<div class="add-form-card"><strong style="display:block;margin-bottom:12px;font-size:1.1rem;">${headerText}</strong><input id="addBarcode" value="${barcode}" placeholder="${t('phBarkod')}"><input id="addName" value="${exName}" placeholder="${t('phUrunAdiMax')}" maxlength="35"><select id="addCompany">${buildCompanyOptions(exCompany)}</select><input id="addPrice" value="${exPrice}" placeholder="${t('phFiyatAuto')}"><input id="addCost" value="${exCost}" placeholder="${t('phMaliyetAuto')}"><div id="addProfitBox" class="profit-box" style="display:none"></div><select id="addCategory">${exCatOptions}</select><input id="addQuantity" value="${exQty}" placeholder="${t('phStok')}" type="number"><input id="addExpiry" type="date" value="${exExpiry}"><div class="image-buttons-group"><button onclick="openGoogleSearchForAdd()" style="background:linear-gradient(135deg,#10b981,#059669);flex:unset;width:100%;"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i>${t('btnInternetGorsel')}</button></div><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button><button onclick="captureImageForAdd('camera')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProduct()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>${t('btnKaydet')}</button><button class="btn-cancel" onclick="closeAddForm()">${t('btnIptal')}</button></div></div>`;
+    c.innerHTML=`<div><strong style="display:block;margin-bottom:12px;font-size:1.1rem;">${headerText}</strong><input id="addBarcode" value="${barcode}" placeholder="${t('phBarkod')}"><input id="addName" value="${exName}" placeholder="${t('phUrunAdiMax')}" maxlength="35"><select id="addCompany">${buildCompanyOptions(exCompany)}</select><input id="addPrice" value="${exPrice}" placeholder="${t('phFiyatAuto')}"><input id="addCost" value="${exCost}" placeholder="${t('phMaliyetAuto')}"><div id="addProfitBox" class="profit-box" style="display:none"></div><select id="addCategory">${exCatOptions}</select><input id="addQuantity" value="${exQty}" placeholder="${t('phStok')}" type="number"><input id="addExpiry" type="date" value="${exExpiry}"><div class="image-buttons-group"><button onclick="openGoogleSearchForAdd()" style="background:linear-gradient(135deg,#10b981,#059669);flex:unset;width:100%;"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i>${t('btnInternetGorsel')}</button></div><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button><button onclick="captureImageForAdd('camera')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProduct()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>${t('btnKaydet')}</button><button class="btn-cancel" onclick="closeAddForm()">${t('btnIptal')}</button></div></div>`;
     setupPriceFields('addCost','addPrice','addProfitBox');
 }
 async function saveNewProduct(){
@@ -2215,7 +2226,7 @@ async function saveNewProduct(){
     await updateUI();
 }
 function closeAddForm(){
-    document.getElementById("addFormContainer").classList.add("hidden");
+    document.getElementById("addFormModal").style.display="none";
     document.getElementById("addFormContainer").innerHTML="";
     tempImageData=null;
 }
@@ -2247,6 +2258,7 @@ function showResult(p){
     if(!p) return;
     lastScannedProduct=p;
     let idx=products.findIndex(pr=>pr.id===p.id);
+    document.getElementById("resultModal").style.display="flex";
     document.getElementById("resultArea").innerHTML=`
         <button class="close-result-btn" onclick="clearResult()"><i class="fa-solid fa-xmark"></i></button>
         ${p.image?`<img src="${p.image}" class="product-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}
@@ -2294,7 +2306,8 @@ async function deleteFromResult(){
     }
 }
 function clearResult(){
-    document.getElementById("resultArea").innerHTML=`<div class="result-placeholder"><i class="fa-solid fa-camera" style="margin-right:8px"></i>BARKOD OKUTUN</div>`;
+    document.getElementById("resultModal").style.display="none";
+    document.getElementById("resultArea").innerHTML='';
     lastScannedProduct=null;
 }
 function closeResultAndOpenDetail(idx){ clearResult(); if(idx>=0 && idx<products.length) openProductDetailModal(idx); }
