@@ -313,8 +313,10 @@
             <span class="modal-title"><i class="fa-solid fa-truck" style="margin-right:8px"></i><span data-i18n="titleTeslimatGecmisi">TESLIMAT GECMISI</span></span>
             <button class="close-modal-btn" onclick="closeDeliveryHistoryModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i><span data-i18n="btnKapat">KAPAT</span></button>
         </div>
+        <div style="font-size:0.72rem;color:var(--text-secondary);margin-bottom:10px;font-weight:500;" data-i18n="deliveryExpiryHint">Bu tarih sadece bu teslimatin kaydidir, urunun genel SKT'sini degistirmez.</div>
         <input type="date" id="deliveryExpiryInput" style="margin-bottom:12px;">
         <select id="deliveryCompanySelect" style="margin-bottom:12px;"></select>
+        <input type="number" id="deliveryBoxCountInput" placeholder="Koli adedi" min="0" style="margin-bottom:12px;" data-i18n-ph="phKoliAdedi">
         <button onclick="logDeliveryToday()" style="width:100%;background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;font-size:1rem;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 12px rgba(16,185,129,0.25);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-circle-plus" style="margin-right:8px"></i><span data-i18n="btnBugunGeldi">BUGUN GELDI</span></button>
         <div id="deliveryHistoryList"></div>
     </div>
@@ -552,6 +554,11 @@ const PHRASE_DICT = [
     ["Benzer urunler:", "Ahnliche Produkte:", "Similar products:"],
     ["BULUNAMADI", "NICHT GEFUNDEN", "NOT FOUND"],
     ["Teslimat kaydedildi: bugun", "Lieferung erfasst: heute", "Delivery logged: today"],
+    ["Teslimat kaydi guncellendi", "Lieferdatensatz aktualisiert", "Delivery record updated"],
+    ["Bu teslimat kaydi silinsin mi?", "Diesen Lieferdatensatz loschen?", "Delete this delivery record?"],
+    ["Teslimat kaydi silindi", "Lieferdatensatz geloscht", "Delivery record deleted"],
+    ["Koli adedi", "Kartonanzahl", "Box count"],
+    [" koli", " Kartons", " boxes"],
 ];
 function translateText(str){
     if(currentLang==='tr' || !str) return str;
@@ -620,7 +627,7 @@ const I18N = {
         lblSkt: 'SKT', lblBelirtilmedi: 'BELIRTILMEDI', lblSistem: 'Sistem', lblMevcut: 'Mevcut', lblEnYakinSkt: 'En yakin SKT',
         btnUzat: '+1 GUN UZAT', btnAt: 'SURESI GECTI, AT', btnDuzenle: 'DUZENLE', btnSil: 'SIL', btnSatildi: 'SATILDI',
         btnGaleri: 'GALERI', btnKamera: 'KAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ETIKET LISTESINE EKLE',
-        btnAngebotHazirla: 'ANGEBOT HAZIRLA', lblEtiket: 'ETIKET', titleFiyatGecmisi: 'FIYAT GECMISI', btnFiyatGecmisi: 'FIYAT GECMISI', noPriceHistory: 'Henuz fiyat degisikligi yok', titleFirmaGecmisi: 'FIRMA GECMISI', btnFirmaGecmisi: 'FIRMA GECMISI', noCompanyHistory: 'Henuz firma degisikligi yok', titleTeslimatGecmisi: 'TESLIMAT GECMISI', btnTeslimatGecmisi: 'TESLIMAT GECMISI', btnBugunGeldi: 'BUGUN GELDI', noDeliveryHistory: 'Henuz teslimat kaydi yok',
+        btnAngebotHazirla: 'ANGEBOT HAZIRLA', lblEtiket: 'ETIKET', titleFiyatGecmisi: 'FIYAT GECMISI', btnFiyatGecmisi: 'FIYAT GECMISI', noPriceHistory: 'Henuz fiyat degisikligi yok', titleFirmaGecmisi: 'FIRMA GECMISI', btnFirmaGecmisi: 'FIRMA GECMISI', noCompanyHistory: 'Henuz firma degisikligi yok', titleTeslimatGecmisi: 'TESLIMAT GECMISI', btnTeslimatGecmisi: 'TESLIMAT GECMISI', btnBugunGeldi: 'BUGUN GELDI', noDeliveryHistory: 'Henuz teslimat kaydi yok', phKoliAdedi: 'Koli adedi', deliveryExpiryHint: "Bu tarih sadece bu teslimatin kaydidir, urunun genel SKT'sini degistirmez.",
         phBarkod: 'Barkod', phUrunAdi: 'Urun adi', phUrunAdiMax: 'Urun adi (max 35)', phFiyat: 'Fiyat (€)',
         phFiyatAuto: 'Fiyat (€) — 549 → 5.49 otomatik', phMaliyet: 'Maliyet (€)', phMaliyetAuto: 'Maliyet (€) — 349 → 3.49 otomatik',
         phStok: 'Stok', phFirmaSec: '-- Firma sec --', catDolap: 'Dolap Urunleri', catKuru: 'Kuru Gida',
@@ -650,7 +657,7 @@ const I18N = {
         lblSkt: 'MHD', lblBelirtilmedi: 'NICHT ANGEGEBEN', lblSistem: 'System', lblMevcut: 'Vorhanden', lblEnYakinSkt: 'Nächstes MHD',
         btnUzat: '+1 TAG VERLANGERN', btnAt: 'ABGELAUFEN, ENTSORGEN', btnDuzenle: 'BEARBEITEN', btnSil: 'LOSCHEN', btnSatildi: 'VERKAUFT',
         btnGaleri: 'GALERIE', btnKamera: 'KAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ZUR ETIKETTENLISTE HINZUFUGEN',
-        btnAngebotHazirla: 'ANGEBOT ERSTELLEN', lblEtiket: 'ETIKETT', titleFiyatGecmisi: 'PREISVERLAUF', btnFiyatGecmisi: 'PREISVERLAUF', noPriceHistory: 'Noch keine Preisanderung', titleFirmaGecmisi: 'FIRMENVERLAUF', btnFirmaGecmisi: 'FIRMENVERLAUF', noCompanyHistory: 'Noch keine Firmenanderung', titleTeslimatGecmisi: 'LIEFERVERLAUF', btnTeslimatGecmisi: 'LIEFERVERLAUF', btnBugunGeldi: 'HEUTE ANGEKOMMEN', noDeliveryHistory: 'Noch keine Lieferung erfasst',
+        btnAngebotHazirla: 'ANGEBOT ERSTELLEN', lblEtiket: 'ETIKETT', titleFiyatGecmisi: 'PREISVERLAUF', btnFiyatGecmisi: 'PREISVERLAUF', noPriceHistory: 'Noch keine Preisanderung', titleFirmaGecmisi: 'FIRMENVERLAUF', btnFirmaGecmisi: 'FIRMENVERLAUF', noCompanyHistory: 'Noch keine Firmenanderung', titleTeslimatGecmisi: 'LIEFERVERLAUF', btnTeslimatGecmisi: 'LIEFERVERLAUF', btnBugunGeldi: 'HEUTE ANGEKOMMEN', noDeliveryHistory: 'Noch keine Lieferung erfasst', phKoliAdedi: 'Kartonanzahl', deliveryExpiryHint: 'Dieses Datum ist nur ein Vermerk fur diese Lieferung, es andert nicht das allgemeine MHD des Produkts.',
         phBarkod: 'Barcode', phUrunAdi: 'Produktname', phUrunAdiMax: 'Produktname (max 35)', phFiyat: 'Preis (€)',
         phFiyatAuto: 'Preis (€) — 549 → 5.49 automatisch', phMaliyet: 'Kosten (€)', phMaliyetAuto: 'Kosten (€) — 349 → 3.49 automatisch',
         phStok: 'Bestand', phFirmaSec: '-- Firma wahlen --', catDolap: 'Kuhlprodukte', catKuru: 'Trockenware',
@@ -680,7 +687,7 @@ const I18N = {
         lblSkt: 'Expiry', lblBelirtilmedi: 'NOT SPECIFIED', lblSistem: 'System', lblMevcut: 'Current', lblEnYakinSkt: 'Nearest expiry',
         btnUzat: '+1 DAY EXTEND', btnAt: 'EXPIRED, DISCARD', btnDuzenle: 'EDIT', btnSil: 'DELETE', btnSatildi: 'SOLD',
         btnGaleri: 'GALLERY', btnKamera: 'CAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ADD TO LABEL LIST',
-        btnAngebotHazirla: 'CREATE OFFER', lblEtiket: 'LABEL', titleFiyatGecmisi: 'PRICE HISTORY', btnFiyatGecmisi: 'PRICE HISTORY', noPriceHistory: 'No price changes yet', titleFirmaGecmisi: 'SUPPLIER HISTORY', btnFirmaGecmisi: 'SUPPLIER HISTORY', noCompanyHistory: 'No supplier changes yet', titleTeslimatGecmisi: 'DELIVERY HISTORY', btnTeslimatGecmisi: 'DELIVERY HISTORY', btnBugunGeldi: 'ARRIVED TODAY', noDeliveryHistory: 'No deliveries logged yet',
+        btnAngebotHazirla: 'CREATE OFFER', lblEtiket: 'LABEL', titleFiyatGecmisi: 'PRICE HISTORY', btnFiyatGecmisi: 'PRICE HISTORY', noPriceHistory: 'No price changes yet', titleFirmaGecmisi: 'SUPPLIER HISTORY', btnFirmaGecmisi: 'SUPPLIER HISTORY', noCompanyHistory: 'No supplier changes yet', titleTeslimatGecmisi: 'DELIVERY HISTORY', btnTeslimatGecmisi: 'DELIVERY HISTORY', btnBugunGeldi: 'ARRIVED TODAY', noDeliveryHistory: 'No deliveries logged yet', phKoliAdedi: 'Box count', deliveryExpiryHint: "This date is only a record for this delivery, it does not change the product's overall expiry date.",
         phBarkod: 'Barcode', phUrunAdi: 'Product name', phUrunAdiMax: 'Product name (max 35)', phFiyat: 'Price (€)',
         phFiyatAuto: 'Price (€) — 549 → 5.49 automatic', phMaliyet: 'Cost (€)', phMaliyetAuto: 'Cost (€) — 349 → 3.49 automatic',
         phStok: 'Stock', phFirmaSec: '-- Select company --', catDolap: 'Fridge items', catKuru: 'Dry goods',
@@ -770,6 +777,8 @@ async function openDeliveryHistoryModal(idx){
     if(sel) sel.innerHTML = buildCompanyOptions(p.company||'');
     let expInp = document.getElementById('deliveryExpiryInput');
     if(expInp) expInp.value = p.expiry||'';
+    let boxInp = document.getElementById('deliveryBoxCountInput');
+    if(boxInp) boxInp.value = '';
     renderDeliveryHistoryList();
     document.getElementById('deliveryHistoryModal').style.display='flex';
 }
@@ -778,17 +787,49 @@ function renderDeliveryHistoryList(){
     let p = products[currentDeliveryProductIdx];
     if(!p) return;
     let c = document.getElementById('deliveryHistoryList');
-    let hist = Array.isArray(p.deliveryHistory) ? p.deliveryHistory.slice().reverse() : [];
+    let hist = Array.isArray(p.deliveryHistory) ? p.deliveryHistory : [];
     if(!hist.length){
         c.innerHTML = "<div style='text-align:center;padding:20px;color:var(--text-secondary);'><i class='fa-solid fa-truck' style='font-size:2rem;margin-bottom:8px;display:block;opacity:0.5'></i>"+t('noDeliveryHistory')+"</div>";
-    } else {
-        c.innerHTML = hist.map(h=>{
-            let dateStr = formatDateDMY(new Date(h.date).toISOString().slice(0,10));
-            let companyStr = h.company ? escapeHtml(h.company) : t('lblBelirtilmedi');
-            let sktStr = h.expiry ? `<br><span style="font-size:0.72rem;color:#ef4444;font-weight:700;">${t('lblSkt')}: ${formatDateDMY(h.expiry)}</span>` : '';
-            return `<div style="border-radius:24px;padding:12px 16px;margin-bottom:8px;background:rgba(255,255,255,0.5);display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;"><span style="font-weight:800;font-size:0.9rem;"><i class="fa-solid fa-truck" style="margin-right:6px;color:#10b981;"></i>${dateStr}</span><span style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;text-align:right;">${companyStr}${sktStr}</span></div>`;
-        }).join('');
+        return;
     }
+    let order = hist.map((h,i)=>i).reverse();
+    c.innerHTML = order.map(origIdx=>{
+        let h = hist[origIdx];
+        if(editingDeliveryEntryIdx===origIdx){
+            return `<div style="border-radius:24px;padding:14px 16px;margin-bottom:8px;background:rgba(255,255,255,0.5);"><input type="date" id="editDeliveryDate" value="${(h.date||'').slice(0,10)}" style="margin:0 0 8px;"><select id="editDeliveryCompany" style="margin:0 0 8px;">${buildCompanyOptions(h.company||'')}</select><input type="date" id="editDeliveryExpiry" value="${h.expiry||''}" style="margin:0 0 8px;"><input type="number" id="editDeliveryBoxes" value="${h.boxes!=null?h.boxes:''}" placeholder="${t('phKoliAdedi')}" min="0" style="margin:0 0 10px;"><div style="display:flex;gap:8px;"><button onclick="saveEditDeliveryEntry(${origIdx})" style="flex:1;background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:30px;padding:10px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;"><i class="fa-solid fa-check" style="margin-right:4px"></i>${t('btnKaydet')}</button><button onclick="cancelEditDeliveryEntry()" style="flex:1;background:linear-gradient(135deg,#64748b,#475569);border:none;border-radius:30px;padding:10px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;">${t('btnIptal')}</button></div></div>`;
+        }
+        let dateStr = formatDateDMY((h.date||'').slice(0,10));
+        let companyStr = h.company ? escapeHtml(h.company) : t('lblBelirtilmedi');
+        let sktStr = h.expiry ? `<br><span style="font-size:0.72rem;color:#ef4444;font-weight:700;">${t('lblSkt')}: ${formatDateDMY(h.expiry)}</span>` : '';
+        let boxStr = (h.boxes!=null && h.boxes!=='') ? `<br><span style="font-size:0.72rem;color:#0ea5e9;font-weight:700;"><i class="fa-solid fa-box"></i> ${h.boxes}${translateText(' koli')}</span>` : '';
+        return `<div style="border-radius:24px;padding:12px 16px;margin-bottom:8px;background:rgba(255,255,255,0.5);display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;"><span style="font-weight:800;font-size:0.9rem;"><i class="fa-solid fa-truck" style="margin-right:6px;color:#10b981;"></i>${dateStr}</span><span style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;text-align:right;">${companyStr}${sktStr}${boxStr}</span><div style="display:flex;gap:6px;width:100%;justify-content:flex-end;"><button onclick="startEditDeliveryEntry(${origIdx})" style="background:rgba(245,158,11,0.15);color:#d97706;border:1px solid rgba(245,158,11,0.25);border-radius:20px;padding:5px 12px;font-size:0.72rem;font-weight:700;cursor:pointer;"><i class="fa-solid fa-pen"></i></button><button onclick="deleteDeliveryEntry(${origIdx})" style="background:rgba(239,68,68,0.15);color:#dc2626;border:1px solid rgba(239,68,68,0.25);border-radius:20px;padding:5px 12px;font-size:0.72rem;font-weight:700;cursor:pointer;"><i class="fa-solid fa-trash"></i></button></div></div>`;
+    }).join('');
+}
+let editingDeliveryEntryIdx = null;
+function startEditDeliveryEntry(idx){ editingDeliveryEntryIdx=idx; renderDeliveryHistoryList(); }
+function cancelEditDeliveryEntry(){ editingDeliveryEntryIdx=null; renderDeliveryHistoryList(); }
+async function saveEditDeliveryEntry(idx){
+    let p = products[currentDeliveryProductIdx];
+    if(!p || !Array.isArray(p.deliveryHistory)) return;
+    let dateVal = document.getElementById('editDeliveryDate').value;
+    let companyVal = document.getElementById('editDeliveryCompany').value;
+    let expiryVal = document.getElementById('editDeliveryExpiry').value;
+    let boxesVal = document.getElementById('editDeliveryBoxes').value;
+    if(!dateVal){ showToast('Once bir tarih secin!'); return; }
+    p.deliveryHistory[idx] = {date:new Date(dateVal+'T12:00:00').toISOString(), company:companyVal, expiry:expiryVal, boxes:boxesVal?parseInt(boxesVal):null};
+    editingDeliveryEntryIdx = null;
+    await saveProducts();
+    renderDeliveryHistoryList();
+    showToast(translateText('Teslimat kaydi guncellendi'));
+}
+async function deleteDeliveryEntry(idx){
+    let p = products[currentDeliveryProductIdx];
+    if(!p || !Array.isArray(p.deliveryHistory)) return;
+    if(!confirm(translateText('Bu teslimat kaydi silinsin mi?'))) return;
+    p.deliveryHistory.splice(idx,1);
+    await saveProducts();
+    renderDeliveryHistoryList();
+    showToast(translateText('Teslimat kaydi silindi'));
 }
 async function logDeliveryToday(){
     let idx = currentDeliveryProductIdx;
@@ -798,13 +839,14 @@ async function logDeliveryToday(){
     let chosenCompany = sel ? sel.value : (p.company||'');
     let expInp = document.getElementById('deliveryExpiryInput');
     let chosenExpiry = expInp ? expInp.value : (p.expiry||'');
+    let boxInp = document.getElementById('deliveryBoxCountInput');
+    let chosenBoxes = boxInp && boxInp.value ? parseInt(boxInp.value) : null;
     if(chosenCompany !== (p.company||'')){
         logCompanyChange(p, chosenCompany);
         p.company = chosenCompany;
     }
-    if(chosenExpiry) p.expiry = chosenExpiry;
     if(!Array.isArray(p.deliveryHistory)) p.deliveryHistory=[];
-    p.deliveryHistory.push({date:new Date().toISOString(), company:chosenCompany, expiry:chosenExpiry});
+    p.deliveryHistory.push({date:new Date().toISOString(), company:chosenCompany, expiry:chosenExpiry, boxes:chosenBoxes});
     if(p.deliveryHistory.length>30) p.deliveryHistory=p.deliveryHistory.slice(-30);
     await saveProducts();
     await updateUI();
