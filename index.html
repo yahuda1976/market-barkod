@@ -205,7 +205,7 @@
 <div id="drawerOverlay" onclick="closeDrawer()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.7);backdrop-filter:blur(4px);z-index:500;"></div>
 <div id="drawer" style="position:fixed;top:0;left:-255px;width:245px;height:100%;background:linear-gradient(180deg,#f0f9ff,#e0f2fe);z-index:600;transition:left 0.35s cubic-bezier(0.16,1,0.3,1);box-shadow:8px 0 32px rgba(0,0,0,0.15);border-radius:0 32px 32px 0;border-right:1px solid rgba(0,0,0,0.06)">
     <div style="background:rgba(255,255,255,0.5);padding:52px 24px 24px;border-radius:0 32px 0 0;border-bottom:1px solid rgba(0,0,0,0.06)"><div style="font-size:1.6rem;font-weight:900;color:#fdba74;font-family:'Outfit',sans-serif;letter-spacing:0.5px"><i class="fa-solid fa-basket-shopping" style="margin-right:8px"></i>MARKET PRO</div><div style="font-size:0.75rem;color:var(--text-secondary);margin-top:6px;font-weight:500" data-i18n="appSubtitle">Envanter Yonetimi</div></div>
-    <div style="padding:16px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:calc(100vh - 140px)">
+    <div style="padding:16px 16px 50px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:calc(100vh - 140px)">
         <div class="drawer-group-title"><i class="fa-solid fa-language" style="margin-right:6px"></i><span data-i18n="drawerDil">DIL / LANGUAGE</span></div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;"><button class="drawer-btn" style="text-align:center;padding:10px 4px;" onclick="setLanguage('tr')">TR</button><button class="drawer-btn" style="text-align:center;padding:10px 4px;" onclick="setLanguage('de')">DE</button><button class="drawer-btn" style="text-align:center;padding:10px 4px;" onclick="setLanguage('en')">EN</button></div>
         <div class="drawer-sep"></div>
@@ -271,8 +271,8 @@
         </div>
     </div>
     <div style="display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;justify-content:center">
-        <button id="closeCameraModalBtn" style="background:linear-gradient(135deg,#ef4444,#dc2626);padding:14px 28px;border-radius:40px;color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(239,68,68,0.3);transition:all 0.2s"><i class="fa-solid fa-xmark" style="margin-right:6px"></i><span data-i18n="btnKapat">KAPAT</span></button>
         <button id="torchToggleBtn" onclick="toggleTorch()" style="background:linear-gradient(135deg,#f59e0b,#d97706);padding:14px 24px;border-radius:40px;color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(245,158,11,0.3);transition:all 0.2s"><i class="fa-solid fa-bolt" style="margin-right:6px"></i><span data-i18n="btnFener">FENER</span></button>
+        <button id="closeCameraModalBtn" style="background:linear-gradient(135deg,#ef4444,#dc2626);padding:14px 28px;border-radius:40px;color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(239,68,68,0.3);transition:all 0.2s"><i class="fa-solid fa-xmark" style="margin-right:6px"></i><span data-i18n="btnKapat">KAPAT</span></button>
         <button onclick="manualBarcodeEntry()" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);padding:14px 24px;border-radius:40px;color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(139,92,246,0.3);transition:all 0.2s"><i class="fa-solid fa-keyboard" style="margin-right:6px"></i><span data-i18n="btnElleGir">ELLE GIR</span></button>
     </div>
     <div id="cameraModalStatus" style="color:#fdba74;margin-top:16px;font-weight:600;font-size:0.9rem"><i class="fa-solid fa-spinner fa-spin" style="margin-right:8px"></i><span data-i18n="camBaslatiliyor">KAMERA BASLATILIYOR...</span></div>
