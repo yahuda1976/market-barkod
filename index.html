@@ -173,9 +173,11 @@
         body.dark-mode{background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);--text-primary:#f1f5f9;--text-secondary:#94a3b8;--bg-card:rgba(30,41,59,0.72);--glass-border:rgba(59,130,246,0.3)}
         body.dark-mode .app-container{background:var(--bg-card);border-color:var(--glass-border)}
         .add-form-card{background:var(--bg-card);backdrop-filter:blur(20px);padding:24px;border-radius:40px;margin-top:12px;border:1px solid var(--glass-border);box-shadow:0 20px 40px rgba(0,0,0,0.15);color:var(--text-primary)}
+        .history-card{background:rgba(255,255,255,0.5)}
+        body.dark-mode .history-card{background:rgba(255,255,255,0.08)}
         body.dark-mode .result-area{background:linear-gradient(145deg,rgba(6,78,59,0.55),rgba(4,47,46,0.65));border-color:rgba(16,185,129,0.35)}
         body.dark-mode .modal-content{background:linear-gradient(145deg,rgba(15,23,42,0.97),rgba(30,41,59,0.95))}
-        body.dark-mode input,body.dark-mode select{background:rgba(255,255,255,0.08);color:#f1f5f9;border-color:rgba(255,255,255,0.12)}
+        body.dark-mode input,body.dark-mode select,body.dark-mode textarea{background:rgba(255,255,255,0.08);color:#f1f5f9;border-color:rgba(255,255,255,0.12)}
         body.dark-mode input::placeholder{color:#64748b}
         body.dark-mode .product-detail-card input,body.dark-mode .product-detail-card select{background:rgba(255,255,255,0.75);color:#0f172a;border-color:rgba(0,0,0,0.08)}
         body.dark-mode .product-detail-card input::placeholder{color:#64748b}
@@ -235,7 +237,7 @@
         <i class="fa-solid fa-triangle-exclamation" style="color:white;font-size:1.4rem;flex-shrink:0;"></i>
         <div style="color:white;font-weight:800;font-size:0.85rem;line-height:1.35;" id="urgentBannerText"></div>
     </div>
-    <div class="result-area" onclick="openCameraModal('search')" style="cursor:pointer;"><div class="result-placeholder"><i class="fa-solid fa-camera" style="margin-right:8px"></i><span data-i18n="scanPlaceholder">BARKOD OKUTUN</span></div></div>
+    <div class="result-area" onclick="openCameraModal('search')" style="cursor:pointer;"><button onclick="event.stopPropagation();startVoiceSearch()" style="position:absolute;top:12px;right:14px;background:rgba(59,130,246,0.9);color:white;border:none;border-radius:50%;width:34px;height:34px;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);z-index:2;box-shadow:0 2px 8px rgba(0,0,0,0.2);"><i class="fa-solid fa-microphone"></i></button><div class="result-placeholder"><i class="fa-solid fa-camera" style="margin-right:8px"></i><span data-i18n="scanPlaceholder">BARKOD OKUTUN</span></div></div>
     <div class="button-grid">
         <button class="btn btn-primary" id="searchBtn"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i><span data-i18n="btnSearch">SORGULA</span></button>
         <button class="btn btn-primary" id="addBtn"><i class="fa-solid fa-plus" style="margin-right:6px"></i><span data-i18n="btnAdd">URUN EKLE</span></button>
@@ -326,6 +328,19 @@
         <input type="number" id="deliveryBoxCountInput" placeholder="Koli adedi" min="0" style="margin-bottom:12px;" data-i18n-ph="phKoliAdedi">
         <button onclick="logDeliveryToday()" style="width:100%;background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;font-size:1rem;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 12px rgba(16,185,129,0.25);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-circle-plus" style="margin-right:8px"></i><span data-i18n="btnBugunGeldi">BUGUN GELDI</span></button>
         <div id="deliveryHistoryList"></div>
+    </div>
+</div>
+<div id="noteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa-solid fa-note-sticky" style="margin-right:8px"></i><span data-i18n="titleNot">NOT</span></span>
+            <button class="close-modal-btn" onclick="closeNoteModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i><span data-i18n="btnKapat">KAPAT</span></button>
+        </div>
+        <textarea id="noteTextarea" rows="5" placeholder="Ornek: koli hasarli, 1 tanesi kirik..." data-i18n-ph="phNotYaz" style="width:100%;padding:16px 20px;border-radius:24px;border:none;background:rgba(255,255,255,0.7);color:var(--text-primary);font-size:0.95rem;margin:0 0 14px;border:1px solid rgba(255,255,255,0.08);resize:vertical;font-family:inherit;"></textarea>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <button onclick="saveNote()" style="background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,0.25);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i><span data-i18n="btnKaydet">KAYDET</span></button>
+            <button onclick="clearNote()" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(239,68,68,0.25);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-trash-can" style="margin-right:6px"></i><span data-i18n="btnTemizle">TEMIZLE</span></button>
+        </div>
     </div>
 </div>
 <div id="sayimModal" class="modal">
@@ -566,6 +581,14 @@ const PHRASE_DICT = [
     ["Teslimat kaydi silindi", "Lieferdatensatz geloscht", "Delivery record deleted"],
     ["Koli adedi", "Kartonanzahl", "Box count"],
     [" koli", " Kartons", " boxes"],
+    ["Not kaydedildi", "Notiz gespeichert", "Note saved"],
+    ["Not silinsin mi?", "Notiz loschen?", "Delete note?"],
+    ["Not silindi", "Notiz geloscht", "Note deleted"],
+    ["Henuz yedek almadin, ara sira TELEFONA YEDEK AL yapmani oneririz", "Du hast noch kein Backup erstellt, wir empfehlen ab und zu AUF TELEFON SICHERN zu verwenden", "You haven't backed up yet, we recommend using BACKUP TO PHONE occasionally"],
+    ["Son yedegin uzerinden 1 gunden fazla gecti, yeni bir yedek almani oneririz", "Seit deiner letzten Sicherung ist mehr als 1 Tag vergangen, wir empfehlen ein neues Backup", "It's been more than 1 day since your last backup, we recommend making a new one"],
+    ["Bu cihaz sesli aramayi desteklemiyor", "Dieses Gerat unterstutzt keine Sprachsuche", "This device does not support voice search"],
+    ["Dinliyorum...", "Ich hore zu...", "Listening..."],
+    ["Sesli arama basarisiz, tekrar deneyin", "Sprachsuche fehlgeschlagen, bitte erneut versuchen", "Voice search failed, please try again"],
 ];
 function translateText(str){
     if(currentLang==='tr' || !str) return str;
@@ -634,7 +657,7 @@ const I18N = {
         lblSkt: 'SKT', lblBelirtilmedi: 'BELIRTILMEDI', lblSistem: 'Sistem', lblMevcut: 'Mevcut', lblEnYakinSkt: 'En yakin SKT',
         btnUzat: '+1 GUN UZAT', btnAt: 'SURESI GECTI, AT', btnDuzenle: 'DUZENLE', btnSil: 'SIL', btnSatildi: 'SATILDI',
         btnGaleri: 'GALERI', btnKamera: 'KAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ETIKET LISTESINE EKLE',
-        btnAngebotHazirla: 'ANGEBOT HAZIRLA', lblEtiket: 'ETIKET', titleFiyatGecmisi: 'FIYAT GECMISI', btnFiyatGecmisi: 'FIYAT GECMISI', noPriceHistory: 'Henuz fiyat degisikligi yok', titleFirmaGecmisi: 'FIRMA GECMISI', btnFirmaGecmisi: 'FIRMA GECMISI', noCompanyHistory: 'Henuz firma degisikligi yok', titleTeslimatGecmisi: 'TESLIMAT GECMISI', btnTeslimatGecmisi: 'TESLIMAT GECMISI', btnBugunGeldi: 'BUGUN GELDI', noDeliveryHistory: 'Henuz teslimat kaydi yok', phKoliAdedi: 'Koli adedi', deliveryExpiryHint: "Bu tarih sadece bu teslimatin kaydidir, urunun genel SKT'sini degistirmez.",
+        btnAngebotHazirla: 'ANGEBOT HAZIRLA', lblEtiket: 'ETIKET', titleFiyatGecmisi: 'FIYAT GECMISI', btnFiyatGecmisi: 'FIYAT GECMISI', noPriceHistory: 'Henuz fiyat degisikligi yok', titleFirmaGecmisi: 'FIRMA GECMISI', btnFirmaGecmisi: 'FIRMA GECMISI', noCompanyHistory: 'Henuz firma degisikligi yok', titleTeslimatGecmisi: 'TESLIMAT GECMISI', btnTeslimatGecmisi: 'TESLIMAT GECMISI', btnBugunGeldi: 'BUGUN GELDI', noDeliveryHistory: 'Henuz teslimat kaydi yok', phKoliAdedi: 'Koli adedi', deliveryExpiryHint: "Bu tarih sadece bu teslimatin kaydidir, urunun genel SKT'sini degistirmez.", titleNot: 'NOT', btnNot: 'NOT', phNotYaz: 'Ornek: koli hasarli, 1 tanesi kirik...',
         phBarkod: 'Barkod', phUrunAdi: 'Urun adi', phUrunAdiMax: 'Urun adi (max 35)', phFiyat: 'Fiyat (€)',
         phFiyatAuto: 'Fiyat (€) — 549 → 5.49 otomatik', phMaliyet: 'Maliyet (€)', phMaliyetAuto: 'Maliyet (€) — 349 → 3.49 otomatik',
         phStok: 'Stok', phFirmaSec: '-- Firma sec --', catDolap: 'Dolap Urunleri', catKuru: 'Kuru Gida',
@@ -664,7 +687,7 @@ const I18N = {
         lblSkt: 'MHD', lblBelirtilmedi: 'NICHT ANGEGEBEN', lblSistem: 'System', lblMevcut: 'Vorhanden', lblEnYakinSkt: 'Nächstes MHD',
         btnUzat: '+1 TAG VERLANGERN', btnAt: 'ABGELAUFEN, ENTSORGEN', btnDuzenle: 'BEARBEITEN', btnSil: 'LOSCHEN', btnSatildi: 'VERKAUFT',
         btnGaleri: 'GALERIE', btnKamera: 'KAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ZUR ETIKETTENLISTE HINZUFUGEN',
-        btnAngebotHazirla: 'ANGEBOT ERSTELLEN', lblEtiket: 'ETIKETT', titleFiyatGecmisi: 'PREISVERLAUF', btnFiyatGecmisi: 'PREISVERLAUF', noPriceHistory: 'Noch keine Preisanderung', titleFirmaGecmisi: 'FIRMENVERLAUF', btnFirmaGecmisi: 'FIRMENVERLAUF', noCompanyHistory: 'Noch keine Firmenanderung', titleTeslimatGecmisi: 'LIEFERVERLAUF', btnTeslimatGecmisi: 'LIEFERVERLAUF', btnBugunGeldi: 'HEUTE ANGEKOMMEN', noDeliveryHistory: 'Noch keine Lieferung erfasst', phKoliAdedi: 'Kartonanzahl', deliveryExpiryHint: 'Dieses Datum ist nur ein Vermerk fur diese Lieferung, es andert nicht das allgemeine MHD des Produkts.',
+        btnAngebotHazirla: 'ANGEBOT ERSTELLEN', lblEtiket: 'ETIKETT', titleFiyatGecmisi: 'PREISVERLAUF', btnFiyatGecmisi: 'PREISVERLAUF', noPriceHistory: 'Noch keine Preisanderung', titleFirmaGecmisi: 'FIRMENVERLAUF', btnFirmaGecmisi: 'FIRMENVERLAUF', noCompanyHistory: 'Noch keine Firmenanderung', titleTeslimatGecmisi: 'LIEFERVERLAUF', btnTeslimatGecmisi: 'LIEFERVERLAUF', btnBugunGeldi: 'HEUTE ANGEKOMMEN', noDeliveryHistory: 'Noch keine Lieferung erfasst', phKoliAdedi: 'Kartonanzahl', deliveryExpiryHint: 'Dieses Datum ist nur ein Vermerk fur diese Lieferung, es andert nicht das allgemeine MHD des Produkts.', titleNot: 'NOTIZ', btnNot: 'NOTIZ', phNotYaz: 'Beispiel: Karton beschadigt, 1 Stuck kaputt...',
         phBarkod: 'Barcode', phUrunAdi: 'Produktname', phUrunAdiMax: 'Produktname (max 35)', phFiyat: 'Preis (€)',
         phFiyatAuto: 'Preis (€) — 549 → 5.49 automatisch', phMaliyet: 'Kosten (€)', phMaliyetAuto: 'Kosten (€) — 349 → 3.49 automatisch',
         phStok: 'Bestand', phFirmaSec: '-- Firma wahlen --', catDolap: 'Kuhlprodukte', catKuru: 'Trockenware',
@@ -694,7 +717,7 @@ const I18N = {
         lblSkt: 'Expiry', lblBelirtilmedi: 'NOT SPECIFIED', lblSistem: 'System', lblMevcut: 'Current', lblEnYakinSkt: 'Nearest expiry',
         btnUzat: '+1 DAY EXTEND', btnAt: 'EXPIRED, DISCARD', btnDuzenle: 'EDIT', btnSil: 'DELETE', btnSatildi: 'SOLD',
         btnGaleri: 'GALLERY', btnKamera: 'CAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ADD TO LABEL LIST',
-        btnAngebotHazirla: 'CREATE OFFER', lblEtiket: 'LABEL', titleFiyatGecmisi: 'PRICE HISTORY', btnFiyatGecmisi: 'PRICE HISTORY', noPriceHistory: 'No price changes yet', titleFirmaGecmisi: 'SUPPLIER HISTORY', btnFirmaGecmisi: 'SUPPLIER HISTORY', noCompanyHistory: 'No supplier changes yet', titleTeslimatGecmisi: 'DELIVERY HISTORY', btnTeslimatGecmisi: 'DELIVERY HISTORY', btnBugunGeldi: 'ARRIVED TODAY', noDeliveryHistory: 'No deliveries logged yet', phKoliAdedi: 'Box count', deliveryExpiryHint: "This date is only a record for this delivery, it does not change the product's overall expiry date.",
+        btnAngebotHazirla: 'CREATE OFFER', lblEtiket: 'LABEL', titleFiyatGecmisi: 'PRICE HISTORY', btnFiyatGecmisi: 'PRICE HISTORY', noPriceHistory: 'No price changes yet', titleFirmaGecmisi: 'SUPPLIER HISTORY', btnFirmaGecmisi: 'SUPPLIER HISTORY', noCompanyHistory: 'No supplier changes yet', titleTeslimatGecmisi: 'DELIVERY HISTORY', btnTeslimatGecmisi: 'DELIVERY HISTORY', btnBugunGeldi: 'ARRIVED TODAY', noDeliveryHistory: 'No deliveries logged yet', phKoliAdedi: 'Box count', deliveryExpiryHint: "This date is only a record for this delivery, it does not change the product's overall expiry date.", titleNot: 'NOTE', btnNot: 'NOTE', phNotYaz: 'Example: box damaged, 1 unit broken...',
         phBarkod: 'Barcode', phUrunAdi: 'Product name', phUrunAdiMax: 'Product name (max 35)', phFiyat: 'Price (€)',
         phFiyatAuto: 'Price (€) — 549 → 5.49 automatic', phMaliyet: 'Cost (€)', phMaliyetAuto: 'Cost (€) — 349 → 3.49 automatic',
         phStok: 'Stock', phFirmaSec: '-- Select company --', catDolap: 'Fridge items', catKuru: 'Dry goods',
@@ -740,7 +763,7 @@ function openPriceHistoryModal(idx){
             let dateStr = formatDateDMY(new Date(h.date).toISOString().slice(0,10));
             let up = h.new > h.old;
             let arrowColor = up ? '#ef4444' : '#10b981';
-            return `<div style="border-radius:24px;padding:12px 16px;margin-bottom:8px;background:rgba(255,255,255,0.5);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;"><span style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;">${dateStr}</span><span style="font-weight:800;font-size:0.95rem;"><span style="text-decoration:line-through;color:var(--text-secondary);margin-right:6px;">${h.old.toFixed(2)}€</span><i class="fa-solid fa-arrow-right" style="color:${arrowColor};margin:0 4px;font-size:0.75rem;"></i> ${h.new.toFixed(2)}€</span></div>`;
+            return `<div class="history-card" style="border-radius:24px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;"><span style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;">${dateStr}</span><span style="font-weight:800;font-size:0.95rem;"><span style="text-decoration:line-through;color:var(--text-secondary);margin-right:6px;">${h.old.toFixed(2)}€</span><i class="fa-solid fa-arrow-right" style="color:${arrowColor};margin:0 4px;font-size:0.75rem;"></i> ${h.new.toFixed(2)}€</span></div>`;
         }).join('');
     }
     document.getElementById('priceHistoryModal').style.display='flex';
@@ -757,7 +780,7 @@ function openCompanyHistoryModal(idx){
             let dateStr = formatDateDMY(new Date(h.date).toISOString().slice(0,10));
             let oldName = h.old ? escapeHtml(h.old) : t('lblBelirtilmedi');
             let newName = h.new ? escapeHtml(h.new) : t('lblBelirtilmedi');
-            return `<div style="border-radius:24px;padding:12px 16px;margin-bottom:8px;background:rgba(255,255,255,0.5);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;"><span style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;">${dateStr}</span><span style="font-weight:800;font-size:0.95rem;"><span style="text-decoration:line-through;color:var(--text-secondary);margin-right:6px;">${oldName}</span><i class="fa-solid fa-arrow-right" style="color:#0ea5e9;margin:0 4px;font-size:0.75rem;"></i> ${newName}</span></div>`;
+            return `<div class="history-card" style="border-radius:24px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;"><span style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;">${dateStr}</span><span style="font-weight:800;font-size:0.95rem;"><span style="text-decoration:line-through;color:var(--text-secondary);margin-right:6px;">${oldName}</span><i class="fa-solid fa-arrow-right" style="color:#0ea5e9;margin:0 4px;font-size:0.75rem;"></i> ${newName}</span></div>`;
         }).join('');
     }
     document.getElementById('companyHistoryModal').style.display='flex';
@@ -809,7 +832,7 @@ function renderDeliveryHistoryList(){
         let companyStr = h.company ? escapeHtml(h.company) : t('lblBelirtilmedi');
         let sktStr = h.expiry ? `<br><span style="font-size:0.72rem;color:#ef4444;font-weight:700;">${t('lblSkt')}: ${formatDateDMY(h.expiry)}</span>` : '';
         let boxStr = (h.boxes!=null && h.boxes!=='') ? `<br><span style="font-size:0.72rem;color:#0ea5e9;font-weight:700;"><i class="fa-solid fa-box"></i> ${h.boxes}${translateText(' koli')}</span>` : '';
-        return `<div style="border-radius:24px;padding:12px 16px;margin-bottom:8px;background:rgba(255,255,255,0.5);display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;"><span style="font-weight:800;font-size:0.9rem;"><i class="fa-solid fa-truck" style="margin-right:6px;color:#10b981;"></i>${dateStr}</span><span style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;text-align:right;">${companyStr}${sktStr}${boxStr}</span><div style="display:flex;gap:6px;width:100%;justify-content:flex-end;"><button onclick="startEditDeliveryEntry(${origIdx})" style="background:rgba(245,158,11,0.15);color:#d97706;border:1px solid rgba(245,158,11,0.25);border-radius:20px;padding:5px 12px;font-size:0.72rem;font-weight:700;cursor:pointer;"><i class="fa-solid fa-pen"></i></button><button onclick="deleteDeliveryEntry(${origIdx})" style="background:rgba(239,68,68,0.15);color:#dc2626;border:1px solid rgba(239,68,68,0.25);border-radius:20px;padding:5px 12px;font-size:0.72rem;font-weight:700;cursor:pointer;"><i class="fa-solid fa-trash"></i></button></div></div>`;
+        return `<div class="history-card" style="border-radius:24px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;"><span style="font-weight:800;font-size:0.9rem;"><i class="fa-solid fa-truck" style="margin-right:6px;color:#10b981;"></i>${dateStr}</span><span style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;text-align:right;">${companyStr}${sktStr}${boxStr}</span><div style="display:flex;gap:6px;width:100%;justify-content:flex-end;"><button onclick="startEditDeliveryEntry(${origIdx})" style="background:rgba(245,158,11,0.15);color:#d97706;border:1px solid rgba(245,158,11,0.25);border-radius:20px;padding:5px 12px;font-size:0.72rem;font-weight:700;cursor:pointer;"><i class="fa-solid fa-pen"></i></button><button onclick="deleteDeliveryEntry(${origIdx})" style="background:rgba(239,68,68,0.15);color:#dc2626;border:1px solid rgba(239,68,68,0.25);border-radius:20px;padding:5px 12px;font-size:0.72rem;font-weight:700;cursor:pointer;"><i class="fa-solid fa-trash"></i></button></div></div>`;
     }).join('');
 }
 let editingDeliveryEntryIdx = null;
@@ -838,6 +861,31 @@ async function deleteDeliveryEntry(idx){
     renderDeliveryHistoryList();
     showToast(translateText('Teslimat kaydi silindi'));
 }
+let currentNoteProductIdx = null;
+function openNoteModal(idx){
+    currentNoteProductIdx = idx;
+    let p = products[idx];
+    document.getElementById('noteTextarea').value = p.note || '';
+    document.getElementById('noteModal').style.display='flex';
+}
+function closeNoteModal(){ document.getElementById('noteModal').style.display='none'; currentNoteProductIdx=null; }
+async function saveNote(){
+    let p = products[currentNoteProductIdx];
+    if(!p) return;
+    p.note = document.getElementById('noteTextarea').value.trim();
+    await saveProducts();
+    closeNoteModal();
+    showToast(translateText('Not kaydedildi'));
+}
+async function clearNote(){
+    let p = products[currentNoteProductIdx];
+    if(!p) return;
+    if(p.note && !confirm(translateText('Not silinsin mi?'))) return;
+    p.note = '';
+    document.getElementById('noteTextarea').value = '';
+    await saveProducts();
+    showToast(translateText('Not silindi'));
+}
 async function logDeliveryToday(){
     let idx = currentDeliveryProductIdx;
     let p = products[idx];
@@ -860,6 +908,41 @@ async function logDeliveryToday(){
     renderDeliveryHistoryList();
     playBeep();
     showToast(translateText('Teslimat kaydedildi: bugun'));
+}
+function startVoiceSearch(){
+    let SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SpeechRec){ showToast(translateText('Bu cihaz sesli aramayi desteklemiyor')); return; }
+    try{
+        let rec = new SpeechRec();
+        rec.lang = currentLang==='de' ? 'de-DE' : (currentLang==='en' ? 'en-US' : 'tr-TR');
+        rec.interimResults = false;
+        rec.maxAlternatives = 1;
+        showToast(translateText('Dinliyorum...'));
+        rec.onresult = (e)=>{
+            let text = e.results[0][0].transcript;
+            openInventoryModal();
+            setTimeout(()=>{
+                let inp = document.getElementById('inventorySearchInput');
+                if(inp){ inp.value = text; renderInventoryList(); }
+            }, 150);
+        };
+        rec.onerror = ()=>{ showToast(translateText('Sesli arama basarisiz, tekrar deneyin')); };
+        rec.start();
+    }catch(e){ showToast(translateText('Sesli arama basarisiz, tekrar deneyin')); }
+}
+function speakExpiredWarning(productName){
+    try{
+        if(!('speechSynthesis' in window)) return;
+        let msg;
+        if(currentLang==='de') msg = `Achtung, ${productName} ist abgelaufen!`;
+        else if(currentLang==='en') msg = `Warning, ${productName} has expired!`;
+        else msg = `Dikkat, ${productName} suresi gecmis!`;
+        let utter = new SpeechSynthesisUtterance(msg);
+        utter.lang = currentLang==='de' ? 'de-DE' : (currentLang==='en' ? 'en-US' : 'tr-TR');
+        utter.rate = 1.0;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utter);
+    }catch(e){}
 }
 function playTone(freq, duration, type, delay){
     try {
@@ -887,7 +970,7 @@ function playScanSound(p){
     if(p.quantity===0){ playTone(700,0.09); playTone(480,0.11,'sine',0.1); return; }
     if(p.expiry){
         let d=Math.ceil((new Date(p.expiry)-new Date())/86400000);
-        if(!isNaN(d) && d<0){ playTone(320,0.15,'square'); playTone(260,0.18,'square',0.17); return; }
+        if(!isNaN(d) && d<0){ playTone(320,0.15,'square'); playTone(260,0.18,'square',0.17); speakExpiredWarning(p.name); return; }
     }
     playTone(1200,0.1);
 }
@@ -1467,7 +1550,7 @@ function renderInventoryList(){
     }
     container.innerHTML=sorted.map((p, index)=>{
         let idx=products.findIndex(pr=>pr.id===p.id),cc=getProductColorClass(p);
-        return `<div class="envanter-item ${cc}" style="animation-delay:${index*0.03}s"><div class="product-name-item" onclick="returnToInventoryModal=true;document.getElementById('inventoryModal').style.display='none';openProductDetailModal(${idx})">${getCategoryBadge(p.category)}${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-weight:600">(${p.quantity})</span>${expiredTag(p)}</div><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-plus" style="margin-right:3px;font-size:0.6rem"></i>${t('lblEtiket')}</button></div>`;
+        return `<div class="envanter-item ${cc}" style="animation-delay:${index*0.03}s"><div class="product-name-item" onclick="returnToInventoryModal=true;document.getElementById('inventoryModal').style.display='none';openProductDetailModal(${idx})">${getCategoryBadge(p.category)}${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-weight:600">(${p.quantity})</span>${p.note?' <i class="fa-solid fa-note-sticky" style="color:#d97706;font-size:0.75rem;"></i>':''}${expiredTag(p)}</div><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-plus" style="margin-right:3px;font-size:0.6rem"></i>${t('lblEtiket')}</button></div>`;
     }).join('');
 }
 function setInventoryFilter(mode){ inventoryFilterMode=mode; renderInventoryList(); }
@@ -1475,7 +1558,7 @@ function setInventoryFilter(mode){ inventoryFilterMode=mode; renderInventoryList
 function openProductDetailModal(idx){
     let p=products[idx];currentEditingProductId=idx;let color=getProductColorClass(p);
     let modal=document.getElementById("productDetailModal"),content=document.getElementById("productDetailContent");
-    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>${t('titleUrunDetayi')}</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>${t('btnKapat')}</button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<div style="color:#475569;margin-top:6px;font-size:0.9rem;line-height:1.6;">${t('lblBarkod')}: ${p.barcode}<br>${t('lblFiyat')}: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>${t('lblStok')}: <span style="font-weight:700">${p.quantity}</span><br><span style="color:#ef4444;font-weight:900;font-size:1.05rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)}</span>${expiredTag(p)}</div>${p.company?`<button onclick="closeProductDetailModal();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin-top:10px;background:rgba(30,41,59,0.08);border:1px solid rgba(30,41,59,0.15);border-radius:30px;padding:8px 16px;color:#1e293b;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}</div><div class="detail-actions"><button class="full-width-btn" onclick="toggleEditMode()" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:0;"><i class="fa-solid fa-pen" style="margin-right:6px"></i>${t('btnDuzenle')}</button><div class="button-row"><button onclick="discardProduct()" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);"><i class="fa-solid fa-dumpster" style="margin-right:4px"></i>${t('btnAt')}</button><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:8px;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button><button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:8px;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button><button class="full-width-btn" onclick="openCompanyHistoryModal(${idx})" style="background:linear-gradient(135deg,#64748b,#475569)!important;margin-top:8px;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>${t('btnFirmaGecmisi')}</button><button class="full-width-btn" onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669)!important;margin-top:8px;"><i class="fa-solid fa-truck" style="margin-right:6px"></i>${t('btnTeslimatGecmisi')}</button></div><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
+    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>${t('titleUrunDetayi')}</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark" style="margin-right:4px"></i>${t('btnKapat')}</button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}${p.note?' <i class="fa-solid fa-note-sticky" style="color:#d97706;font-size:0.85rem;" title="Not var"></i>':''}<div style="color:#475569;margin-top:6px;font-size:0.9rem;line-height:1.6;">${t('lblBarkod')}: ${p.barcode}<br>${t('lblFiyat')}: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>${t('lblStok')}: <span style="font-weight:700">${p.quantity}</span><br><span style="color:#ef4444;font-weight:900;font-size:1.05rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)}</span>${expiredTag(p)}</div>${p.company?`<button onclick="closeProductDetailModal();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin-top:10px;background:rgba(30,41,59,0.08);border:1px solid rgba(30,41,59,0.15);border-radius:30px;padding:8px 16px;color:#1e293b;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}</div><div class="detail-actions"><button class="full-width-btn" onclick="toggleEditMode()" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:0;"><i class="fa-solid fa-pen" style="margin-right:6px"></i>${t('btnDuzenle')}</button><div class="button-row"><button onclick="discardProduct()" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);"><i class="fa-solid fa-dumpster" style="margin-right:4px"></i>${t('btnAt')}</button><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:8px;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button><button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:8px;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button><button class="full-width-btn" onclick="openCompanyHistoryModal(${idx})" style="background:linear-gradient(135deg,#64748b,#475569)!important;margin-top:8px;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>${t('btnFirmaGecmisi')}</button><button class="full-width-btn" onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669)!important;margin-top:8px;"><i class="fa-solid fa-truck" style="margin-right:6px"></i>${t('btnTeslimatGecmisi')}</button><button class="full-width-btn" onclick="openNoteModal(${idx})" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:8px;"><i class="fa-solid fa-note-sticky" style="margin-right:6px"></i>${t('btnNot')}${p.note?' <i class="fa-solid fa-circle" style="font-size:0.4rem;vertical-align:middle;margin-left:4px;"></i>':''}</button></div><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
     modal.style.display="flex";
 }
 function closeProductDetailModal(){
@@ -2341,6 +2424,7 @@ function showResult(p){
             <button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:8px;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button>
             <button class="full-width-btn" onclick="openCompanyHistoryModal(${idx})" style="background:linear-gradient(135deg,#64748b,#475569)!important;margin-top:8px;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>${t('btnFirmaGecmisi')}</button>
             <button class="full-width-btn" onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669)!important;margin-top:8px;"><i class="fa-solid fa-truck" style="margin-right:6px"></i>${t('btnTeslimatGecmisi')}</button>
+            <button class="full-width-btn" onclick="openNoteModal(${idx})" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:8px;"><i class="fa-solid fa-note-sticky" style="margin-right:6px"></i>${t('btnNot')}${p.note?' <i class="fa-solid fa-circle" style="font-size:0.4rem;vertical-align:middle;margin-left:4px;"></i>':''}</button>
         </div>
     `;
 }
@@ -2510,6 +2594,19 @@ function toggleDarkMode(){
 applyDarkModePreference();
 updateDarkModeButtonLabel();
 loadLanguagePreference();
+async function checkBackupReminder(){
+    try{
+        let last = await loadMetadata('lastBackupDate');
+        if(!last){ setTimeout(()=>showToast(translateText('Henuz yedek almadin, ara sira TELEFONA YEDEK AL yapmani oneririz')), 2500); return; }
+        let diffH = (Date.now() - new Date(last).getTime()) / 3600000;
+        if(diffH > 24){
+            setTimeout(()=>showToast(translateText('Son yedegin uzerinden 1 gunden fazla gecti, yeni bir yedek almani oneririz')), 2500);
+        }
+    }catch(e){
+        setTimeout(()=>showToast(translateText('Henuz yedek almadin, ara sira TELEFONA YEDEK AL yapmani oneririz')), 2500);
+    }
+}
+checkBackupReminder();
 if('serviceWorker' in navigator){
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').catch(()=>{});
@@ -2537,6 +2634,7 @@ async function backupData(){
         a.click();
         a.remove();
         setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+        saveMetadata('lastBackupDate', new Date().toISOString()).catch(()=>{});
         showToast("Yedek telefona indirildi");
     }catch(e){
         console.error('Yedek alma hatasi', e);
@@ -2557,6 +2655,7 @@ function backupToGoogleDrive(){
         a.click();
         a.remove();
         setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+        saveMetadata('lastBackupDate', new Date().toISOString()).catch(()=>{});
         showToast("Dosya indirildi. Google Drive'a yuklemek icin: drive.google.com");
         setTimeout(()=>window.open('https://drive.google.com/drive/my-drive','_blank'),1000);
     }catch(e){ showToast("Google Drive yedegi basarisiz"); }
