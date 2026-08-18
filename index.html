@@ -1562,10 +1562,19 @@ function expiredTag(p){
 }
 function normBarcode(b){ return (b===null||b===undefined)?'':String(b).replace(/\s/g,'').trim(); }
 function normalizeSearchText(str){
-    return (str||'').toLowerCase()
+    let s = (str||'').toLowerCase()
         .replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ş/g,'s').replace(/ü/g,'u')
         .replace(/[.,!?;:]/g,'')
         .trim();
+    s = s.replace(/\bkilogramm?\b/g,'kg').replace(/\bkilo\b/g,'kg')
+         .replace(/\bmilliliter\b/g,'ml').replace(/\bmililitre\b/g,'ml')
+         .replace(/\bmilligramm?\b/g,'mg').replace(/\bmiligram\b/g,'mg')
+         .replace(/\bzentiliter\b/g,'cl').replace(/\bsantilitre\b/g,'cl')
+         .replace(/\bdeziliter\b/g,'dl').replace(/\bdesilitre\b/g,'dl')
+         .replace(/\bliters?\b/g,'lt').replace(/\bliter\b/g,'lt').replace(/\blitre\b/g,'lt')
+         .replace(/\bgramm?\b/g,'gr')
+         .replace(/\bstuck\b/g,'ad').replace(/\bpieces?\b/g,'ad').replace(/\badet\b/g,'ad');
+    return s.replace(/\s+/g,' ').trim();
 }
 function isValidChecksum(code){
     // Sadece rakamlardan olusan standart uzunluktaki barkodlar (EAN-8/UPC-A/EAN-13) icin checksum dogrulamasi yapar.
