@@ -250,6 +250,10 @@
         <div class="nav-title"><i class="fa-solid fa-clipboard-list" style="margin-right:8px"></i><span data-i18n="navInventory">ENVANTERI GORUNTULE</span></div>
         <div id="productCountBadge" class="nav-badge">0 cesit</div>
     </div>
+    <div onclick="openOrderModeModal()" class="nav-card" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);border-color:rgba(139,92,246,0.3);">
+        <div class="nav-title"><i class="fa-solid fa-cart-flatbed" style="margin-right:8px"></i><span data-i18n="btnSiparisModu">SIPARIS MODU</span></div>
+        <div id="orderModeBadge" class="nav-badge">0</div>
+    </div>
 </div>
 <div id="resultModal" class="modal"><div class="modal-content"><div class="result-area" id="resultArea" style="margin:0;"></div></div></div>
 <div id="addFormModal" class="modal">
@@ -341,6 +345,32 @@
             <button onclick="saveNote()" style="background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,0.25);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i><span data-i18n="btnKaydet">KAYDET</span></button>
             <button onclick="clearNote()" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(239,68,68,0.25);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-trash-can" style="margin-right:6px"></i><span data-i18n="btnTemizle">TEMIZLE</span></button>
         </div>
+    </div>
+</div>
+<div id="orderModeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa-solid fa-cart-flatbed" style="margin-right:8px"></i><span data-i18n="btnSiparisModu">SIPARIS MODU</span></span>
+            <button class="close-modal-btn" onclick="closeOrderModeModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:12px;font-weight:500;" data-i18n="orderModeInstruction">Urunleri okutun, otomatik olarak firmasina gore listelenir. Firmasi tanimsizsa firma secmeniz istenir.</div>
+        <button onclick="openOrderKamera()" style="width:100%;background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;font-size:1rem;cursor:pointer;margin-bottom:14px;box-shadow:0 4px 12px rgba(139,92,246,0.25);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-camera" style="margin-right:8px"></i><span data-i18n="btnKameraIleTara">KAMERA ILE TARA</span></button>
+        <div id="orderModeList" style="max-height:44vh;overflow-y:auto"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+            <button onclick="shareOrderList()" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(14,165,233,0.25);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-share-nodes" style="margin-right:6px"></i><span data-i18n="btnPaylas">PAYLAS</span></button>
+            <button onclick="clearOrderMode()" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(239,68,68,0.25);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-trash-can" style="margin-right:6px"></i><span data-i18n="btnTemizle">TEMIZLE</span></button>
+        </div>
+    </div>
+</div>
+<div id="orderCompanyPickModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa-solid fa-building" style="margin-right:8px"></i><span data-i18n="titleFirmaSec">FIRMA SEC</span></span>
+            <button class="close-modal-btn" onclick="closeOrderCompanyPickModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="orderCompanyPickProductName" style="font-weight:800;font-size:1rem;margin-bottom:14px;"></div>
+        <select id="orderCompanyPickSelect" style="margin-bottom:14px;"></select>
+        <button onclick="confirmOrderCompanyPick()" style="width:100%;background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,0.25);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-check" style="margin-right:6px"></i><span data-i18n="btnSecOnayla">SEC VE ONAYLA</span></button>
     </div>
 </div>
 <div id="sayimModal" class="modal">
@@ -475,6 +505,9 @@ let sayimMap = {}, sayimKameraMode = false;
 let returnToUrgentModal = false;
 let returnToInventoryModal = false;
 let currentDeliveryProductIdx = null;
+let orderMap = {};
+let orderKameraMode = false;
+let pendingOrderScan = null;
 let bulkSktList = [], bulkSktKameraMode = false;
 let tempImageData = null, currentEditingProductId = null, angebotProduct = null;
 let currentAngebotSize = 'a4', currentAngebotOrientation = 'portrait';
@@ -589,6 +622,11 @@ const PHRASE_DICT = [
     ["Bu cihaz sesli aramayi desteklemiyor", "Dieses Gerat unterstutzt keine Sprachsuche", "This device does not support voice search"],
     ["Dinliyorum...", "Ich hore zu...", "Listening..."],
     ["Sesli arama basarisiz, tekrar deneyin", "Sprachsuche fehlgeschlagen, bitte erneut versuchen", "Voice search failed, please try again"],
+    ["Henuz urun taranmadi", "Noch kein Produkt gescannt", "No product scanned yet"],
+    ["Siparis listesi tamamen temizlensin mi?", "Soll die Bestellliste komplett geleert werden?", "Clear the entire order list?"],
+    ["Liste panoya kopyalandi", "Liste in die Zwischenablage kopiert", "List copied to clipboard"],
+    ["Kac adet siparis edilecek?", "Wie viele sollen bestellt werden?", "How many should be ordered?"],
+    ["Once bir firma secin!", "Bitte zuerst eine Firma wahlen!", "Please select a company first!"],
 ];
 function translateText(str){
     if(currentLang==='tr' || !str) return str;
@@ -657,7 +695,7 @@ const I18N = {
         lblSkt: 'SKT', lblBelirtilmedi: 'BELIRTILMEDI', lblSistem: 'Sistem', lblMevcut: 'Mevcut', lblEnYakinSkt: 'En yakin SKT',
         btnUzat: '+1 GUN UZAT', btnAt: 'SURESI GECTI, AT', btnDuzenle: 'DUZENLE', btnSil: 'SIL', btnSatildi: 'SATILDI',
         btnGaleri: 'GALERI', btnKamera: 'KAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ETIKET LISTESINE EKLE',
-        btnAngebotHazirla: 'ANGEBOT HAZIRLA', lblEtiket: 'ETIKET', titleFiyatGecmisi: 'FIYAT GECMISI', btnFiyatGecmisi: 'FIYAT GECMISI', noPriceHistory: 'Henuz fiyat degisikligi yok', titleFirmaGecmisi: 'FIRMA GECMISI', btnFirmaGecmisi: 'FIRMA GECMISI', noCompanyHistory: 'Henuz firma degisikligi yok', titleTeslimatGecmisi: 'TESLIMAT GECMISI', btnTeslimatGecmisi: 'TESLIMAT GECMISI', btnBugunGeldi: 'BUGUN GELDI', noDeliveryHistory: 'Henuz teslimat kaydi yok', phKoliAdedi: 'Koli adedi', deliveryExpiryHint: "Bu tarih sadece bu teslimatin kaydidir, urunun genel SKT'sini degistirmez.", titleNot: 'NOT', btnNot: 'NOT', phNotYaz: 'Ornek: koli hasarli, 1 tanesi kirik...',
+        btnAngebotHazirla: 'ANGEBOT HAZIRLA', lblEtiket: 'ETIKET', titleFiyatGecmisi: 'FIYAT GECMISI', btnFiyatGecmisi: 'FIYAT GECMISI', noPriceHistory: 'Henuz fiyat degisikligi yok', titleFirmaGecmisi: 'FIRMA GECMISI', btnFirmaGecmisi: 'FIRMA GECMISI', noCompanyHistory: 'Henuz firma degisikligi yok', titleTeslimatGecmisi: 'TESLIMAT GECMISI', btnTeslimatGecmisi: 'TESLIMAT GECMISI', btnBugunGeldi: 'BUGUN GELDI', noDeliveryHistory: 'Henuz teslimat kaydi yok', phKoliAdedi: 'Koli adedi', deliveryExpiryHint: "Bu tarih sadece bu teslimatin kaydidir, urunun genel SKT'sini degistirmez.", titleNot: 'NOT', btnNot: 'NOT', phNotYaz: 'Ornek: koli hasarli, 1 tanesi kirik...', btnSiparisModu: 'SIPARIS MODU', orderModeInstruction: 'Urunleri okutun, otomatik olarak firmasina gore listelenir. Firmasi tanimsizsa firma secmeniz istenir.', titleFirmaSec: 'FIRMA SEC', btnSecOnayla: 'SEC VE ONAYLA', btnPaylas: 'PAYLAS',
         phBarkod: 'Barkod', phUrunAdi: 'Urun adi', phUrunAdiMax: 'Urun adi (max 35)', phFiyat: 'Fiyat (€)',
         phFiyatAuto: 'Fiyat (€) — 549 → 5.49 otomatik', phMaliyet: 'Maliyet (€)', phMaliyetAuto: 'Maliyet (€) — 349 → 3.49 otomatik',
         phStok: 'Stok', phFirmaSec: '-- Firma sec --', catDolap: 'Dolap Urunleri', catKuru: 'Kuru Gida',
@@ -687,7 +725,7 @@ const I18N = {
         lblSkt: 'MHD', lblBelirtilmedi: 'NICHT ANGEGEBEN', lblSistem: 'System', lblMevcut: 'Vorhanden', lblEnYakinSkt: 'Nächstes MHD',
         btnUzat: '+1 TAG VERLANGERN', btnAt: 'ABGELAUFEN, ENTSORGEN', btnDuzenle: 'BEARBEITEN', btnSil: 'LOSCHEN', btnSatildi: 'VERKAUFT',
         btnGaleri: 'GALERIE', btnKamera: 'KAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ZUR ETIKETTENLISTE HINZUFUGEN',
-        btnAngebotHazirla: 'ANGEBOT ERSTELLEN', lblEtiket: 'ETIKETT', titleFiyatGecmisi: 'PREISVERLAUF', btnFiyatGecmisi: 'PREISVERLAUF', noPriceHistory: 'Noch keine Preisanderung', titleFirmaGecmisi: 'FIRMENVERLAUF', btnFirmaGecmisi: 'FIRMENVERLAUF', noCompanyHistory: 'Noch keine Firmenanderung', titleTeslimatGecmisi: 'LIEFERVERLAUF', btnTeslimatGecmisi: 'LIEFERVERLAUF', btnBugunGeldi: 'HEUTE ANGEKOMMEN', noDeliveryHistory: 'Noch keine Lieferung erfasst', phKoliAdedi: 'Kartonanzahl', deliveryExpiryHint: 'Dieses Datum ist nur ein Vermerk fur diese Lieferung, es andert nicht das allgemeine MHD des Produkts.', titleNot: 'NOTIZ', btnNot: 'NOTIZ', phNotYaz: 'Beispiel: Karton beschadigt, 1 Stuck kaputt...',
+        btnAngebotHazirla: 'ANGEBOT ERSTELLEN', lblEtiket: 'ETIKETT', titleFiyatGecmisi: 'PREISVERLAUF', btnFiyatGecmisi: 'PREISVERLAUF', noPriceHistory: 'Noch keine Preisanderung', titleFirmaGecmisi: 'FIRMENVERLAUF', btnFirmaGecmisi: 'FIRMENVERLAUF', noCompanyHistory: 'Noch keine Firmenanderung', titleTeslimatGecmisi: 'LIEFERVERLAUF', btnTeslimatGecmisi: 'LIEFERVERLAUF', btnBugunGeldi: 'HEUTE ANGEKOMMEN', noDeliveryHistory: 'Noch keine Lieferung erfasst', phKoliAdedi: 'Kartonanzahl', deliveryExpiryHint: 'Dieses Datum ist nur ein Vermerk fur diese Lieferung, es andert nicht das allgemeine MHD des Produkts.', titleNot: 'NOTIZ', btnNot: 'NOTIZ', phNotYaz: 'Beispiel: Karton beschadigt, 1 Stuck kaputt...', btnSiparisModu: 'BESTELLMODUS', orderModeInstruction: 'Produkte scannen, werden automatisch nach Firma sortiert. Bei unbekannter Firma werden Sie zur Auswahl aufgefordert.', titleFirmaSec: 'FIRMA WAHLEN', btnSecOnayla: 'WAHLEN UND BESTATIGEN', btnPaylas: 'TEILEN',
         phBarkod: 'Barcode', phUrunAdi: 'Produktname', phUrunAdiMax: 'Produktname (max 35)', phFiyat: 'Preis (€)',
         phFiyatAuto: 'Preis (€) — 549 → 5.49 automatisch', phMaliyet: 'Kosten (€)', phMaliyetAuto: 'Kosten (€) — 349 → 3.49 automatisch',
         phStok: 'Bestand', phFirmaSec: '-- Firma wahlen --', catDolap: 'Kuhlprodukte', catKuru: 'Trockenware',
@@ -717,7 +755,7 @@ const I18N = {
         lblSkt: 'Expiry', lblBelirtilmedi: 'NOT SPECIFIED', lblSistem: 'System', lblMevcut: 'Current', lblEnYakinSkt: 'Nearest expiry',
         btnUzat: '+1 DAY EXTEND', btnAt: 'EXPIRED, DISCARD', btnDuzenle: 'EDIT', btnSil: 'DELETE', btnSatildi: 'SOLD',
         btnGaleri: 'GALLERY', btnKamera: 'CAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ADD TO LABEL LIST',
-        btnAngebotHazirla: 'CREATE OFFER', lblEtiket: 'LABEL', titleFiyatGecmisi: 'PRICE HISTORY', btnFiyatGecmisi: 'PRICE HISTORY', noPriceHistory: 'No price changes yet', titleFirmaGecmisi: 'SUPPLIER HISTORY', btnFirmaGecmisi: 'SUPPLIER HISTORY', noCompanyHistory: 'No supplier changes yet', titleTeslimatGecmisi: 'DELIVERY HISTORY', btnTeslimatGecmisi: 'DELIVERY HISTORY', btnBugunGeldi: 'ARRIVED TODAY', noDeliveryHistory: 'No deliveries logged yet', phKoliAdedi: 'Box count', deliveryExpiryHint: "This date is only a record for this delivery, it does not change the product's overall expiry date.", titleNot: 'NOTE', btnNot: 'NOTE', phNotYaz: 'Example: box damaged, 1 unit broken...',
+        btnAngebotHazirla: 'CREATE OFFER', lblEtiket: 'LABEL', titleFiyatGecmisi: 'PRICE HISTORY', btnFiyatGecmisi: 'PRICE HISTORY', noPriceHistory: 'No price changes yet', titleFirmaGecmisi: 'SUPPLIER HISTORY', btnFirmaGecmisi: 'SUPPLIER HISTORY', noCompanyHistory: 'No supplier changes yet', titleTeslimatGecmisi: 'DELIVERY HISTORY', btnTeslimatGecmisi: 'DELIVERY HISTORY', btnBugunGeldi: 'ARRIVED TODAY', noDeliveryHistory: 'No deliveries logged yet', phKoliAdedi: 'Box count', deliveryExpiryHint: "This date is only a record for this delivery, it does not change the product's overall expiry date.", titleNot: 'NOTE', btnNot: 'NOTE', phNotYaz: 'Example: box damaged, 1 unit broken...', btnSiparisModu: 'ORDER MODE', orderModeInstruction: 'Scan products, they will be automatically sorted by company. If company is unknown, you will be asked to choose.', titleFirmaSec: 'SELECT COMPANY', btnSecOnayla: 'SELECT AND CONFIRM', btnPaylas: 'SHARE',
         phBarkod: 'Barcode', phUrunAdi: 'Product name', phUrunAdiMax: 'Product name (max 35)', phFiyat: 'Price (€)',
         phFiyatAuto: 'Price (€) — 549 → 5.49 automatic', phMaliyet: 'Cost (€)', phMaliyetAuto: 'Cost (€) — 349 → 3.49 automatic',
         phStok: 'Stock', phFirmaSec: '-- Select company --', catDolap: 'Fridge items', catKuru: 'Dry goods',
@@ -885,6 +923,132 @@ async function clearNote(){
     document.getElementById('noteTextarea').value = '';
     await saveProducts();
     showToast(translateText('Not silindi'));
+}
+
+// ==============================================================
+//  SIPARIS MODU (firma bazli otomatik siparis listesi)
+// ==============================================================
+async function openOrderModeModal(){
+    let saved = null;
+    try{ saved = await loadMetadata('orderModeSession'); }catch(e){}
+    orderMap = (saved && typeof saved==='object') ? saved : {};
+    renderOrderModeList();
+    updateOrderModeBadge();
+    document.getElementById('orderModeModal').style.display='flex';
+}
+function closeOrderModeModal(){ document.getElementById('orderModeModal').style.display='none'; }
+function saveOrderSession(){ saveMetadata('orderModeSession', orderMap).catch(()=>{}); }
+function updateOrderModeBadge(){
+    let total = 0;
+    Object.values(orderMap).forEach(items=>{ total += items.length; });
+    let b = document.getElementById('orderModeBadge');
+    if(b) b.textContent = total;
+}
+function renderOrderModeList(){
+    let c = document.getElementById('orderModeList');
+    let companies = Object.keys(orderMap).filter(k=>orderMap[k] && orderMap[k].length);
+    if(!companies.length){
+        c.innerHTML = "<div style='text-align:center;padding:16px;color:var(--text-secondary);'><i class='fa-solid fa-cart-flatbed' style='font-size:1.6rem;margin-bottom:6px;display:block;opacity:0.5'></i>"+translateText('Henuz urun taranmadi')+"</div>";
+        return;
+    }
+    c.innerHTML = companies.map(comp=>{
+        let items = orderMap[comp];
+        let rows = items.map(it=>{
+            return `<div class="sayim-item"><div class="sayim-name">${escapeHtml(it.name)}</div><input type="number" class="sayim-input" value="${it.quantity}" min="1" oninput="updateOrderItemQty('${escapeJsString(comp)}','${escapeJsString(it.barcode)}', this.value)"><button onclick="removeOrderItem('${escapeJsString(comp)}','${escapeJsString(it.barcode)}')" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:20px;padding:5px 10px;color:white;font-size:0.72rem;cursor:pointer;"><i class="fa-solid fa-xmark"></i></button></div>`;
+        }).join('');
+        return `<div style="margin-bottom:16px;"><div style="font-weight:900;font-size:0.95rem;color:#7c3aed;margin-bottom:8px;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(comp)} <span style="font-weight:600;font-size:0.75rem;color:var(--text-secondary);">(${items.length})</span></div>${rows}</div>`;
+    }).join('');
+}
+function updateOrderItemQty(comp, barcode, val){
+    let n = parseInt(val);
+    if(isNaN(n) || n<1) n=1;
+    let items = orderMap[comp];
+    if(!items) return;
+    let it = items.find(x=>x.barcode===barcode);
+    if(it){ it.quantity = n; saveOrderSession(); }
+}
+function removeOrderItem(comp, barcode){
+    let items = orderMap[comp];
+    if(!items) return;
+    orderMap[comp] = items.filter(x=>x.barcode!==barcode);
+    if(!orderMap[comp].length) delete orderMap[comp];
+    saveOrderSession();
+    renderOrderModeList();
+    updateOrderModeBadge();
+}
+function clearOrderMode(){
+    if(!Object.keys(orderMap).length){ showToast('Liste zaten bos'); return; }
+    if(!confirm(translateText('Siparis listesi tamamen temizlensin mi?'))) return;
+    orderMap = {};
+    saveOrderSession();
+    renderOrderModeList();
+    updateOrderModeBadge();
+}
+function shareOrderList(){
+    let companies = Object.keys(orderMap).filter(k=>orderMap[k] && orderMap[k].length);
+    if(!companies.length){ showToast('Liste bos, paylasilacak bir sey yok'); return; }
+    let text = companies.map(comp=>{
+        let items = orderMap[comp];
+        let lines = items.map(it=>`- ${it.name} x${it.quantity}`).join('\n');
+        return `${comp}:\n${lines}`;
+    }).join('\n\n');
+    if(navigator.share){
+        navigator.share({title:'Siparis Listesi', text:text}).catch(()=>{});
+    } else if(navigator.clipboard){
+        navigator.clipboard.writeText(text).then(()=>showToast(translateText('Liste panoya kopyalandi'))).catch(()=>{ alert(text); });
+    } else {
+        alert(text);
+    }
+}
+function addToOrder(company, product, quantity){
+    if(!orderMap[company]) orderMap[company]=[];
+    let existing = orderMap[company].find(x=>x.barcode===product.barcode);
+    if(existing){ existing.quantity = quantity; }
+    else { orderMap[company].push({barcode:product.barcode, name:product.name, quantity:quantity}); }
+    saveOrderSession();
+    renderOrderModeList();
+    updateOrderModeBadge();
+    playBeep();
+    showToast(`✅ ${product.name} → ${company} (${quantity})`);
+}
+function promptOrderQuantity(company, product){
+    let girilen = prompt(`📦 ${product.name}\n${company}\n\n${translateText('Kac adet siparis edilecek?')}`, "1");
+    if(girilen === null) return;
+    let adet = parseInt(girilen);
+    if(isNaN(adet) || adet<1){ showToast(translateText('Gecersiz miktar!')); return; }
+    addToOrder(company, product, adet);
+}
+function openOrderCompanyPickModal(product){
+    pendingOrderScan = product;
+    document.getElementById('orderCompanyPickProductName').textContent = product.name;
+    document.getElementById('orderCompanyPickSelect').innerHTML = buildCompanyOptions('');
+    document.getElementById('orderCompanyPickModal').style.display='flex';
+}
+function closeOrderCompanyPickModal(){ document.getElementById('orderCompanyPickModal').style.display='none'; pendingOrderScan=null; }
+async function confirmOrderCompanyPick(){
+    let sel = document.getElementById('orderCompanyPickSelect');
+    let company = sel.value;
+    if(!company){ showToast(translateText('Once bir firma secin!')); return; }
+    let product = pendingOrderScan;
+    if(!product) return;
+    let idx = products.findIndex(x=>x.id===product.id);
+    if(idx!==-1){
+        logCompanyChange(products[idx], company);
+        products[idx].company = company;
+        await saveProducts();
+    }
+    closeOrderCompanyPickModal();
+    promptOrderQuantity(company, product);
+}
+function handleOrderScan(code){
+    let cn = normBarcode(code);
+    let p = findByBarcode(cn);
+    if(!p){ showToast(`"${cn}" ${translateText('sistemde kayitli degil')}`); return; }
+    if(p.company && p.company.trim()){
+        promptOrderQuantity(p.company.trim(), p);
+    } else {
+        openOrderCompanyPickModal(p);
+    }
 }
 async function logDeliveryToday(){
     let idx = currentDeliveryProductIdx;
@@ -1418,6 +1582,11 @@ function manualBarcodeEntry(){
     if(currentCameraMode === 'bulksekt'){
         closeCameraModal();
         handleBulkSktScan(code);
+        return;
+    }
+    if(currentCameraMode === 'order'){
+        closeCameraModal();
+        handleOrderScan(code);
         return;
     }
     closeCameraModal();
@@ -2093,6 +2262,10 @@ function closeCameraModal(){
         document.getElementById("bulkSktModal").style.display="flex";
         bulkSktKameraMode=false;
     }
+    if(orderKameraMode){
+        document.getElementById("orderModeModal").style.display="flex";
+        orderKameraMode=false;
+    }
 }
 
 // ==============================================================
@@ -2292,6 +2465,51 @@ function handleBulkSktScan(code){
     bulkSktList.push(cn);
     renderBulkSktList();
     showToast(`✅ ${p.name} eklendi`);
+}
+async function openOrderKamera(){
+    let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
+    orderKameraMode=true;
+    currentCameraMode='order';
+    let torchBtn=document.getElementById('torchToggleBtn');
+    if(torchBtn) torchBtn.classList.remove('torch-active');
+    document.getElementById("orderModeModal").style.display="none";
+    modal.style.display="flex";
+    status.innerHTML='<i class="fa-solid fa-cart-flatbed" style="margin-right:6px"></i>SIPARIS: BARKODU CERCEVEYE GETIR...';
+    try{
+        if(currentStopScan){ currentStopScan(); currentStopScan=null; }
+        if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
+        let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment", width:{ideal:1280}, height:{ideal:720}}});
+        video.srcObject=stream;
+        currentStream=stream;
+        currentVideoTrack=stream.getVideoTracks()[0]||null;
+        await video.play();
+        forceContinuousFocus(currentVideoTrack);
+        attachTapToFocus(video, ()=>currentVideoTrack);
+        status.innerHTML='<i class="fa-solid fa-cart-flatbed" style="margin-right:6px"></i>SIPARIS: BARKODU CERCEVEYE GETIR (odaklamak icin ekrana dokun)...';
+        let detected=false, scanCounts={};
+        currentStopScan = await startBarcodeScan(video, code=>{
+            if(detected) return;
+            if(!code||code.length<4) return;
+            if(!isValidChecksum(code)) return;
+            scanCounts[code]=(scanCounts[code]||0)+1;
+            status.innerHTML=`<i class="fa-solid fa-eye" style="margin-right:6px"></i>OKUNUYOR (${scanCounts[code]}/2)...`;
+            if(scanCounts[code]<2) return;
+            detected=true;
+            playBeep();
+            vibrateShort();
+            if(currentStopScan){ currentStopScan(); currentStopScan=null; }
+            if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
+            modal.style.display="none";
+            document.getElementById("orderModeModal").style.display="flex";
+            handleOrderScan(code);
+            orderKameraMode=false;
+        });
+    } catch(e){
+        modal.style.display="none";
+        document.getElementById("orderModeModal").style.display="flex";
+        showToast("Kamera acilamadi!");
+        orderKameraMode=false;
+    }
 }
 async function openBulkSktKamera(){
     let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
@@ -2614,6 +2832,15 @@ async function checkBackupReminder(){
     }
 }
 checkBackupReminder();
+(async function initOrderBadge(){
+    try{
+        let saved = await loadMetadata('orderModeSession');
+        if(saved && typeof saved==='object'){
+            orderMap = saved;
+            updateOrderModeBadge();
+        }
+    }catch(e){}
+})();
 if('serviceWorker' in navigator){
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').catch(()=>{});
