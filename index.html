@@ -205,7 +205,7 @@
 <div id="drawerOverlay" onclick="closeDrawer()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.7);backdrop-filter:blur(4px);z-index:500;"></div>
 <div id="drawer" style="position:fixed;top:0;left:-255px;width:245px;height:100%;background:linear-gradient(180deg,#f0f9ff,#e0f2fe);z-index:600;transition:left 0.35s cubic-bezier(0.16,1,0.3,1);box-shadow:8px 0 32px rgba(0,0,0,0.15);border-radius:0 32px 32px 0;border-right:1px solid rgba(0,0,0,0.06)">
     <div style="background:rgba(255,255,255,0.5);padding:52px 24px 24px;border-radius:0 32px 0 0;border-bottom:1px solid rgba(0,0,0,0.06)"><div style="font-size:1.6rem;font-weight:900;color:#fdba74;font-family:'Outfit',sans-serif;letter-spacing:0.5px"><i class="fa-solid fa-basket-shopping" style="margin-right:8px"></i>MARKET PRO</div><div style="font-size:0.75rem;color:var(--text-secondary);margin-top:6px;font-weight:500" data-i18n="appSubtitle">Envanter Yonetimi</div></div>
-    <div style="padding:16px 16px 50px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:calc(100vh - 140px)">
+    <div style="padding:16px 16px 100px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:calc(100vh - 140px)">
         <div class="drawer-group-title"><i class="fa-solid fa-language" style="margin-right:6px"></i><span data-i18n="drawerDil">DIL / LANGUAGE</span></div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;"><button class="drawer-btn" style="text-align:center;padding:10px 4px;" onclick="setLanguage('tr')">TR</button><button class="drawer-btn" style="text-align:center;padding:10px 4px;" onclick="setLanguage('de')">DE</button><button class="drawer-btn" style="text-align:center;padding:10px 4px;" onclick="setLanguage('en')">EN</button></div>
         <div class="drawer-sep"></div>
@@ -518,6 +518,7 @@ let currentDeliveryProductIdx = null;
 let orderMap = {};
 let orderKameraMode = false;
 let pendingOrderScan = null;
+let pendingOrderQuickAdd = false;
 let orderHistory = [];
 let bulkSktList = [], bulkSktKameraMode = false;
 let tempImageData = null, currentEditingProductId = null, angebotProduct = null;
@@ -641,6 +642,7 @@ const PHRASE_DICT = [
     ["Bu siparis gonderildi olarak isaretlenip listeden kaldirilsin mi?", "Soll diese Bestellung als versendet markiert und aus der Liste entfernt werden?", "Mark this order as sent and remove it from the list?"],
     ["Siparis gecmise kaydedildi", "Bestellung im Verlauf gespeichert", "Order saved to history"],
     ["Henuz gonderilmis siparis yok", "Noch keine versendete Bestellung", "No orders sent yet"],
+    ["Bu urun siparis listesinde yok", "Dieses Produkt ist nicht in der Bestellliste", "This product is not in the order list"],
 ];
 function translateText(str){
     if(currentLang==='tr' || !str) return str;
@@ -1086,7 +1088,7 @@ function openOrderCompanyPickModal(product){
     document.getElementById('orderCompanyPickSelect').innerHTML = buildCompanyOptions('');
     document.getElementById('orderCompanyPickModal').style.display='flex';
 }
-function closeOrderCompanyPickModal(){ document.getElementById('orderCompanyPickModal').style.display='none'; pendingOrderScan=null; }
+function closeOrderCompanyPickModal(){ document.getElementById('orderCompanyPickModal').style.display='none'; pendingOrderScan=null; pendingOrderQuickAdd=false; }
 async function confirmOrderCompanyPick(){
     let sel = document.getElementById('orderCompanyPickSelect');
     let company = sel.value;
@@ -1100,7 +1102,12 @@ async function confirmOrderCompanyPick(){
         await saveProducts();
     }
     closeOrderCompanyPickModal();
-    promptOrderQuantity(company, product);
+    if(pendingOrderQuickAdd){
+        pendingOrderQuickAdd = false;
+        adjustOrderQuantity(company, product, 1);
+    } else {
+        promptOrderQuantity(company, product);
+    }
 }
 function handleOrderScan(code){
     let cn = normBarcode(code);
@@ -1117,6 +1124,37 @@ function addProductToOrder(product){
         promptOrderQuantity(product.company.trim(), product);
     } else {
         openOrderCompanyPickModal(product);
+    }
+}
+function adjustOrderQuantity(company, product, delta){
+    if(!orderMap[company]) orderMap[company]=[];
+    let existing = orderMap[company].find(x=>x.barcode===product.barcode);
+    if(!existing){
+        if(delta<=0){ showToast(translateText('Bu urun siparis listesinde yok')); return; }
+        orderMap[company].push({barcode:product.barcode, name:product.name, quantity:delta});
+    } else {
+        existing.quantity += delta;
+        if(existing.quantity<=0){
+            orderMap[company] = orderMap[company].filter(x=>x.barcode!==product.barcode);
+            if(!orderMap[company].length) delete orderMap[company];
+        }
+    }
+    saveOrderSession();
+    updateOrderModeBadge();
+    playBeep();
+    let newQty = 0;
+    if(orderMap[company]){ let it=orderMap[company].find(x=>x.barcode===product.barcode); if(it) newQty=it.quantity; }
+    showToast(`${product.name}: ${company} → ${newQty}`);
+}
+function quickAdjustOrder(idx, delta){
+    let p = products[idx];
+    if(!p) return;
+    if(p.company && p.company.trim()){
+        adjustOrderQuantity(p.company.trim(), p, delta);
+    } else {
+        if(delta<0){ showToast(translateText('Bu urun siparis listesinde yok')); return; }
+        pendingOrderQuickAdd = true;
+        openOrderCompanyPickModal(p);
     }
 }
 async function logDeliveryToday(){
@@ -1788,7 +1826,7 @@ function renderInventoryList(){
     }
     container.innerHTML=sorted.map((p, index)=>{
         let idx=products.findIndex(pr=>pr.id===p.id),cc=getProductColorClass(p);
-        return `<div class="envanter-item ${cc}" style="animation-delay:${index*0.03}s"><div class="product-name-item" onclick="returnToInventoryModal=true;document.getElementById('inventoryModal').style.display='none';openProductDetailModal(${idx})">${getCategoryBadge(p.category)}${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-weight:600">(${p.quantity})</span>${p.note?' <i class="fa-solid fa-note-sticky" style="color:#d97706;font-size:0.75rem;"></i>':''}${expiredTag(p)}</div><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-plus" style="margin-right:3px;font-size:0.6rem"></i>${t('lblEtiket')}</button></div>`;
+        return `<div class="envanter-item ${cc}" style="animation-delay:${index*0.03}s"><div class="product-name-item" onclick="returnToInventoryModal=true;document.getElementById('inventoryModal').style.display='none';openProductDetailModal(${idx})">${getCategoryBadge(p.category)}${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-weight:600">(${p.quantity})</span>${p.note?' <i class="fa-solid fa-note-sticky" style="color:#d97706;font-size:0.75rem;"></i>':''}${expiredTag(p)}</div><div style="display:flex;gap:4px;flex-shrink:0;"><button onclick="quickAdjustOrder(${idx},1)" title="Spr +" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;border-radius:14px;padding:7px 8px;color:white;font-size:0.62rem;font-weight:800;cursor:pointer;">Spr +</button><button onclick="quickAdjustOrder(${idx},-1)" title="Spr -" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6);border:none;border-radius:14px;padding:7px 8px;color:white;font-size:0.62rem;font-weight:800;cursor:pointer;">Spr -</button><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-plus" style="margin-right:3px;font-size:0.6rem"></i>${t('lblEtiket')}</button></div></div>`;
     }).join('');
 }
 function setInventoryFilter(mode){ inventoryFilterMode=mode; renderInventoryList(); }
@@ -1796,7 +1834,7 @@ function setInventoryFilter(mode){ inventoryFilterMode=mode; renderInventoryList
 function openProductDetailModal(idx){
     let p=products[idx];currentEditingProductId=idx;let color=getProductColorClass(p);
     let modal=document.getElementById("productDetailModal"),content=document.getElementById("productDetailContent");
-    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>${t('titleUrunDetayi')}</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark"></i></button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}${p.note?' <i class="fa-solid fa-note-sticky" style="color:#d97706;font-size:0.85rem;" title="Not var"></i>':''}<div style="color:#475569;margin-top:6px;font-size:0.9rem;line-height:1.6;">${t('lblBarkod')}: ${p.barcode}<br>${t('lblFiyat')}: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>${t('lblStok')}: <span style="font-weight:700">${p.quantity}</span><br><span style="color:#ef4444;font-weight:900;font-size:1.05rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)}</span>${expiredTag(p)}</div>${p.company?`<button onclick="closeProductDetailModal();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin-top:10px;background:rgba(30,41,59,0.08);border:1px solid rgba(30,41,59,0.15);border-radius:30px;padding:8px 16px;color:#1e293b;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}</div><div class="detail-actions"><button class="full-width-btn" onclick="toggleEditMode()" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:0;"><i class="fa-solid fa-pen" style="margin-right:6px"></i>${t('btnDuzenle')}</button><div class="button-row"><button onclick="discardProduct()" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);"><i class="fa-solid fa-dumpster" style="margin-right:4px"></i>${t('btnAt')}</button><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:8px;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button><button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:8px;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button><button class="full-width-btn" onclick="openCompanyHistoryModal(${idx})" style="background:linear-gradient(135deg,#64748b,#475569)!important;margin-top:8px;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>${t('btnFirmaGecmisi')}</button><button class="full-width-btn" onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669)!important;margin-top:8px;"><i class="fa-solid fa-truck" style="margin-right:6px"></i>${t('btnTeslimatGecmisi')}</button><button class="full-width-btn" onclick="openNoteModal(${idx})" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:8px;"><i class="fa-solid fa-note-sticky" style="margin-right:6px"></i>${t('btnNot')}${p.note?' <i class="fa-solid fa-circle" style="font-size:0.4rem;vertical-align:middle;margin-left:4px;"></i>':''}</button><button class="full-width-btn" onclick="addProductToOrder(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:8px;"><i class="fa-solid fa-cart-flatbed" style="margin-right:6px"></i>${t('btnSipariseEkle')}</button></div><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
+    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>${t('titleUrunDetayi')}</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark"></i></button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}${p.note?' <i class="fa-solid fa-note-sticky" style="color:#d97706;font-size:0.85rem;" title="Not var"></i>':''}<div style="color:#475569;margin-top:6px;font-size:0.9rem;line-height:1.6;">${t('lblBarkod')}: ${p.barcode}<br>${t('lblFiyat')}: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>${t('lblStok')}: <span style="font-weight:700">${p.quantity}</span><br><span style="color:#ef4444;font-weight:900;font-size:1.05rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)}</span>${expiredTag(p)}</div>${p.company?`<button onclick="closeProductDetailModal();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin-top:10px;background:rgba(30,41,59,0.08);border:1px solid rgba(30,41,59,0.15);border-radius:30px;padding:8px 16px;color:#1e293b;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}</div><div class="detail-actions"><button class="full-width-btn" onclick="toggleEditMode()" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:0;"><i class="fa-solid fa-pen" style="margin-right:6px"></i>${t('btnDuzenle')}</button><button class="full-width-btn" onclick="addProductToOrder(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:8px;"><i class="fa-solid fa-cart-flatbed" style="margin-right:6px"></i>${t('btnSipariseEkle')}</button><div class="button-row"><button onclick="discardProduct()" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);"><i class="fa-solid fa-dumpster" style="margin-right:4px"></i>${t('btnAt')}</button><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:8px;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button><button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:8px;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button><button class="full-width-btn" onclick="openCompanyHistoryModal(${idx})" style="background:linear-gradient(135deg,#64748b,#475569)!important;margin-top:8px;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>${t('btnFirmaGecmisi')}</button><button class="full-width-btn" onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669)!important;margin-top:8px;"><i class="fa-solid fa-truck" style="margin-right:6px"></i>${t('btnTeslimatGecmisi')}</button><button class="full-width-btn" onclick="openNoteModal(${idx})" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:8px;"><i class="fa-solid fa-note-sticky" style="margin-right:6px"></i>${t('btnNot')}${p.note?' <i class="fa-solid fa-circle" style="font-size:0.4rem;vertical-align:middle;margin-left:4px;"></i>':''}</button></div><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
     modal.style.display="flex";
 }
 function closeProductDetailModal(){
@@ -2710,6 +2748,7 @@ function showResult(p){
         ${p.company?`<button onclick="clearResult();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin:10px auto 0;display:block;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.15);border-radius:30px;padding:8px 16px;color:inherit;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}
         <div class="detail-actions" style="margin-top:14px;">
             <button class="full-width-btn" onclick="showInlineEdit()" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:0;"><i class="fa-solid fa-pen" style="margin-right:6px"></i>${t('btnDuzenle')}</button>
+            <button class="full-width-btn" onclick="addProductToOrder(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:8px;"><i class="fa-solid fa-cart-flatbed" style="margin-right:6px"></i>${t('btnSipariseEkle')}</button>
             <div class="button-row"><button onclick="discardFromResult()" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);"><i class="fa-solid fa-dumpster" style="margin-right:4px"></i>${t('btnAt')}</button><button onclick="deleteFromResult()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button></div>
             <div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToResult('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div>
             <div class="button-row"><button onclick="addImageToResult('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForResult()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div>
@@ -2719,7 +2758,6 @@ function showResult(p){
             <button class="full-width-btn" onclick="openCompanyHistoryModal(${idx})" style="background:linear-gradient(135deg,#64748b,#475569)!important;margin-top:8px;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>${t('btnFirmaGecmisi')}</button>
             <button class="full-width-btn" onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669)!important;margin-top:8px;"><i class="fa-solid fa-truck" style="margin-right:6px"></i>${t('btnTeslimatGecmisi')}</button>
             <button class="full-width-btn" onclick="openNoteModal(${idx})" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:8px;"><i class="fa-solid fa-note-sticky" style="margin-right:6px"></i>${t('btnNot')}${p.note?' <i class="fa-solid fa-circle" style="font-size:0.4rem;vertical-align:middle;margin-left:4px;"></i>':''}</button>
-            <button class="full-width-btn" onclick="addProductToOrder(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:8px;"><i class="fa-solid fa-cart-flatbed" style="margin-right:6px"></i>${t('btnSipariseEkle')}</button>
         </div>
     `;
 }
