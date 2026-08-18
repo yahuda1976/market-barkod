@@ -1195,6 +1195,7 @@ function startVoiceSearch(){
             setTimeout(()=>{
                 let inp = document.getElementById('inventorySearchInput');
                 if(inp){ inp.value = text; renderInventoryList(); }
+                showToast(`🎤 "${text}"`);
             }, 150);
         };
         rec.onerror = ()=>{ showToast(translateText('Sesli arama basarisiz, tekrar deneyin')); };
@@ -1560,6 +1561,12 @@ function expiredTag(p){
     return '';
 }
 function normBarcode(b){ return (b===null||b===undefined)?'':String(b).replace(/\s/g,'').trim(); }
+function normalizeSearchText(str){
+    return (str||'').toLowerCase()
+        .replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ş/g,'s').replace(/ü/g,'u')
+        .replace(/[.,!?;:]/g,'')
+        .trim();
+}
 function isValidChecksum(code){
     // Sadece rakamlardan olusan standart uzunluktaki barkodlar (EAN-8/UPC-A/EAN-13) icin checksum dogrulamasi yapar.
     // Kod128 gibi harf iceren veya farkli uzunluktaki kodlarda dogrulama atlanir (true doner).
@@ -1799,8 +1806,12 @@ function renderInventoryList(){
         statsEl.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;"><div onclick="setInventoryFilter('all')" style="cursor:pointer;background:linear-gradient(135deg,#3b82f6,#2563eb);border-radius:30px;padding:10px 12px;font-size:0.8rem;font-weight:800;color:white;text-align:center;${allStyle}"><i class="fa-solid fa-layer-group" style="margin-right:4px"></i>TOPLAM: ${total}</div><div onclick="setInventoryFilter('active')" style="cursor:pointer;background:linear-gradient(135deg,#10b981,#059669);border-radius:30px;padding:10px 12px;font-size:0.8rem;font-weight:800;color:white;text-align:center;${actStyle}"><i class="fa-solid fa-check" style="margin-right:4px"></i>AKTIF: ${active}</div>`+(zero>0?`<div onclick="setInventoryFilter('zero')" style="cursor:pointer;background:linear-gradient(135deg,#64748b,#475569);border-radius:30px;padding:10px 12px;font-size:0.8rem;font-weight:800;color:white;text-align:center;${zeroStyle}"><i class="fa-solid fa-square" style="margin-right:4px"></i>STOKSUZ: ${zero}</div>`:'')+(urgent>0?`<div onclick="setInventoryFilter('urgent')" style="cursor:pointer;background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:30px;padding:10px 12px;font-size:0.8rem;font-weight:800;color:white;text-align:center;${urgStyle}"><i class="fa-solid fa-triangle-exclamation" style="margin-right:4px"></i>ACIL: ${urgent}</div>`:'')+`</div>`; 
     } 
     let container=document.getElementById("modalProductList"); 
-    let sv=(document.getElementById("inventorySearchInput")?.value||'').trim().toLowerCase(); 
-    let filtered=sv?baseList.filter(p=>p.name.toLowerCase().includes(sv)||p.barcode.includes(sv)):baseList; 
+    let sv=normalizeSearchText(document.getElementById("inventorySearchInput")?.value||''); 
+    let searchWords = sv.split(/\s+/).filter(w=>w.length>0);
+    let filtered = searchWords.length ? baseList.filter(p=>{
+        let normName = normalizeSearchText(p.name);
+        return searchWords.every(w=>normName.includes(w)) || p.barcode.includes(sv);
+    }) : baseList;
     if(inventoryFilterMode==='active')filtered=filtered.filter(p=>p.quantity>0); 
     else if(inventoryFilterMode==='zero')filtered=filtered.filter(p=>p.quantity===0); 
     else if(inventoryFilterMode==='urgent')filtered=filtered.filter(p=>p.expiry&&p.quantity>0&&Math.ceil((new Date(p.expiry)-new Date())/86400000)<=7); 
