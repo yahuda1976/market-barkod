@@ -1187,15 +1187,28 @@ function startVoiceSearch(){
         let rec = new SpeechRec();
         rec.lang = currentLang==='de' ? 'de-DE' : (currentLang==='en' ? 'en-US' : 'tr-TR');
         rec.interimResults = false;
-        rec.maxAlternatives = 1;
+        rec.maxAlternatives = 5;
         showToast(translateText('Dinliyorum...'));
         rec.onresult = (e)=>{
-            let text = e.results[0][0].transcript;
+            let results = e.results[0];
+            let candidates = [];
+            for(let i=0;i<results.length;i++) candidates.push(results[i].transcript);
             openInventoryModal();
             setTimeout(()=>{
+                let bestText = candidates[0];
+                let bestScore = -1;
+                candidates.forEach(cand=>{
+                    let words = normalizeSearchText(cand).split(/\s+/).filter(w=>w.length>0);
+                    if(!words.length) return;
+                    let score = products.filter(p=>{
+                        let n = normalizeSearchText(p.name)+' '+normalizeSearchText(p.company||'');
+                        return words.every(w=>n.includes(w));
+                    }).length;
+                    if(score > bestScore){ bestScore = score; bestText = cand; }
+                });
                 let inp = document.getElementById('inventorySearchInput');
-                if(inp){ inp.value = text; renderInventoryList(); }
-                showToast(`🎤 "${text}"`);
+                if(inp){ inp.value = bestText; renderInventoryList(); }
+                showToast(`🎤 "${bestText}"`);
             }, 150);
         };
         rec.onerror = ()=>{ showToast(translateText('Sesli arama basarisiz, tekrar deneyin')); };
@@ -1818,7 +1831,7 @@ function renderInventoryList(){
     let sv=normalizeSearchText(document.getElementById("inventorySearchInput")?.value||''); 
     let searchWords = sv.split(/\s+/).filter(w=>w.length>0);
     let filtered = searchWords.length ? baseList.filter(p=>{
-        let normName = normalizeSearchText(p.name);
+        let normName = normalizeSearchText(p.name)+' '+normalizeSearchText(p.company||'');
         return searchWords.every(w=>normName.includes(w)) || p.barcode.includes(sv);
     }) : baseList;
     if(inventoryFilterMode==='active')filtered=filtered.filter(p=>p.quantity>0); 
