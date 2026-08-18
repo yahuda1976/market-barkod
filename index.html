@@ -57,10 +57,12 @@
         .product-list-simple{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow-y:auto;padding-right:4px}
         .product-list-simple::-webkit-scrollbar{width:4px}
         .product-list-simple::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:10px}
-        .envanter-item{background:rgba(255,255,255,0.55);border-radius:24px;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;transition:all 0.2s ease;border:1px solid transparent;animation:fadeInUp 0.3s ease forwards;opacity:0}
+        .envanter-item{background:rgba(255,255,255,0.55);border-radius:24px;padding:10px 14px;display:flex;flex-direction:column;gap:8px;transition:all 0.2s ease;border:1px solid transparent;animation:fadeInUp 0.3s ease forwards;opacity:0}
         .envanter-item:hover{background:rgba(255,255,255,0.8);transform:translateX(4px);border-color:rgba(59,130,246,0.15)}
-        .product-name-item{flex:1;cursor:pointer;font-weight:700;font-size:0.88rem;padding:6px 2px;letter-spacing:0.2px}
-        .btn-add-queue-list{background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:40px;padding:7px 14px;color:white;font-weight:700;font-size:0.72rem;cursor:pointer;box-shadow:0 2px 8px rgba(245,158,11,0.25);transition:all 0.2s}
+        .envanter-item-actions{display:flex;gap:6px}
+        .envanter-item-actions button{flex:1;min-width:0;border:none;border-radius:14px;padding:7px 4px;color:white;font-weight:800;font-size:0.66rem;cursor:pointer;transition:all 0.2s;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .product-name-item{cursor:pointer;font-weight:700;font-size:0.88rem;letter-spacing:0.2px}
+        .btn-add-queue-list{background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 2px 8px rgba(245,158,11,0.25)}
         .btn-add-queue-list:hover{transform:scale(1.05)}
         .product-detail-card{border-radius:32px;padding:24px;text-align:center;font-size:1rem;background:rgba(255,255,255,0.5);border:1px solid rgba(59,130,246,0.1)}
         .detail-image{max-width:100%;max-height:180px;border-radius:24px;margin:14px auto;display:block;box-shadow:0 12px 32px rgba(0,0,0,0.3)}
@@ -1826,7 +1828,7 @@ function renderInventoryList(){
     }
     container.innerHTML=sorted.map((p, index)=>{
         let idx=products.findIndex(pr=>pr.id===p.id),cc=getProductColorClass(p);
-        return `<div class="envanter-item ${cc}" style="animation-delay:${index*0.03}s"><div class="product-name-item" onclick="returnToInventoryModal=true;document.getElementById('inventoryModal').style.display='none';openProductDetailModal(${idx})">${getCategoryBadge(p.category)}${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-weight:600">(${p.quantity})</span>${p.note?' <i class="fa-solid fa-note-sticky" style="color:#d97706;font-size:0.75rem;"></i>':''}${expiredTag(p)}</div><div style="display:flex;gap:4px;flex-shrink:0;"><button onclick="quickAdjustOrder(${idx},1)" title="Spr +" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;border-radius:14px;padding:7px 8px;color:white;font-size:0.62rem;font-weight:800;cursor:pointer;">Spr +</button><button onclick="quickAdjustOrder(${idx},-1)" title="Spr -" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6);border:none;border-radius:14px;padding:7px 8px;color:white;font-size:0.62rem;font-weight:800;cursor:pointer;">Spr -</button><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-plus" style="margin-right:3px;font-size:0.6rem"></i>${t('lblEtiket')}</button></div></div>`;
+        return `<div class="envanter-item ${cc}" style="animation-delay:${index*0.03}s"><div class="product-name-item" onclick="returnToInventoryModal=true;document.getElementById('inventoryModal').style.display='none';openProductDetailModal(${idx})">${getCategoryBadge(p.category)}${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-weight:600">(${p.quantity})</span>${p.note?' <i class="fa-solid fa-note-sticky" style="color:#d97706;font-size:0.75rem;"></i>':''}${expiredTag(p)}</div><div class="envanter-item-actions"><button onclick="quickAdjustOrder(${idx},1)" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">Spr +</button><button onclick="quickAdjustOrder(${idx},-1)" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6);">Spr -</button><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:3px;font-size:0.6rem"></i>${t('lblEtiket')}</button></div></div>`;
     }).join('');
 }
 function setInventoryFilter(mode){ inventoryFilterMode=mode; renderInventoryList(); }
