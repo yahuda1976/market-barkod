@@ -243,8 +243,8 @@
     </div>
     <div class="result-area" onclick="openCameraModal('search')" style="cursor:pointer;display:flex;align-items:center;justify-content:center;"><button onclick="event.stopPropagation();startVoiceSearch()" style="position:absolute;top:12px;right:14px;background:rgba(59,130,246,0.9);color:white;border:none;border-radius:50%;width:32px;height:32px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);z-index:2;box-shadow:0 2px 8px rgba(0,0,0,0.2);"><i class="fa-solid fa-microphone"></i></button><div class="result-placeholder"><i class="fa-solid fa-camera" style="margin-right:8px"></i><span data-i18n="scanPlaceholder">BARKOD OKUTUN</span></div></div>
     <div class="button-grid">
-        <button class="btn btn-primary" id="searchBtn"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i><span data-i18n="btnSearch">SORGULA</span></button>
         <button class="btn btn-primary" id="addBtn"><i class="fa-solid fa-plus" style="margin-right:6px"></i><span data-i18n="btnAdd">URUN EKLE</span></button>
+        <button class="btn btn-primary" id="searchBtn"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i><span data-i18n="btnSearch">SORGULA</span></button>
     </div>
     <div class="button-grid">
         <button class="btn btn-success" id="productSearchBtn"><i class="fa-solid fa-building" style="margin-right:6px"></i><span data-i18n="btnCompanies">FIRMALAR</span></button>
@@ -1675,9 +1675,13 @@ async function forceContinuousFocus(track){
     if(!track || !track.getCapabilities) return;
     try{
         let caps = track.getCapabilities();
-        if(caps.focusMode && caps.focusMode.includes('continuous')){
-            await withTimeout(track.applyConstraints({advanced:[{focusMode:'continuous'}]}), 900);
+        let advanced = [];
+        if(caps.focusMode && caps.focusMode.includes('continuous')) advanced.push({focusMode:'continuous'});
+        if(caps.focusDistance && typeof caps.focusDistance.min==='number' && typeof caps.focusDistance.max==='number'){
+            let biasedDistance = caps.focusDistance.min + (caps.focusDistance.max - caps.focusDistance.min) * 0.35;
+            advanced.push({focusDistance: biasedDistance});
         }
+        if(advanced.length) await withTimeout(track.applyConstraints({advanced}), 900);
     }catch(e){}
 }
 function showFocusPulse(video, x, y){
