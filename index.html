@@ -1244,7 +1244,7 @@ function startVoiceSearch(){
                     let words = normalizeSearchText(cand).split(/\s+/).filter(w=>w.length>0);
                     if(!words.length) return;
                     let score = products.filter(p=>{
-                        let n = normalizeSearchText(p.name)+' '+normalizeSearchText(p.company||'');
+                        let n = normalizeSearchText(p.name);
                         return words.every(w=>n.includes(w));
                     }).length;
                     if(score > bestScore){ bestScore = score; bestText = cand; }
@@ -1885,7 +1885,7 @@ function renderInventoryList(){
     let sv=normalizeSearchText(document.getElementById("inventorySearchInput")?.value||''); 
     let searchWords = sv.split(/\s+/).filter(w=>w.length>0);
     let filtered = searchWords.length ? baseList.filter(p=>{
-        let normName = normalizeSearchText(p.name)+' '+normalizeSearchText(p.company||'')+' '+normalizeSearchText(p.note||'');
+        let normName = normalizeSearchText(p.name)+' '+normalizeSearchText(p.note||'');
         return searchWords.every(w=>normName.includes(w)) || p.barcode.includes(sv);
     }) : baseList;
     if(inventoryFilterMode==='active')filtered=filtered.filter(p=>p.quantity>0); 
