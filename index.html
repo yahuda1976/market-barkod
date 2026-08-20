@@ -1184,6 +1184,8 @@ const VOICE_CORRECTIONS = [
     {bad:['10 kel','10 kul','10 koy','on kel','on kul','onkul','onkoy','onkelt','onkelth','on kelt'], good:'onkel'},
     {bad:['sutun','butun','tutun','sutuk'], good:'sutum'},
     {bad:['oz oren','ozgoren','oz goren','ozveren','oz veren','ozveren yumurcak','oz veren yumurcak','oz oren yumurcak'], good:'oz yorem'},
+    {bad:['tdk'], good:'edeka'},
+    {bad:['alaaddin','aladdin'], good:'aladin'},
 ];
 function applyVoiceCorrections(text){
     let n = normalizeSearchText(text);
@@ -1512,7 +1514,7 @@ function showToast(msg){
     t.className="toast";
     t.innerHTML = `<i class="fa-solid fa-circle-info" style="color:#60a5fa"></i> ${msg}`;
     c.appendChild(t);
-    setTimeout(()=>t.remove(),3000); 
+    setTimeout(()=>t.remove(),1500); 
 }
 function escapeHtml(s){ if(!s)return'';return s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 function escapeJsString(s){ if(!s)return'';return s.replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\'/g,"\\'"); }
