@@ -124,19 +124,21 @@
         @keyframes fadeOut{to{opacity:0;visibility:hidden}}
         .label-grid-container{background:#fff;padding:0;margin:0;box-sizing:border-box;page-break-after:always;width:210mm;overflow:hidden}
         .label-grid{width:210mm;margin:0 auto;border-collapse:collapse;table-layout:fixed}
-        .label-cell{width:70mm;height:42.42mm;padding:0;border:none;vertical-align:top;overflow:hidden}
-        .label-outer{width:100%;height:100%;border:1px solid #000;border-radius:6px;overflow:hidden;box-sizing:border-box;display:flex;flex-direction:column;}
-        .label-card{flex:1;display:table;table-layout:fixed;background:white;width:100%;height:100%}
-        .label-image-area{display:table-cell;width:25mm;height:100%;vertical-align:middle;text-align:center;padding:1mm 0.5mm 1mm 2mm;box-sizing:border-box}
-        .label-image{width:21mm;height:32mm;display:flex;align-items:center;justify-content:center;margin:0 auto;overflow:hidden}
-        .label-image img{max-width:100%;max-height:100%;object-fit:contain}
-        .label-content-area{display:table-cell;width:42mm;height:100%;vertical-align:middle;padding:1.5mm 3mm 1.5mm 1.5mm;text-align:right;box-sizing:border-box}
-        .label-product-name{display:block;font-size:10pt;font-weight:900;color:#cc0000;line-height:1.2;text-transform:uppercase;margin-bottom:1.5mm;overflow:hidden;word-wrap:break-word}
-        .label-price{font-size:26pt;font-weight:900;color:#cc0000;letter-spacing:-1px;line-height:1;margin-top:0}
-        .label-price .cents{font-size:13pt;font-weight:900}
-        .label-price .currency{font-size:12pt;font-weight:900;margin-left:1px}
-        .label-barcode{text-align:center;border-top:1px dashed #ccc;padding:1px 2px 1px}
-        .barcode-svg{width:100%;height:14px}
+        .label-cell{width:70mm;height:42.3mm;padding:0;border:none;vertical-align:top;overflow:hidden}
+        .label-outer{width:100%;height:100%;box-sizing:border-box;border:0.3mm solid #ddd;border-radius:2.2mm;overflow:hidden;position:relative;background:white;display:flex;flex-direction:column}
+        .label-accent{height:1.4mm;width:100%;background:linear-gradient(90deg,#f59e0b,#f87171);flex-shrink:0}
+        .label-body{flex:1;display:flex;gap:2mm;padding:1.6mm 2.2mm 0.8mm;box-sizing:border-box;min-height:0}
+        .label-img-box{width:20mm;height:20mm;border-radius:1.8mm;background:#f7f7f8;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:0.25mm solid #eee}
+        .label-img-box img{max-width:100%;max-height:100%;object-fit:contain}
+        .label-noimg{color:#ccc;font-size:5pt;font-family:Arial,sans-serif;font-weight:700}
+        .label-text{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:0.8mm}
+        .label-product-name{font-family:Arial,sans-serif;font-size:6.6pt;font-weight:800;color:#1a1a2e;line-height:1.25;height:4.15mm;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+        .label-price-row{display:flex;align-items:baseline}
+        .label-price{font-family:Arial,sans-serif;font-size:19pt;font-weight:900;color:#c60000;line-height:1;letter-spacing:-0.3pt}
+        .label-price .cents{font-size:10pt}
+        .label-price .currency{font-family:Arial,sans-serif;font-size:10pt;font-weight:800;color:#c60000;margin-left:0.6mm}
+        .label-barcode{border-top:0.25mm dashed #ddd;padding:0.6mm 2mm 0.4mm;display:flex;align-items:center;justify-content:center;height:11.5mm;box-sizing:border-box}
+        .barcode-svg{width:100%;height:auto;display:block}
         @media print{body *{visibility:hidden}.print-modal,.print-modal *{visibility:visible}.print-modal{position:absolute;top:0;left:0;width:100%}.label-grid-container{page-break-after:always}}
         .drawer-btn{background:rgba(147,197,253,0.32);border:none;border-radius:40px;padding:14px 18px;color:var(--text-primary);font-weight:700;font-size:0.9rem;cursor:pointer;text-align:left;width:100%;transition:all 0.2s;border:1px solid rgba(59,130,246,0.12);display:flex;align-items:center;gap:10px}
         .drawer-btn:hover{background:rgba(147,197,253,0.55);border-color:rgba(59,130,246,0.25);transform:translateX(4px)}
@@ -651,6 +653,14 @@ const PHRASE_DICT = [
     ["SKT uyarilari aciliyor", "MHD-Warnungen werden geoffnet", "Opening expiry warnings"],
     ["Yedek aliniyor...", "Backup wird erstellt...", "Backing up..."],
     ["Son teslimat", "Letzte Lieferung", "Last delivery"],
+    ["Firmalar aciliyor", "Firmen werden geoffnet", "Opening companies"],
+    ["Envanter aciliyor", "Bestand wird geoffnet", "Opening inventory"],
+    ["Siparis Modu aciliyor", "Bestellmodus wird geoffnet", "Opening order mode"],
+    ["Stok Sayimi aciliyor", "Inventur wird geoffnet", "Opening stock count"],
+    ["Toplu SKT Guncelleme aciliyor", "MHD-Sammelaktualisierung wird geoffnet", "Opening bulk expiry update"],
+    ["Manuel Ekle aciliyor", "Manuelles Hinzufugen wird geoffnet", "Opening manual add"],
+    ["Tema degistiriliyor", "Design wird geandert", "Switching theme"],
+    ["CSV raporu indiriliyor", "CSV-Bericht wird heruntergeladen", "Downloading CSV report"],
 ];
 function translateText(str){
     if(currentLang==='tr' || !str) return str;
@@ -1203,20 +1213,25 @@ function applyVoiceCorrections(text){
 }
 function tryVoiceCommand(text){
     let n = normalizeSearchText(text);
-    if(/\b(stok ekle|urun ekle|barkod okut|urun tara)\b/.test(n)){
-        openCameraModal('add');
-        showToast('🎤 ' + translateText('Stok ekleme modu aciliyor'));
-        return true;
-    }
-    if(/\b(skt.*gecenleri goster|suresi gecenleri goster|uyarilari goster|acil urunleri goster)\b/.test(n)){
-        openUrgentModal();
-        showToast('🎤 ' + translateText('SKT uyarilari aciliyor'));
-        return true;
-    }
-    if(/\b(yedek al|telefona yedek al|yedekleme yap)\b/.test(n)){
-        showToast('🎤 ' + translateText('Yedek aliniyor...'));
-        backupData();
-        return true;
+    const commands = [
+        { re:/\b(stok ekle|urun ekle|barkod okut|urun tara|produkt hinzufugen|artikel hinzufugen|lager hinzufugen|barcode scannen)\b/, action:()=>openCameraModal('add'), msg:'Stok ekleme modu aciliyor' },
+        { re:/\b(skt.*gecenleri goster|suresi gecenleri goster|uyarilari goster|acil urunleri goster|mhd.*warnungen|ablaufende produkte|warnungen zeigen)\b/, action:openUrgentModal, msg:'SKT uyarilari aciliyor' },
+        { re:/\b(yedek al|telefona yedek al|yedekleme yap|backup machen|daten sichern|sichern)\b/, action:backupData, msg:'Yedek aliniyor...' },
+        { re:/\b(firmalari goster|firmalar|firma listesi|firmen zeigen|lieferanten zeigen)\b/, action:openCompanyModal, msg:'Firmalar aciliyor' },
+        { re:/\b(envanteri goster|envanteri ac|stoklari goster|bestand zeigen|lagerbestand zeigen|inventar zeigen)\b/, action:openInventoryModal, msg:'Envanter aciliyor' },
+        { re:/\b(siparis moduna gec|siparis modu|siparis ac|bestellmodus|bestellung starten)\b/, action:openOrderModeModal, msg:'Siparis Modu aciliyor' },
+        { re:/\b(stok sayimi yap|sayim moduna gec|sayima basla|inventur machen|zahlmodus|inventur starten)\b/, action:openSayimModal, msg:'Stok Sayimi aciliyor' },
+        { re:/\b(toplu skt guncelle|toplu tarih guncelle|mhd sammelaktualisierung|mhd aktualisieren)\b/, action:openBulkSktModal, msg:'Toplu SKT Guncelleme aciliyor' },
+        { re:/\b(manuel ekle|elle ekle|manuell hinzufugen)\b/, action:openManualAddModal, msg:'Manuel Ekle aciliyor' },
+        { re:/\b(karanlik moda gec|koyu tema|karanlik mod|dunkelmodus|dunkles design)\b/, action:toggleDarkMode, msg:'Tema degistiriliyor' },
+        { re:/\b(csv indir|rapor indir|csv raporu indir|csv herunterladen|bericht herunterladen)\b/, action:exportToCSV, msg:'CSV raporu indiriliyor' },
+    ];
+    for(let cmd of commands){
+        if(cmd.re.test(n)){
+            cmd.action();
+            showToast('🎤 ' + translateText(cmd.msg));
+            return true;
+        }
     }
     return false;
 }
@@ -2189,8 +2204,8 @@ function showMultiLabelPreview(){
                 let ip=Math.floor(product.price);
                 let ic=Math.round((product.price-ip)*100);
                 let cents=ic<10?'0'+ic:''+ic;
-                let imgTag=product.image?`<img src="${product.image}" style="max-width:100%;max-height:100%;object-fit:contain;">`:'<span style="font-size:1.2rem;">📷</span>';
-                items.push(`<td class="label-cell"><div class="label-outer"><div class="label-card"><div class="label-image-area"><div class="label-image">${imgTag}</div></div><div class="label-content-area"><div class="label-product-name">${escapeHtml(product.name)}</div><div class="label-price">${ip}<span class="cents">,${cents}</span><span class="currency">€</span></div></div></div><div class="label-barcode"><svg class="barcode-svg" id="${bId}"></svg></div></div></td>`);
+                let imgTag=product.image?`<img src="${product.image}">`:'<div class="label-noimg">FOTO</div>';
+                items.push(`<td class="label-cell"><div class="label-outer"><div class="label-accent"></div><div class="label-body"><div class="label-img-box">${imgTag}</div><div class="label-text"><div class="label-product-name">${escapeHtml(product.name)}</div><div class="label-price-row"><span class="label-price">${ip}<span class="cents">,${cents}</span></span><span class="currency">€</span></div></div></div><div class="label-barcode"><svg class="barcode-svg" id="${bId}"></svg></div></div></td>`);
                 barcodeIds.push({id:bId,barcode:product.barcode});
             } else {
                 items.push(`<td class="label-cell" style="visibility:hidden;"></td>`);
@@ -2202,7 +2217,7 @@ function showMultiLabelPreview(){
     content.innerHTML=`<div style="width:${scaledW}px;margin:0 auto;max-height:${Math.round(window.innerHeight*0.72)}px;overflow-y:auto;display:flex;flex-direction:column;">${allPagesHtml}</div>`;
     setTimeout(()=>{
         barcodeIds.forEach(({id,barcode})=>{
-            try{ JsBarcode(`#${id}`,barcode,{format:"CODE128",width:1.8,height:18,displayValue:true,fontSize:6}); }catch(e){}
+            try{ JsBarcode(`#${id}`,barcode,{format:"CODE128",width:1.9,height:50,displayValue:true,fontSize:16,margin:2}); }catch(e){}
         });
     },80);
     document.getElementById('angebotModal').style.display='none';
@@ -2228,9 +2243,9 @@ function printMultiLabelPoster(){
                 let ip=Math.floor(product.price);
                 let ic=Math.round((product.price-ip)*100);
                 let cents=ic<10?'0'+ic:''+ic;
-                let imgTag=product.image?`<img src="${product.image}" style="max-width:100%;max-height:100%;object-fit:contain;">`:'';
-                items.push(`<td class="label-cell"><div class="label-outer"><div class="label-card"><div class="label-image-area"><div class="label-image">${imgTag}</div></div><div class="label-content-area"><div class="label-product-name">${escapeHtml(product.name)}</div><div class="label-price">${ip}<span class="cents">,${cents}</span><span class="currency">€</span></div></div></div><div class="label-barcode"><svg class="barcode-svg" id="${bId}"></svg></div></div></td>`);
-                barcodeInits+=`try{JsBarcode("#${bId}","${escapeJsString(product.barcode)}",{format:"CODE128",width:1.8,height:18,displayValue:true,fontSize:6});}catch(e){}\n`;
+                let imgTag=product.image?`<img src="${product.image}">`:'<div class="label-noimg">FOTO</div>';
+                items.push(`<td class="label-cell"><div class="label-outer"><div class="label-accent"></div><div class="label-body"><div class="label-img-box">${imgTag}</div><div class="label-text"><div class="label-product-name">${escapeHtml(product.name)}</div><div class="label-price-row"><span class="label-price">${ip}<span class="cents">,${cents}</span></span><span class="currency">€</span></div></div></div><div class="label-barcode"><svg class="barcode-svg" id="${bId}"></svg></div></div></td>`);
+                barcodeInits+=`try{JsBarcode("#${bId}","${escapeJsString(product.barcode)}",{format:"CODE128",width:1.9,height:50,displayValue:true,fontSize:16,margin:2});}catch(e){}\n`;
             } else {
                 items.push(`<td class="label-cell" style="visibility:hidden;"></td>`);
             }
@@ -2248,19 +2263,21 @@ body{margin:0;padding:0;background:white;}
 .sheets{margin-top:64px;}
 .label-grid-container{width:210mm;margin:0 auto;}
 .label-grid{width:210mm;border-collapse:collapse;table-layout:fixed;margin:0 auto;}
-.label-cell{width:70mm;height:42.42mm;padding:0;border:none;vertical-align:top;overflow:hidden;}
-.label-outer{width:100%;height:100%;border:1px solid #000;border-radius:6px;overflow:hidden;box-sizing:border-box;display:flex;flex-direction:column;}
-.label-card{flex:1;display:table;table-layout:fixed;background:white;width:100%;height:100%}
-.label-image-area{display:table-cell;width:25mm;height:100%;vertical-align:middle;text-align:center;padding:1mm 0.5mm 1mm 2mm;box-sizing:border-box}
-.label-image{width:21mm;height:32mm;display:flex;align-items:center;justify-content:center;margin:0 auto;overflow:hidden;}
-.label-image img{max-width:100%;max-height:100%;object-fit:contain;}
-.label-content-area{display:table-cell;width:42mm;height:100%;vertical-align:middle;padding:1.5mm 3mm 1.5mm 1.5mm;text-align:right;box-sizing:border-box}
-.label-product-name{display:block;font-size:10pt;font-weight:900;color:#cc0000;line-height:1.2;text-transform:uppercase;margin-bottom:1.5mm;overflow:hidden;word-wrap:break-word}
-.label-price{font-size:26pt;font-weight:900;color:#cc0000;letter-spacing:-1px;line-height:1;margin-top:0;}
-.label-price .cents{font-size:13pt;font-weight:900;}
-.label-price .currency{font-size:12pt;font-weight:900;margin-left:1px;}
-.label-barcode{text-align:center;border-top:1px dashed #ccc;padding:1px 2px 1px;}
-.barcode-svg{width:100%;height:14px;}
+.label-cell{width:70mm;height:42.3mm;padding:0;border:none;vertical-align:top;overflow:hidden;}
+.label-outer{width:100%;height:100%;box-sizing:border-box;border:0.3mm solid #ddd;border-radius:2.2mm;overflow:hidden;position:relative;background:white;display:flex;flex-direction:column;}
+.label-accent{height:1.4mm;width:100%;background:linear-gradient(90deg,#f59e0b,#f87171);flex-shrink:0;}
+.label-body{flex:1;display:flex;gap:2mm;padding:1.6mm 2.2mm 0.8mm;box-sizing:border-box;min-height:0;}
+.label-img-box{width:20mm;height:20mm;border-radius:1.8mm;background:#f7f7f8;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:0.25mm solid #eee;}
+.label-img-box img{max-width:100%;max-height:100%;object-fit:contain;}
+.label-noimg{color:#ccc;font-size:5pt;font-family:Arial,sans-serif;font-weight:700;}
+.label-text{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:0.8mm;}
+.label-product-name{font-family:Arial,sans-serif;font-size:6.6pt;font-weight:800;color:#1a1a2e;line-height:1.25;height:4.15mm;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.label-price-row{display:flex;align-items:baseline;}
+.label-price{font-family:Arial,sans-serif;font-size:19pt;font-weight:900;color:#c60000;line-height:1;letter-spacing:-0.3pt;}
+.label-price .cents{font-size:10pt;}
+.label-price .currency{font-family:Arial,sans-serif;font-size:10pt;font-weight:800;color:#c60000;margin-left:0.6mm;}
+.label-barcode{border-top:0.25mm dashed #ddd;padding:0.6mm 2mm 0.4mm;display:flex;align-items:center;justify-content:center;height:11.5mm;box-sizing:border-box;}
+.barcode-svg{width:100%;height:auto;display:block;}
 @media print{.toolbar{display:none!important;}.sheets{margin-top:0!important;}}
 </style>`;
     let jsLib = '<sc'+'ript src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></sc'+'ript>';
@@ -2332,40 +2349,95 @@ function printAngebotDirectWithDiscount(size, orientation){
 function printCurrentAngebot(){ printAngebotDirectWithDiscount(currentAngebotSize, currentAngebotOrientation); }
 function closeAngebotPreview(){ document.getElementById('angebotPreviewModal').style.display='none'; document.getElementById('angebotModal').style.display='flex'; }
 
-function buildAngebotPrintHTML(size,orientation,p,discountPrice){
-    let originalPrice=p.price;
-    let showDiscount=(discountPrice!==null && discountPrice<originalPrice);
-    let finalPrice=showDiscount?discountPrice:originalPrice;
-    let ip=Math.floor(finalPrice);
-    let ic=Math.round((finalPrice-ip)*100);
-    let cents=ic<10?'0'+ic:''+ic;
-    let centsStr=ic===0?'—':cents;
-    let imgSrc=p.image?`<img src="${p.image}" style="max-width:100%;max-height:100%;object-fit:contain;">`:'';
-    let oip2=Math.floor(originalPrice); let oic2=Math.round((originalPrice-oip2)*100); let ocents2=oic2<10?'0'+oic2:''+oic2;
-    let oldBlock=showDiscount?`<div class="old-price">${oip2},${ocents2} €</div>`:'';
-    let fontLink=`<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">`;
-    let bodyCSS='', bodyHTML='';
-    if(size==='a5'){
-        if(orientation==='landscape'){
-            bodyCSS=`@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;background:white;}body{display:flex;flex-direction:column;width:210mm;height:297mm;}.poster{height:148.5mm;display:flex;align-items:stretch;overflow:hidden;border-bottom:1px dashed #bbb;box-sizing:border-box;}.img-side{flex:1;display:flex;align-items:center;justify-content:center;padding:8mm;}.img-side img{max-width:100%;max-height:100%;object-fit:contain;}.sep{width:3px;background:#cc0000;margin:14mm 0;border-radius:2px;flex-shrink:0;}.text-side{flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:8mm 10mm;gap:3mm;}.angebot{font-family:'Anton',Impact,sans-serif;font-size:34pt;font-weight:400;color:#cc0000;letter-spacing:1px;line-height:1;}.pname{font-family:'Anton',Impact,sans-serif;font-size:22pt;font-weight:400;color:#cc0000;line-height:1.1;text-transform:uppercase;margin:0;}.old-price{font-family:'Anton',Impact,sans-serif;font-size:13pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;margin:0;}.price-row{display:flex;align-items:flex-end;line-height:1;margin:0;}.price-num{font-family:'Anton',Impact,sans-serif;font-size:52pt;font-weight:400;color:#cc0000;line-height:1;}.price-cents{font-size:22pt;vertical-align:bottom;}.price-eur{font-family:'Anton',Impact,sans-serif;font-size:26pt;color:#cc0000;padding-bottom:4mm;margin-left:2mm;}`;
-            let poster=`<div class="poster"><div class="img-side">${imgSrc}</div><div class="sep"></div><div class="text-side"><div class="angebot">ANGEBOT</div><div class="pname">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},<span class="price-cents">${centsStr}</span></span><span class="price-eur">€</span></div></div></div>`;
-            bodyHTML=poster+poster;
+function buildAngebotPrintHTML(size, orientation, p, discountPrice){
+    let originalPrice = p.price;
+    let showDiscount = (discountPrice !== null && discountPrice < originalPrice);
+    let finalPrice = showDiscount ? discountPrice : originalPrice;
+    let ip = Math.floor(finalPrice);
+    let ic = Math.round((finalPrice - ip) * 100);
+    let cents = ic < 10 ? '0'+ic : ''+ic;
+    let imgSrc = p.image ? `<img src="${p.image}">` : '<div class="no-img">FOTO</div>';
+    let oip = Math.floor(originalPrice);
+    let oic = Math.round((originalPrice - oip) * 100);
+    let ocents = oic < 10 ? '0'+oic : ''+oic;
+    let oldPriceHTML = showDiscount ? `<div class="old-price">Statt ${oip},${ocents}&nbsp;€</div>` : '';
+    let nameEsc = escapeHtml(p.name);
+
+    // Reference design values at full A4 size (portrait 210x297mm, landscape 297x210mm).
+    // A5 is exactly 1/sqrt(2) the linear size of A4 with the same aspect ratio, so A5 cells
+    // reuse the same layout scaled down by that factor - no separate design needed.
+    const SCALE_A5 = 0.707;
+
+    function posterCell(isPortrait, scale){
+        let s = v => Math.round(v*scale*10)/10;
+        if(isPortrait){
+            return {
+                css:`
+                    .poster{width:100%;height:100%;position:relative;overflow:hidden;box-sizing:border-box;background:linear-gradient(160deg,#ffffff 0%,#ffffff 62%,#fff0f0 62%,#ffe1e1 100%);display:flex;flex-direction:column;align-items:center;}
+                    .angebot-wrap{width:100%;box-sizing:border-box;padding:0 ${s(12)}mm;margin-top:${s(20)}mm;text-align:center;overflow:visible;}
+                    .angebot-text{display:inline-block;font-style:italic;font-size:${s(30)}mm;font-weight:900;background:linear-gradient(180deg,#ff3b3b,#a80000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;-webkit-text-stroke:${s(0.9)}mm #4a0000;transform:rotate(-4deg);letter-spacing:1mm;filter:drop-shadow(${s(1.6)}mm ${s(2)}mm 0 rgba(0,0,0,0.18));}
+                    .product-card{margin-top:${s(4)}mm;width:${s(138)}mm;height:${s(122)}mm;background:white;border-radius:${s(8)}mm;display:flex;align-items:center;justify-content:center;box-shadow:0 ${s(5)}mm ${s(11)}mm rgba(0,0,0,0.16);border:${s(0.5)}mm solid #f5f5f5;overflow:hidden;}
+                    .product-card img{max-width:100%;max-height:100%;object-fit:contain;}
+                    .no-img{color:#bbb;font-size:${s(5)}mm;font-family:Arial,sans-serif;font-weight:700;}
+                    .price-badge{position:absolute;right:${s(18)}mm;top:${s(170)}mm;width:${s(74)}mm;height:${s(74)}mm;border-radius:50%;background:radial-gradient(circle at 35% 28%,#ff4b4b,#b60000 72%);border:${s(2)}mm solid white;box-shadow:0 ${s(4)}mm ${s(9)}mm rgba(0,0,0,0.3);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;transform:rotate(-8deg);font-family:Arial,sans-serif;}
+                    .price-num{font-size:${s(20.5)}mm;font-weight:900;line-height:1;letter-spacing:-0.5mm;}
+                    .price-eur{font-size:${s(8)}mm;font-weight:700;margin-top:-${s(1.5)}mm;}
+                    .price-ribbon{position:absolute;right:${s(20)}mm;top:${s(231)}mm;background:linear-gradient(135deg,#c60000,#7a0000);color:white;font-weight:900;font-size:${s(7)}mm;font-family:Arial,sans-serif;padding:${s(3.5)}mm ${s(8)}mm;border-radius:${s(2)}mm;transform:rotate(-4deg);box-shadow:0 ${s(2)}mm ${s(4.5)}mm rgba(0,0,0,0.25);white-space:nowrap;}
+                    .name-block{margin-top:${s(66)}mm;padding:0 ${s(18)}mm;width:100%;box-sizing:border-box;font-family:Arial,sans-serif;}
+                    .pname{color:#1a1a2e;font-weight:900;font-size:${s(13.5)}mm;line-height:1.15;text-transform:uppercase;}
+                    .old-price{color:#888;font-size:${s(7.5)}mm;text-decoration:line-through;margin-top:${s(3.5)}mm;font-weight:600;font-family:Arial,sans-serif;}
+                `,
+                html:`<div class="poster"><div class="angebot-wrap"><div class="angebot-text">ANGEBOT</div></div><div class="product-card">${imgSrc}</div><div class="price-badge"><div class="price-num">${ip},${cents}</div><div class="price-eur">€</div></div><div class="price-ribbon">JETZT SPAREN!</div><div class="name-block"><div class="pname">${nameEsc}</div>${oldPriceHTML}</div></div>`
+            };
         } else {
-            bodyCSS=`@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;background:white;}body{display:flex;flex-direction:column;width:210mm;height:297mm;}.poster{height:148.5mm;display:flex;align-items:center;justify-content:center;overflow:hidden;border-bottom:1px dashed #bbb;box-sizing:border-box;}.group{display:flex;flex-direction:column;align-items:center;gap:0;}.angebot{font-family:'Anton',Impact,sans-serif;font-size:40pt;font-weight:400;color:#cc0000;letter-spacing:2px;line-height:1;text-align:center;margin:0;}.img-box{width:120mm;height:62mm;display:flex;align-items:center;justify-content:center;}.img-box img{max-width:100%;max-height:100%;object-fit:contain;}.pname{font-size:14pt;font-weight:900;color:#cc0000;text-align:center;max-width:130mm;line-height:1.2;margin:1.5mm 0;}.old-price{font-family:'Anton',Impact,sans-serif;font-size:13pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;text-align:center;margin:0 0 1mm 0;}.price-row{display:flex;align-items:flex-end;justify-content:center;line-height:1;margin:0;}.price-num{font-family:'Anton',Impact,sans-serif;font-size:54pt;font-weight:400;color:#cc0000;line-height:1;}.price-cents{font-size:23pt;vertical-align:bottom;}.price-eur{font-family:'Anton',Impact,sans-serif;font-size:26pt;color:#cc0000;padding-bottom:4mm;margin-left:2mm;}`;
-            let poster=`<div class="poster"><div class="group"><div class="angebot">ANGEBOT</div><div class="img-box">${imgSrc}</div><div class="pname">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},<span class="price-cents">${centsStr}</span></span><span class="price-eur">€</span></div></div></div>`;
-            bodyHTML=poster+poster;
-        }
-    } else {
-        if(orientation==='landscape'){
-            bodyCSS=`@page{size:A4 landscape;margin:0;}html,body{width:297mm;height:210mm;margin:0;padding:0;overflow:hidden;background:white;}body{display:flex;align-items:stretch;}.img-side{flex:1.1;display:flex;align-items:center;justify-content:center;padding:12mm;}.img-side img{max-width:100%;max-height:100%;object-fit:contain;}.sep{width:4px;background:#cc0000;margin:24mm 0;border-radius:2px;flex-shrink:0;}.text-side{flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:14mm 16mm;gap:6mm;}.angebot{font-family:'Anton',Impact,sans-serif;font-size:62pt;font-weight:400;color:#cc0000;letter-spacing:2px;line-height:1;margin:0;}.pname{font-family:'Anton',Impact,sans-serif;font-size:34pt;font-weight:400;color:#cc0000;line-height:1.05;text-transform:uppercase;margin:0;}.old-price{font-family:'Anton',Impact,sans-serif;font-size:20pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;margin:0;}.price-row{display:flex;align-items:flex-end;line-height:1;margin:0;}.price-num{font-family:'Anton',Impact,sans-serif;font-size:90pt;font-weight:400;color:#cc0000;line-height:1;}.price-cents{font-size:38pt;vertical-align:bottom;}.price-eur{font-family:'Anton',Impact,sans-serif;font-size:44pt;color:#cc0000;padding-bottom:8mm;margin-left:3mm;}`;
-            bodyHTML=`<div class="img-side">${imgSrc}</div><div class="sep"></div><div class="text-side"><div class="angebot">ANGEBOT</div><div class="pname">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},<span class="price-cents">${centsStr}</span></span><span class="price-eur">€</span></div></div>`;
-        } else {
-            bodyCSS=`@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;background:white;}body{display:flex;align-items:center;justify-content:center;}.group{display:flex;flex-direction:column;align-items:center;gap:0;}.angebot{font-family:'Anton',Impact,sans-serif;font-size:84pt;font-weight:400;color:#cc0000;letter-spacing:3px;line-height:1;text-align:center;margin:0;}.img-box{width:160mm;height:115mm;display:flex;align-items:center;justify-content:center;}.img-box img{max-width:100%;max-height:100%;object-fit:contain;}.pname{font-size:20pt;font-weight:900;color:#cc0000;text-align:center;max-width:165mm;line-height:1.3;margin:3mm 0;}.old-price{font-family:'Anton',Impact,sans-serif;font-size:18pt;color:#888;text-decoration:line-through;text-decoration-color:#cc0000;text-align:center;margin:0 0 3mm 0;}.price-row{display:flex;align-items:flex-end;justify-content:center;line-height:1;margin:0;}.price-num{font-family:'Anton',Impact,sans-serif;font-size:108pt;font-weight:400;color:#cc0000;line-height:1;}.price-cents{font-size:46pt;vertical-align:bottom;}.price-eur{font-family:'Anton',Impact,sans-serif;font-size:50pt;color:#cc0000;padding-bottom:9mm;margin-left:3mm;}`;
-            bodyHTML=`<div class="group"><div class="angebot">ANGEBOT</div><div class="img-box">${imgSrc}</div><div class="pname">${escapeHtml(p.name)}</div>${oldBlock}<div class="price-row"><span class="price-num">${ip},<span class="price-cents">${centsStr}</span></span><span class="price-eur">€</span></div></div>`;
+            return {
+                css:`
+                    .poster{width:100%;height:100%;position:relative;overflow:hidden;box-sizing:border-box;background:linear-gradient(115deg,#ffffff 0%,#ffffff 60%,#fff0f0 60%,#ffe1e1 100%);display:flex;align-items:center;}
+                    .left-col{width:52%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 ${s(6)}mm 0 ${s(5)}mm;box-sizing:border-box;overflow:visible;}
+                    .angebot-text{display:inline-block;font-style:italic;font-size:${s(24)}mm;font-weight:900;background:linear-gradient(180deg,#ff3b3b,#a80000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;-webkit-text-stroke:${s(0.8)}mm #4a0000;transform:rotate(-4deg);letter-spacing:0.5mm;filter:drop-shadow(${s(1.3)}mm ${s(1.6)}mm 0 rgba(0,0,0,0.18));margin-bottom:${s(4)}mm;}
+                    .product-card{width:${s(111)}mm;height:${s(111)}mm;background:white;border-radius:${s(8)}mm;display:flex;align-items:center;justify-content:center;box-shadow:0 ${s(5)}mm ${s(11)}mm rgba(0,0,0,0.16);border:${s(0.5)}mm solid #f5f5f5;overflow:hidden;}
+                    .product-card img{max-width:100%;max-height:100%;object-fit:contain;}
+                    .no-img{color:#bbb;font-size:${s(4.5)}mm;font-family:Arial,sans-serif;font-weight:700;}
+                    .right-col{width:48%;height:100%;box-sizing:border-box;padding-right:${s(16)}mm;display:flex;flex-direction:column;justify-content:center;font-family:Arial,sans-serif;}
+                    .price-badge{width:${s(69)}mm;height:${s(69)}mm;margin-left:auto;margin-right:${s(8)}mm;border-radius:50%;background:radial-gradient(circle at 35% 28%,#ff4b4b,#b60000 72%);border:${s(2)}mm solid white;box-shadow:0 ${s(4)}mm ${s(9)}mm rgba(0,0,0,0.3);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;transform:rotate(-8deg);}
+                    .price-num{font-size:${s(18.5)}mm;font-weight:900;line-height:1;letter-spacing:-0.5mm;}
+                    .price-eur{font-size:${s(7)}mm;font-weight:700;margin-top:-${s(1.5)}mm;}
+                    .price-ribbon{margin-left:auto;margin-right:${s(16)}mm;margin-top:-${s(8)}mm;width:fit-content;background:linear-gradient(135deg,#c60000,#7a0000);color:white;font-weight:900;font-size:${s(6.5)}mm;padding:${s(3)}mm ${s(7)}mm;border-radius:${s(2)}mm;transform:rotate(-4deg);box-shadow:0 ${s(2)}mm ${s(4.5)}mm rgba(0,0,0,0.25);white-space:nowrap;}
+                    .name-block{margin-top:${s(13)}mm;text-align:right;padding-right:${s(5)}mm;}
+                    .pname{color:#1a1a2e;font-weight:900;font-size:${s(11.5)}mm;line-height:1.15;text-transform:uppercase;}
+                    .old-price{color:#888;font-size:${s(6.5)}mm;text-decoration:line-through;margin-top:${s(3)}mm;font-weight:600;}
+                `,
+                html:`<div class="poster"><div class="left-col"><div class="angebot-text">ANGEBOT</div><div class="product-card">${imgSrc}</div></div><div class="right-col"><div class="price-badge"><div class="price-num">${ip},${cents}</div><div class="price-eur">€</div></div><div class="price-ribbon">JETZT SPAREN!</div><div class="name-block"><div class="pname">${nameEsc}</div>${oldPriceHTML}</div></div></div>`
+            };
         }
     }
+
+    let bodyCSS='', bodyHTML='';
+    if(size==='a5'){
+        // Two A5 cells fit exactly on one A4 sheet of the matching orientation.
+        let isPortrait = (orientation==='portrait');
+        let cell = posterCell(isPortrait, SCALE_A5);
+        if(isPortrait){
+            // Two A5-portrait cells side by side = one A4-landscape sheet
+            bodyCSS = `@page{size:A4 landscape;margin:0;}html,body{width:297mm;height:210mm;margin:0;padding:0;overflow:hidden;}body{display:flex;}.cell{width:148.5mm;height:210mm;box-sizing:border-box;}.cell:first-child{border-right:1px dashed #bbb;}${cell.css}`;
+        } else {
+            // Two A5-landscape cells stacked = one A4-portrait sheet
+            bodyCSS = `@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;}body{display:flex;flex-direction:column;}.cell{width:210mm;height:148.5mm;box-sizing:border-box;}.cell:first-child{border-bottom:1px dashed #bbb;}${cell.css}`;
+        }
+        bodyHTML = `<div class="cell">${cell.html}</div><div class="cell">${cell.html}</div>`;
+    } else {
+        let isPortrait = (orientation==='portrait');
+        let cell = posterCell(isPortrait, 1);
+        if(isPortrait){
+            bodyCSS = `@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;}${cell.css}`;
+        } else {
+            bodyCSS = `@page{size:A4 landscape;margin:0;}html,body{width:297mm;height:210mm;margin:0;padding:0;overflow:hidden;}${cell.css}`;
+        }
+        bodyHTML = cell.html;
+    }
+
     let jsBlock = '<sc'+'ript>window.addEventListener("load",function(){setTimeout(function(){try{window.focus();}catch(e){}window.print();},700);});</sc'+'ript>';
-    return '<!DOCTYPE html><html><head><meta charset="UTF-8">'+fontLink+'<style>.toolbar{position:fixed;top:0;left:0;width:100%;background:#222;color:white;padding:12px;text-align:center;z-index:99;font-family:system-ui,sans-serif;}.toolbar button{background:#e67e22;border:none;border-radius:30px;padding:12px 28px;color:white;font-weight:800;font-size:16px;cursor:pointer;}@media print{.toolbar{display:none!important;}}'+bodyCSS+'</style></head><body><div class="toolbar"><button onclick="window.print()">YAZDIR</button></div>'+bodyHTML+jsBlock+'</body></html>';
+    return '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>.toolbar{position:fixed;top:0;left:0;width:100%;background:#222;color:white;padding:12px;text-align:center;z-index:99;font-family:system-ui,sans-serif;}.toolbar button{background:#e67e22;border:none;border-radius:30px;padding:12px 28px;color:white;font-weight:800;font-size:16px;cursor:pointer;}@media print{.toolbar{display:none!important;}}'+bodyCSS+'</style></head><body><div class="toolbar"><button onclick="window.print()">YAZDIR</button></div>'+bodyHTML+jsBlock+'</body></html>';
 }
 
 function buildUrgentItemHtml(p, d){
