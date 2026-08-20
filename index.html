@@ -538,6 +538,13 @@ function initAudio() {
         try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
     }
 }
+function unlockAudioAndVibration(){
+    try{
+        initAudio();
+        if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        if(navigator.vibrate) navigator.vibrate(1);
+    }catch(e){}
+}
 function debounce(fn, delay){
     let t;
     return function(...args){
@@ -1295,7 +1302,7 @@ function playTone(freq, duration, type, delay){
         const gain = audioCtx.createGain();
         osc.type = type || 'sine';
         osc.frequency.value = freq;
-        gain.gain.value = 0.13;
+        gain.gain.value = 0.55;
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         const startTime = audioCtx.currentTime + (delay||0);
@@ -1325,7 +1332,7 @@ function playBeep() {
         const gain = audioCtx.createGain();
         osc.type = 'sine';
         osc.frequency.value = 1200;
-        gain.gain.value = 0.12;
+        gain.gain.value = 0.55;
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
@@ -2478,6 +2485,7 @@ function openUrgentModal(){
 function closeUrgentModal(){ document.getElementById("urgentModal").style.display="none"; }
 
 async function openCameraModal(mode){
+    unlockAudioAndVibration();
     let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
     currentCameraMode=mode;
     let torchBtn=document.getElementById('torchToggleBtn');
@@ -2647,6 +2655,7 @@ function handleSayimScan(code){
     showToast(`✅ ${nm} → ${adet} adet`);
 }
 async function openSayimKamera(){
+    unlockAudioAndVibration();
     let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
     sayimKameraMode=true;
     currentCameraMode='sayim';
@@ -2748,6 +2757,7 @@ function handleBulkSktScan(code){
     showToast(`✅ ${p.name} eklendi`);
 }
 async function openOrderKamera(){
+    unlockAudioAndVibration();
     let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
     orderKameraMode=true;
     currentCameraMode='order';
@@ -2793,6 +2803,7 @@ async function openOrderKamera(){
     }
 }
 async function openBulkSktKamera(){
+    unlockAudioAndVibration();
     let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
     bulkSktKameraMode=true;
     currentCameraMode='bulksekt';
