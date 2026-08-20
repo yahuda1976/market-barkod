@@ -218,7 +218,6 @@
         <button class="drawer-btn" id="darkModeBtn" onclick="toggleDarkMode()"><i class="fa-solid fa-moon" style="width:20px;text-align:center"></i> KARANLIK MODA GEC</button>
         <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-clipboard-check" style="margin-right:6px"></i><span data-i18n="drawerSayim">SAYIM</span></div>
         <button class="drawer-btn" onclick="closeDrawer();openSayimModal();"><i class="fa-solid fa-barcode" style="width:20px;text-align:center"></i> <span data-i18n="btnSayim">STOK SAYIMI YAP</span></button>
-        <button class="drawer-btn" onclick="closeDrawer();openBulkSktModal();"><i class="fa-solid fa-calendar-days" style="width:20px;text-align:center"></i> <span data-i18n="btnBulkSkt">TOPLU SKT GUNCELLE</span></button>
         <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-tags" style="margin-right:6px"></i><span data-i18n="drawerEtiket">ETIKETLER</span></div>
         <button class="drawer-btn" onclick="closeDrawer();managePrintQueue();"><i class="fa-solid fa-list-check" style="width:20px;text-align:center"></i> <span data-i18n="btnEtiketYonet">ETIKET LISTESINI YONET</span></button>
         <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-cloud-arrow-down" style="margin-right:6px"></i><span data-i18n="drawerYedek">YEDEKLEME</span></div>
@@ -403,22 +402,6 @@
         </div>
     </div>
 </div>
-<div id="bulkSktModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <span class="modal-title"><i class="fa-solid fa-calendar-days" style="margin-right:8px"></i><span data-i18n="btnBulkSkt">TOPLU SKT GUNCELLE</span></span>
-            <button class="close-modal-btn" onclick="closeBulkSktModal()"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:12px;font-weight:500;" data-i18n="bulkSktInstruction">Once yeni SKT tarihini sec, sonra urunleri barkod ile tara. Bitince UYGULA'ya bas.</div>
-        <input id="bulkSktDate" type="date" style="margin-bottom:14px;">
-        <button onclick="openBulkSktKamera()" style="width:100%;background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;font-size:1rem;cursor:pointer;margin-bottom:14px;box-shadow:0 4px 12px rgba(59,130,246,0.25);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-camera" style="margin-right:8px"></i><span data-i18n="btnKameraIleTara">KAMERA ILE TARA</span></button>
-        <div id="bulkSktListContainer" style="max-height:38vh;overflow-y:auto"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
-            <button onclick="applyBulkSkt()" style="background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,0.25);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-check" style="margin-right:6px"></i><span data-i18n="btnTarihiUygula">TARIHI UYGULA</span></button>
-            <button onclick="clearBulkSkt()" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(239,68,68,0.25);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-trash-can" style="margin-right:6px"></i><span data-i18n="btnTemizle">TEMIZLE</span></button>
-        </div>
-    </div>
-</div>
 <div id="manualAddModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -525,7 +508,6 @@ let orderKameraMode = false;
 let pendingOrderScan = null;
 let pendingOrderQuickAdd = false;
 let orderHistory = [];
-let bulkSktList = [], bulkSktKameraMode = false;
 let tempImageData = null, currentEditingProductId = null, angebotProduct = null;
 let currentAngebotSize = 'a4', currentAngebotOrientation = 'portrait';
 let currentDiscountPrice = null;
@@ -538,11 +520,10 @@ function initAudio() {
         try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
     }
 }
-function unlockAudioAndVibration(){
+function unlockAudio(){
     try{
         initAudio();
         if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        if(navigator.vibrate) navigator.vibrate(1);
     }catch(e){}
 }
 function debounce(fn, delay){
@@ -659,11 +640,11 @@ const PHRASE_DICT = [
     ["SKT uyarilari aciliyor", "MHD-Warnungen werden geoffnet", "Opening expiry warnings"],
     ["Yedek aliniyor...", "Backup wird erstellt...", "Backing up..."],
     ["Son teslimat", "Letzte Lieferung", "Last delivery"],
+    ["Sorgula aciliyor", "Suche wird geoffnet", "Opening search"],
     ["Firmalar aciliyor", "Firmen werden geoffnet", "Opening companies"],
     ["Envanter aciliyor", "Bestand wird geoffnet", "Opening inventory"],
     ["Siparis Modu aciliyor", "Bestellmodus wird geoffnet", "Opening order mode"],
     ["Stok Sayimi aciliyor", "Inventur wird geoffnet", "Opening stock count"],
-    ["Toplu SKT Guncelleme aciliyor", "MHD-Sammelaktualisierung wird geoffnet", "Opening bulk expiry update"],
     ["Manuel Ekle aciliyor", "Manuelles Hinzufugen wird geoffnet", "Opening manual add"],
     ["Tema degistiriliyor", "Design wird geandert", "Switching theme"],
     ["CSV raporu indiriliyor", "CSV-Bericht wird heruntergeladen", "Downloading CSV report"],
@@ -714,7 +695,7 @@ const I18N = {
         appSubtitle: 'Envanter Yonetimi', scanPlaceholder: 'BARKOD OKUTUN', btnSearch: 'SORGULA', btnAdd: 'URUN EKLE',
         btnCompanies: 'FIRMALAR', btnManualAdd: 'MANUEL EKLE', navInventory: 'ENVANTERI GORUNTULE', countSuffix: 'cesit',
         drawerView: 'GORUNUM', darkOn: 'KARANLIK MODA GEC', darkOff: 'AYDINLIK MODA GEC',
-        drawerSayim: 'SAYIM', btnSayim: 'STOK SAYIMI YAP', btnBulkSkt: 'TOPLU SKT GUNCELLE',
+        drawerSayim: 'SAYIM', btnSayim: 'STOK SAYIMI YAP',
         drawerEtiket: 'ETIKETLER', btnEtiketYonet: 'ETIKET LISTESINI YONET',
         drawerYedek: 'YEDEKLEME', btnYedekTelefon: 'TELEFONA YEDEK AL', btnYedekDrive: "GOOGLE DRIVE'A YEDEKLE", btnYedekGeri: 'YEDEKTEN GERI YUKLE',
         drawerRapor: 'RAPORLAR', btnCsv: 'CSV RAPORU INDIR', btnYazdir: 'ENVANTERI YAZDIR',
@@ -724,7 +705,6 @@ const I18N = {
         titleSktUyari: 'SKT UYARILARI', titleStokSayimi: 'STOK SAYIMI',
         sayimInstruction: "Barkodu okutun, sayilan miktari girin. Bitince GUNCELLE'ye basin.",
         btnKameraIleTara: 'KAMERA ILE TARA', btnGuncelle: 'GUNCELLE', btnTemizle: 'TEMIZLE',
-        bulkSktInstruction: "Once yeni SKT tarihini sec, sonra urunleri barkod ile tara. Bitince UYGULA'ya bas.",
         btnTarihiUygula: 'TARIHI UYGULA', titleManuelEkle: 'MANUEL URUN EKLE',
         titleRapor: 'ENVANTER RAPORU', btnYaziciAc: 'YAZICIYI AC', titleEtiketListesi: 'ETIKET LISTESI',
         btnListeyiTemizle: 'LISTEYI TEMIZLE', phYeniFirma: 'Yeni firma adi...',
@@ -744,7 +724,7 @@ const I18N = {
         appSubtitle: 'Bestandsverwaltung', scanPlaceholder: 'BARCODE SCANNEN', btnSearch: 'SUCHEN', btnAdd: 'PRODUKT HINZUFUGEN',
         btnCompanies: 'FIRMEN', btnManualAdd: 'MANUELL HINZUFUGEN', navInventory: 'BESTAND ANZEIGEN', countSuffix: 'Artikel',
         drawerView: 'ANSICHT', darkOn: 'DUNKLER MODUS', darkOff: 'HELLER MODUS',
-        drawerSayim: 'INVENTUR', btnSayim: 'BESTAND ZAHLEN', btnBulkSkt: 'MHD MASSENUPDATE',
+        drawerSayim: 'INVENTUR', btnSayim: 'BESTAND ZAHLEN',
         drawerEtiket: 'ETIKETTEN', btnEtiketYonet: 'ETIKETTENLISTE VERWALTEN',
         drawerYedek: 'SICHERUNG', btnYedekTelefon: 'AUF TELEFON SICHERN', btnYedekDrive: 'IN GOOGLE DRIVE SICHERN', btnYedekGeri: 'AUS SICHERUNG WIEDERHERSTELLEN',
         drawerRapor: 'BERICHTE', btnCsv: 'CSV-BERICHT HERUNTERLADEN', btnYazdir: 'BESTAND DRUCKEN',
@@ -754,7 +734,6 @@ const I18N = {
         titleSktUyari: 'MHD WARNUNGEN', titleStokSayimi: 'INVENTUR',
         sayimInstruction: 'Barcode scannen, gezählte Menge eingeben. Am Ende AKTUALISIEREN drücken.',
         btnKameraIleTara: 'MIT KAMERA SCANNEN', btnGuncelle: 'AKTUALISIEREN', btnTemizle: 'LEEREN',
-        bulkSktInstruction: 'Zuerst neues MHD-Datum wählen, dann Produkte scannen. Am Ende ANWENDEN drücken.',
         btnTarihiUygula: 'DATUM ANWENDEN', titleManuelEkle: 'PRODUKT MANUELL HINZUFUGEN',
         titleRapor: 'BESTANDSBERICHT', btnYaziciAc: 'DRUCKER OFFNEN', titleEtiketListesi: 'ETIKETTENLISTE',
         btnListeyiTemizle: 'LISTE LEEREN', phYeniFirma: 'Neue Firma...',
@@ -774,7 +753,7 @@ const I18N = {
         appSubtitle: 'Inventory Management', scanPlaceholder: 'SCAN BARCODE', btnSearch: 'SEARCH', btnAdd: 'ADD PRODUCT',
         btnCompanies: 'COMPANIES', btnManualAdd: 'MANUAL ADD', navInventory: 'VIEW INVENTORY', countSuffix: 'items',
         drawerView: 'APPEARANCE', darkOn: 'SWITCH TO DARK MODE', darkOff: 'SWITCH TO LIGHT MODE',
-        drawerSayim: 'STOCKTAKE', btnSayim: 'DO STOCKTAKE', btnBulkSkt: 'BULK EXPIRY UPDATE',
+        drawerSayim: 'STOCKTAKE', btnSayim: 'DO STOCKTAKE',
         drawerEtiket: 'LABELS', btnEtiketYonet: 'MANAGE LABEL LIST',
         drawerYedek: 'BACKUP', btnYedekTelefon: 'BACKUP TO PHONE', btnYedekDrive: 'BACKUP TO GOOGLE DRIVE', btnYedekGeri: 'RESTORE FROM BACKUP',
         drawerRapor: 'REPORTS', btnCsv: 'DOWNLOAD CSV REPORT', btnYazdir: 'PRINT INVENTORY',
@@ -784,7 +763,6 @@ const I18N = {
         titleSktUyari: 'EXPIRY WARNINGS', titleStokSayimi: 'STOCKTAKE',
         sayimInstruction: 'Scan the barcode, enter the counted quantity. Press UPDATE when done.',
         btnKameraIleTara: 'SCAN WITH CAMERA', btnGuncelle: 'UPDATE', btnTemizle: 'CLEAR',
-        bulkSktInstruction: 'First choose the new expiry date, then scan products. Press APPLY when done.',
         btnTarihiUygula: 'APPLY DATE', titleManuelEkle: 'MANUALLY ADD PRODUCT',
         titleRapor: 'INVENTORY REPORT', btnYaziciAc: 'OPEN PRINTER', titleEtiketListesi: 'LABEL LIST',
         btnListeyiTemizle: 'CLEAR LIST', phYeniFirma: 'New company...',
@@ -1205,6 +1183,7 @@ async function logDeliveryToday(){
 const VOICE_CORRECTIONS = [
     {bad:['10 kel','10 kul','10 koy','on kel','on kul','onkul','onkoy','onkelt','onkelth','on kelt'], good:'onkel'},
     {bad:['sutun','butun','tutun','sutuk'], good:'sutum'},
+    {bad:['oz oren','ozgoren','oz goren','ozveren','oz veren','ozveren yumurcak','oz veren yumurcak','oz oren yumurcak'], good:'oz yorem'},
 ];
 function applyVoiceCorrections(text){
     let n = normalizeSearchText(text);
@@ -1221,16 +1200,16 @@ function tryVoiceCommand(text){
     let n = normalizeSearchText(text);
     const commands = [
         { re:/\b(stok ekle|urun ekle|barkod okut|urun tara|produkt hinzufugen|artikel hinzufugen|lager hinzufugen|barcode scannen)\b/, action:()=>openCameraModal('add'), msg:'Stok ekleme modu aciliyor' },
-        { re:/\b(skt.*gecenleri goster|suresi gecenleri goster|uyarilari goster|acil urunleri goster|mhd.*warnungen|ablaufende produkte|warnungen zeigen)\b/, action:openUrgentModal, msg:'SKT uyarilari aciliyor' },
+        { re:/\b(skt.*gecenleri goster|skt.*gecen urunleri goster|suresi gecenleri goster|suresi gecen urunleri goster|uyarilari goster|acil urunleri goster|mhd.*warnungen|ablaufende produkte|warnungen zeigen)\b/, action:openUrgentModal, msg:'SKT uyarilari aciliyor' },
         { re:/\b(yedek al|telefona yedek al|yedekleme yap|backup machen|daten sichern|sichern)\b/, action:backupData, msg:'Yedek aliniyor...' },
         { re:/\b(firmalari goster|firmalar|firma listesi|firmen zeigen|lieferanten zeigen)\b/, action:openCompanyModal, msg:'Firmalar aciliyor' },
-        { re:/\b(envanteri goster|envanteri ac|stoklari goster|bestand zeigen|lagerbestand zeigen|inventar zeigen)\b/, action:openInventoryModal, msg:'Envanter aciliyor' },
+        { re:/\b(envanteri goster|envanteri ac|envanteri goruntule|stoklari goster|bestand zeigen|lagerbestand zeigen|inventar zeigen)\b/, action:openInventoryModal, msg:'Envanter aciliyor' },
         { re:/\b(siparis moduna gec|siparis modu|siparis ac|bestellmodus|bestellung starten)\b/, action:openOrderModeModal, msg:'Siparis Modu aciliyor' },
         { re:/\b(stok sayimi yap|sayim moduna gec|sayima basla|inventur machen|zahlmodus|inventur starten)\b/, action:openSayimModal, msg:'Stok Sayimi aciliyor' },
-        { re:/\b(toplu skt guncelle|toplu tarih guncelle|mhd sammelaktualisierung|mhd aktualisieren)\b/, action:openBulkSktModal, msg:'Toplu SKT Guncelleme aciliyor' },
         { re:/\b(manuel ekle|elle ekle|manuell hinzufugen)\b/, action:openManualAddModal, msg:'Manuel Ekle aciliyor' },
-        { re:/\b(karanlik moda gec|koyu tema|karanlik mod|dunkelmodus|dunkles design)\b/, action:toggleDarkMode, msg:'Tema degistiriliyor' },
+        { re:/\b(karanlik moda gec|koyu tema|karanlik mod|dunkelmodus|dunkles design|aydinlik moda gec|acik tema|aydinlik mod|hellmodus|helles design)\b/, action:toggleDarkMode, msg:'Tema degistiriliyor' },
         { re:/\b(csv indir|rapor indir|csv raporu indir|csv herunterladen|bericht herunterladen)\b/, action:exportToCSV, msg:'CSV raporu indiriliyor' },
+        { re:/\b(sorgula|urun sorgula|barkod sorgula|produkt suchen|artikel suchen)\b/, action:()=>openCameraModal('search'), msg:'Sorgula aciliyor' },
     ];
     for(let cmd of commands){
         if(cmd.re.test(n)){
@@ -1310,11 +1289,7 @@ function playTone(freq, duration, type, delay){
         osc.stop(startTime + duration);
     } catch(e) {}
 }
-function vibrateShort(){
-    try{ if(navigator.vibrate) navigator.vibrate(50); }catch(e){}
-}
 function playScanSound(p){
-    vibrateShort();
     if(!p){ playTone(1200,0.1); return; }
     if(p.quantity===0){ playTone(700,0.09); playTone(480,0.11,'sine',0.1); return; }
     if(p.expiry){
@@ -1805,11 +1780,6 @@ function manualBarcodeEntry(){
     if(currentCameraMode === 'sayim'){
         closeCameraModal();
         handleSayimScan(code);
-        return;
-    }
-    if(currentCameraMode === 'bulksekt'){
-        closeCameraModal();
-        handleBulkSktScan(code);
         return;
     }
     if(currentCameraMode === 'order'){
@@ -2485,7 +2455,7 @@ function openUrgentModal(){
 function closeUrgentModal(){ document.getElementById("urgentModal").style.display="none"; }
 
 async function openCameraModal(mode){
-    unlockAudioAndVibration();
+    unlockAudio();
     let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
     currentCameraMode=mode;
     let torchBtn=document.getElementById('torchToggleBtn');
@@ -2546,10 +2516,6 @@ function closeCameraModal(){
     if(sayimKameraMode){
         document.getElementById("sayimModal").style.display="flex";
         sayimKameraMode=false;
-    }
-    if(bulkSktKameraMode){
-        document.getElementById("bulkSktModal").style.display="flex";
-        bulkSktKameraMode=false;
     }
     if(orderKameraMode){
         document.getElementById("orderModeModal").style.display="flex";
@@ -2655,7 +2621,7 @@ function handleSayimScan(code){
     showToast(`✅ ${nm} → ${adet} adet`);
 }
 async function openSayimKamera(){
-    unlockAudioAndVibration();
+    unlockAudio();
     let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
     sayimKameraMode=true;
     currentCameraMode='sayim';
@@ -2685,8 +2651,7 @@ async function openSayimKamera(){
             if(scanCounts[code]<2) return;
             detected=true;
             playBeep();
-            vibrateShort();
-            if(currentStopScan){ currentStopScan(); currentStopScan=null; }
+                    if(currentStopScan){ currentStopScan(); currentStopScan=null; }
             if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
             modal.style.display="none";
             document.getElementById("sayimModal").style.display="flex";
@@ -2704,151 +2669,6 @@ async function openSayimKamera(){
 // ==============================================================
 //  TOPLU SKT GUNCELLEME (birden fazla urunun SKT'sini tek seferde ayarla)
 // ==============================================================
-function openBulkSktModal(){
-    renderBulkSktList();
-    document.getElementById('bulkSktModal').style.display='flex';
-}
-function closeBulkSktModal(){ document.getElementById('bulkSktModal').style.display='none'; }
-function renderBulkSktList(){
-    let c=document.getElementById('bulkSktListContainer');
-    if(!bulkSktList.length){
-        c.innerHTML="<div style='text-align:center;padding:16px;color:var(--text-secondary);'><i class='fa-solid fa-barcode' style='font-size:1.6rem;margin-bottom:6px;display:block;opacity:0.5'></i>Henuz urun taranmadi</div>";
-        return;
-    }
-    c.innerHTML = bulkSktList.map(bc=>{
-        let p=findByBarcode(bc);
-        let name = p ? p.name : ('Bilinmeyen: '+bc);
-        let mevcut = p && p.expiry ? formatDateDMY(p.expiry) : '-';
-        return `<div class="sayim-item"><div class="sayim-name">${escapeHtml(name)}</div><div class="sayim-mevcut">${t('lblMevcut')}: ${mevcut}</div><button onclick="removeBulkSktItem('${escapeJsString(bc)}')" style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:20px;padding:5px 10px;color:white;font-size:0.72rem;cursor:pointer;"><i class="fa-solid fa-xmark"></i></button></div>`;
-    }).join('');
-}
-function removeBulkSktItem(bc){
-    bulkSktList = bulkSktList.filter(x=>x!==bc);
-    renderBulkSktList();
-}
-function clearBulkSkt(){
-    if(!bulkSktList.length){ showToast('Liste zaten bos'); return; }
-    if(!confirm('Liste temizlensin mi?')) return;
-    bulkSktList=[];
-    renderBulkSktList();
-}
-async function applyBulkSkt(){
-    let dateVal=document.getElementById('bulkSktDate').value;
-    if(!dateVal){ showToast('Once bir tarih secin!'); return; }
-    if(!bulkSktList.length){ showToast('Hic urun taranmadi!'); return; }
-    let cnt=0;
-    bulkSktList.forEach(bc=>{
-        let idx=findIdxByBarcode(bc);
-        if(idx!==-1){ products[idx].expiry=dateVal; cnt++; }
-    });
-    await saveProducts();
-    await updateUI();
-    showCelebration('SKT GUNCELLENDI!', `${cnt} urunun tarihi guncellendi`);
-    bulkSktList=[];
-    closeBulkSktModal();
-}
-function handleBulkSktScan(code){
-    let cn = normBarcode(code);
-    let p = findByBarcode(cn);
-    if(!p){ showToast(`"${cn}" sistemde kayitli degil`); return; }
-    if(bulkSktList.includes(cn)){ showToast(`${p.name} zaten listede`); return; }
-    bulkSktList.push(cn);
-    renderBulkSktList();
-    showToast(`✅ ${p.name} eklendi`);
-}
-async function openOrderKamera(){
-    unlockAudioAndVibration();
-    let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
-    orderKameraMode=true;
-    currentCameraMode='order';
-    let torchBtn=document.getElementById('torchToggleBtn');
-    if(torchBtn) torchBtn.classList.remove('torch-active');
-    document.getElementById("orderModeModal").style.display="none";
-    modal.style.display="flex";
-    status.innerHTML='<i class="fa-solid fa-cart-flatbed" style="margin-right:6px"></i>SIPARIS: BARKODU CERCEVEYE GETIR...';
-    try{
-        if(currentStopScan){ currentStopScan(); currentStopScan=null; }
-        if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-        let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment", width:{ideal:1280}, height:{ideal:720}}});
-        video.srcObject=stream;
-        currentStream=stream;
-        currentVideoTrack=stream.getVideoTracks()[0]||null;
-        await video.play();
-        forceContinuousFocus(currentVideoTrack);
-        attachTapToFocus(video, ()=>currentVideoTrack);
-        status.innerHTML='<i class="fa-solid fa-cart-flatbed" style="margin-right:6px"></i>SIPARIS: BARKODU CERCEVEYE GETIR (odaklamak icin ekrana dokun)...';
-        let detected=false, scanCounts={};
-        currentStopScan = await startBarcodeScan(video, code=>{
-            if(detected) return;
-            if(!code||code.length<4) return;
-            if(!isValidChecksum(code)) return;
-            scanCounts[code]=(scanCounts[code]||0)+1;
-            status.innerHTML=`<i class="fa-solid fa-eye" style="margin-right:6px"></i>OKUNUYOR (${scanCounts[code]}/2)...`;
-            if(scanCounts[code]<2) return;
-            detected=true;
-            playBeep();
-            vibrateShort();
-            if(currentStopScan){ currentStopScan(); currentStopScan=null; }
-            if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-            modal.style.display="none";
-            document.getElementById("orderModeModal").style.display="flex";
-            handleOrderScan(code);
-            orderKameraMode=false;
-        });
-    } catch(e){
-        modal.style.display="none";
-        document.getElementById("orderModeModal").style.display="flex";
-        showToast("Kamera acilamadi!");
-        orderKameraMode=false;
-    }
-}
-async function openBulkSktKamera(){
-    unlockAudioAndVibration();
-    let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
-    bulkSktKameraMode=true;
-    currentCameraMode='bulksekt';
-    let torchBtn=document.getElementById('torchToggleBtn');
-    if(torchBtn) torchBtn.classList.remove('torch-active');
-    document.getElementById("bulkSktModal").style.display="none";
-    modal.style.display="flex";
-    status.innerHTML='<i class="fa-solid fa-calendar-days" style="margin-right:6px"></i>TOPLU SKT: BARKODU CERCEVEYE GETIR...';
-    try{
-        if(currentStopScan){ currentStopScan(); currentStopScan=null; }
-        if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-        let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment", width:{ideal:1280}, height:{ideal:720}}});
-        video.srcObject=stream;
-        currentStream=stream;
-        currentVideoTrack=stream.getVideoTracks()[0]||null;
-        await video.play();
-        forceContinuousFocus(currentVideoTrack);
-        attachTapToFocus(video, ()=>currentVideoTrack);
-        status.innerHTML='<i class="fa-solid fa-calendar-days" style="margin-right:6px"></i>TOPLU SKT: BARKODU CERCEVEYE GETIR (odaklamak icin ekrana dokun)...';
-        let detected=false, scanCounts={};
-        currentStopScan = await startBarcodeScan(video, code=>{
-            if(detected) return;
-            if(!code||code.length<4) return;
-            if(!isValidChecksum(code)) return;
-            scanCounts[code]=(scanCounts[code]||0)+1;
-            status.innerHTML=`<i class="fa-solid fa-eye" style="margin-right:6px"></i>OKUNUYOR (${scanCounts[code]}/2)...`;
-            if(scanCounts[code]<2) return;
-            detected=true;
-            playBeep();
-            vibrateShort();
-            if(currentStopScan){ currentStopScan(); currentStopScan=null; }
-            if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-            modal.style.display="none";
-            document.getElementById("bulkSktModal").style.display="flex";
-            handleBulkSktScan(code);
-            bulkSktKameraMode=false;
-        });
-    } catch(e){
-        modal.style.display="none";
-        document.getElementById("bulkSktModal").style.display="flex";
-        showToast("Kamera acilamadi!");
-        bulkSktKameraMode=false;
-    }
-}
-
 function showAddFormForBarcode(barcode){
     document.getElementById("resultModal").style.display="none";
     document.getElementById("addFormModal").style.display="flex";
