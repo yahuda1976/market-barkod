@@ -131,11 +131,11 @@
         .label-img-box img{max-width:100%;max-height:100%;object-fit:contain}
         .label-noimg{color:#ccc;font-size:5pt;font-family:Arial,sans-serif;font-weight:700}
         .label-text{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:1mm}
-        .label-product-name{font-family:Georgia,'Times New Roman',serif;font-size:8.6pt;font-weight:900;color:#c60000;line-height:1.15;width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+        .label-product-name{font-family:Georgia,'Times New Roman',serif;font-size:8.6pt;font-weight:900;color:#1a1a1a;line-height:1.15;width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
         .label-price-row{display:flex;align-items:baseline}
-        .label-price{font-family:Georgia,'Times New Roman',serif;font-size:24pt;font-weight:900;color:#1a1a1a;line-height:1}
+        .label-price{font-family:Georgia,'Times New Roman',serif;font-size:24pt;font-weight:900;color:#c60000;line-height:1}
         .label-price .cents{font-size:14pt}
-        .label-price .currency{font-family:Georgia,serif;font-size:16pt;font-weight:900;color:#1a1a1a;margin-left:1mm}
+        .label-price .currency{font-family:Georgia,serif;font-size:16pt;font-weight:900;color:#c60000;margin-left:1mm}
         .label-barcode{border-top:0.25mm dashed #999;padding:0.4mm 3mm 0.3mm;display:flex;align-items:center;justify-content:center;height:8mm;box-sizing:border-box}
         .barcode-svg{width:100%;height:auto;display:block}
         @media print{body *{visibility:hidden}.print-modal,.print-modal *{visibility:visible}.print-modal{position:absolute;top:0;left:0;width:100%}.label-grid-container{page-break-after:always}}
@@ -2263,18 +2263,18 @@ body{margin:0;padding:0;background:white;}
 .label-grid-container{width:210mm;margin:0 auto;}
 .label-grid{width:210mm;border-collapse:collapse;table-layout:fixed;margin:0 auto;}
 .label-cell{width:70mm;height:42.3mm;padding:0;border:none;vertical-align:top;overflow:hidden;}
-.label-outer{width:100%;height:100%;box-sizing:border-box;border:0.3mm solid #ddd;border-radius:2.2mm;overflow:hidden;position:relative;background:white;display:flex;flex-direction:column;}
-.label-body{flex:1;display:flex;gap:2mm;padding:1.6mm 2.2mm 0.8mm;box-sizing:border-box;min-height:0;}
-.label-img-box{width:16.5mm;height:16.5mm;border-radius:1.6mm;background:#f7f7f8;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:0.25mm solid #eee;}
+.label-outer{width:100%;height:100%;box-sizing:border-box;border:0.4mm solid #1a1a1a;border-radius:2.5mm;overflow:hidden;position:relative;background:white;display:flex;flex-direction:column;}
+.label-body{flex:1;display:flex;gap:2mm;padding:2mm 2.5mm 0.5mm;box-sizing:border-box;min-height:0;align-items:center;}
+.label-img-box{width:22mm;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
 .label-img-box img{max-width:100%;max-height:100%;object-fit:contain;}
 .label-noimg{color:#ccc;font-size:5pt;font-family:Arial,sans-serif;font-weight:700;}
-.label-text{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:0.8mm;}
-.label-product-name{font-family:Arial,sans-serif;font-size:8.6pt;font-weight:900;color:#1a1a2e;line-height:1.22;height:7.4mm;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;letter-spacing:-0.1pt;}
+.label-text{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:1mm;}
+.label-product-name{font-family:Georgia,'Times New Roman',serif;font-size:8.6pt;font-weight:900;color:#1a1a1a;line-height:1.15;width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}
 .label-price-row{display:flex;align-items:baseline;}
-.label-price{font-family:Arial,sans-serif;font-size:27pt;font-weight:900;color:#c60000;line-height:1;letter-spacing:-0.5pt;}
-.label-price .cents{font-size:13.5pt;}
-.label-price .currency{font-family:Arial,sans-serif;font-size:13.5pt;font-weight:800;color:#c60000;margin-left:0.8mm;}
-.label-barcode{border-top:0.25mm dashed #ddd;padding:0.4mm 4mm 0.3mm;display:flex;align-items:center;justify-content:center;height:7.2mm;box-sizing:border-box;}
+.label-price{font-family:Georgia,'Times New Roman',serif;font-size:24pt;font-weight:900;color:#c60000;line-height:1;}
+.label-price .cents{font-size:14pt;}
+.label-price .currency{font-family:Georgia,serif;font-size:16pt;font-weight:900;color:#c60000;margin-left:1mm;}
+.label-barcode{border-top:0.25mm dashed #999;padding:0.4mm 3mm 0.3mm;display:flex;align-items:center;justify-content:center;height:8mm;box-sizing:border-box;}
 .barcode-svg{width:100%;height:auto;display:block;}
 @media print{.toolbar{display:none!important;}.sheets{margin-top:0!important;}}
 </style>`;
