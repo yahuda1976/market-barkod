@@ -558,8 +558,6 @@ function debounce(fn, delay){
     };
 }
 const PHRASE_DICT = [
-    ["atildi olarak isaretlensin mi? (Stok 0 yapilacak, urun kaydi kalir)", "als entsorgt markiert werden? (Bestand wird auf 0 gesetzt, Datensatz bleibt erhalten)", "be marked as discarded? (Stock will be set to 0, record stays)"],
-    ["atildi olarak isaretlendi", "als entsorgt markiert", "marked as discarded"],
     ["firmasi listeden silinsin mi? (Bu firmaya bagli urunlerin firma bilgisi bos kalir)", "aus der Liste löschen? (Firmenangabe bei zugehörigen Produkten bleibt leer)", "be removed from the list? (Company field will be left empty for related products)"],
     ["urun bulundu. Mevcut verilerin uzerine yazilsin mi?", " Produkte gefunden. Vorhandene Daten überschreiben?", " products found. Overwrite existing data?"],
     ["Etiket listesi tamamen temizlensin mi?", "Soll die Etikettenliste komplett geleert werden?", "Clear the entire label list?"],
@@ -733,7 +731,7 @@ const I18N = {
         titleAngebot: 'ANGEBOT HAZIRLA', phIndirimliFiyat: 'Indirimli fiyat (€)', titleOnizleme: 'ONIZLEME',
         titleUrunDetayi: 'URUN DETAYI', lblBarkod: 'Barkod', lblFirma: 'Firma', lblFiyat: 'Fiyat', lblStok: 'Stok',
         lblSkt: 'SKT', lblBelirtilmedi: 'BELIRTILMEDI', lblSistem: 'Sistem', lblMevcut: 'Mevcut', lblEnYakinSkt: 'En yakin SKT',
-        btnUzat: '+1 GUN UZAT', btnAt: 'SURESI GECTI, AT', btnDuzenle: 'DUZENLE', btnSil: 'SIL', btnSatildi: 'SATILDI',
+        btnUzat: '+1 GUN UZAT', btnDuzenle: 'DUZENLE', btnSil: 'SIL', btnSatildi: 'SATILDI',
         btnGaleri: 'GALERI', btnKamera: 'KAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ETIKET LISTESINE EKLE',
         btnAngebotHazirla: 'ANGEBOT HAZIRLA', lblEtiket: 'ETIKET', titleFiyatGecmisi: 'FIYAT GECMISI', btnFiyatGecmisi: 'FIYAT GECMISI', noPriceHistory: 'Henuz fiyat degisikligi yok', titleFirmaGecmisi: 'FIRMA GECMISI', btnFirmaGecmisi: 'FIRMA GECMISI', noCompanyHistory: 'Henuz firma degisikligi yok', titleTeslimatGecmisi: 'TESLIMAT GECMISI', btnTeslimatGecmisi: 'TESLIMAT GECMISI', btnBugunGeldi: 'BUGUN GELDI', noDeliveryHistory: 'Henuz teslimat kaydi yok', phKoliAdedi: 'Koli adedi', deliveryExpiryHint: "Bu tarih sadece bu teslimatin kaydidir, urunun genel SKT'sini degistirmez.", btnSiparisModu: 'SIPARIS MODU', orderModeInstruction: 'Urunleri okutun, otomatik olarak firmasina gore listelenir. Firmasi tanimsizsa firma secmeniz istenir.', titleFirmaSec: 'FIRMA SEC', btnSecOnayla: 'SEC VE ONAYLA', btnPaylas: 'PAYLAS', btnTumunuPaylas: 'TUMUNU PAYLAS', titleSiparisGecmisi: 'SIPARIS GECMISI', btnSipariseEkle: 'SIPARISE EKLE',
         phBarkod: 'Barkod', phUrunAdi: 'Urun adi', phUrunAdiMax: 'Urun adi (max 35)', phFiyat: 'Fiyat (€)',
@@ -762,7 +760,7 @@ const I18N = {
         titleAngebot: 'ANGEBOT ERSTELLEN', phIndirimliFiyat: 'Rabattpreis (€)', titleOnizleme: 'VORSCHAU',
         titleUrunDetayi: 'PRODUKTDETAILS', lblBarkod: 'Barcode', lblFirma: 'Firma', lblFiyat: 'Preis', lblStok: 'Bestand',
         lblSkt: 'MHD', lblBelirtilmedi: 'NICHT ANGEGEBEN', lblSistem: 'System', lblMevcut: 'Vorhanden', lblEnYakinSkt: 'Nächstes MHD',
-        btnUzat: '+1 TAG VERLANGERN', btnAt: 'ABGELAUFEN, ENTSORGEN', btnDuzenle: 'BEARBEITEN', btnSil: 'LOSCHEN', btnSatildi: 'VERKAUFT',
+        btnUzat: '+1 TAG VERLANGERN', btnDuzenle: 'BEARBEITEN', btnSil: 'LOSCHEN', btnSatildi: 'VERKAUFT',
         btnGaleri: 'GALERIE', btnKamera: 'KAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ZUR ETIKETTENLISTE HINZUFUGEN',
         btnAngebotHazirla: 'ANGEBOT ERSTELLEN', lblEtiket: 'ETIKETT', titleFiyatGecmisi: 'PREISVERLAUF', btnFiyatGecmisi: 'PREISVERLAUF', noPriceHistory: 'Noch keine Preisanderung', titleFirmaGecmisi: 'FIRMENVERLAUF', btnFirmaGecmisi: 'FIRMENVERLAUF', noCompanyHistory: 'Noch keine Firmenanderung', titleTeslimatGecmisi: 'LIEFERVERLAUF', btnTeslimatGecmisi: 'LIEFERVERLAUF', btnBugunGeldi: 'HEUTE ANGEKOMMEN', noDeliveryHistory: 'Noch keine Lieferung erfasst', phKoliAdedi: 'Kartonanzahl', deliveryExpiryHint: 'Dieses Datum ist nur ein Vermerk fur diese Lieferung, es andert nicht das allgemeine MHD des Produkts.', btnSiparisModu: 'BESTELLMODUS', orderModeInstruction: 'Produkte scannen, werden automatisch nach Firma sortiert. Bei unbekannter Firma werden Sie zur Auswahl aufgefordert.', titleFirmaSec: 'FIRMA WAHLEN', btnSecOnayla: 'WAHLEN UND BESTATIGEN', btnPaylas: 'TEILEN', btnTumunuPaylas: 'ALLES TEILEN', titleSiparisGecmisi: 'BESTELLVERLAUF', btnSipariseEkle: 'ZUR BESTELLUNG HINZUFUGEN',
         phBarkod: 'Barcode', phUrunAdi: 'Produktname', phUrunAdiMax: 'Produktname (max 35)', phFiyat: 'Preis (€)',
@@ -791,7 +789,7 @@ const I18N = {
         titleAngebot: 'CREATE OFFER', phIndirimliFiyat: 'Discounted price (€)', titleOnizleme: 'PREVIEW',
         titleUrunDetayi: 'PRODUCT DETAILS', lblBarkod: 'Barcode', lblFirma: 'Company', lblFiyat: 'Price', lblStok: 'Stock',
         lblSkt: 'Expiry', lblBelirtilmedi: 'NOT SPECIFIED', lblSistem: 'System', lblMevcut: 'Current', lblEnYakinSkt: 'Nearest expiry',
-        btnUzat: '+1 DAY EXTEND', btnAt: 'EXPIRED, DISCARD', btnDuzenle: 'EDIT', btnSil: 'DELETE', btnSatildi: 'SOLD',
+        btnUzat: '+1 DAY EXTEND', btnDuzenle: 'EDIT', btnSil: 'DELETE', btnSatildi: 'SOLD',
         btnGaleri: 'GALLERY', btnKamera: 'CAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ADD TO LABEL LIST',
         btnAngebotHazirla: 'CREATE OFFER', lblEtiket: 'LABEL', titleFiyatGecmisi: 'PRICE HISTORY', btnFiyatGecmisi: 'PRICE HISTORY', noPriceHistory: 'No price changes yet', titleFirmaGecmisi: 'SUPPLIER HISTORY', btnFirmaGecmisi: 'SUPPLIER HISTORY', noCompanyHistory: 'No supplier changes yet', titleTeslimatGecmisi: 'DELIVERY HISTORY', btnTeslimatGecmisi: 'DELIVERY HISTORY', btnBugunGeldi: 'ARRIVED TODAY', noDeliveryHistory: 'No deliveries logged yet', phKoliAdedi: 'Box count', deliveryExpiryHint: "This date is only a record for this delivery, it does not change the product's overall expiry date.", btnSiparisModu: 'ORDER MODE', orderModeInstruction: 'Scan products, they will be automatically sorted by company. If company is unknown, you will be asked to choose.', titleFirmaSec: 'SELECT COMPANY', btnSecOnayla: 'SELECT AND CONFIRM', btnPaylas: 'SHARE', btnTumunuPaylas: 'SHARE ALL', titleSiparisGecmisi: 'ORDER HISTORY', btnSipariseEkle: 'ADD TO ORDER',
         phBarkod: 'Barcode', phUrunAdi: 'Product name', phUrunAdiMax: 'Product name (max 35)', phFiyat: 'Price (€)',
@@ -1998,7 +1996,7 @@ function setInventoryFilter(mode){ inventoryFilterMode=mode; renderInventoryList
 function openProductDetailModal(idx){
     let p=products[idx];currentEditingProductId=idx;let color=getProductColorClass(p);
     let modal=document.getElementById("productDetailModal"),content=document.getElementById("productDetailContent");
-    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>${t('titleUrunDetayi')}</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark"></i></button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<div style="margin:12px auto 2px;max-width:210px;background:white;border-radius:14px;padding:8px 10px 4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);"><svg id="detailBarcodeSvg" style="width:100%;height:auto;display:block;"></svg></div><div style="text-align:center;font-weight:900;font-size:0.9rem;letter-spacing:1.5px;color:#1e293b;margin-bottom:8px;">${p.barcode}</div><div style="color:#475569;margin-top:6px;font-size:0.9rem;line-height:1.6;">${t('lblFiyat')}: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>${t('lblStok')}: <span style="font-weight:700">${p.quantity}</span><br><span style="color:#ef4444;font-weight:900;font-size:1.05rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)}</span>${expiredTag(p)}${getLastDeliverySummary(p)}</div>${p.company?`<button onclick="closeProductDetailModal();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin-top:10px;background:rgba(30,41,59,0.08);border:1px solid rgba(30,41,59,0.15);border-radius:30px;padding:8px 16px;color:#1e293b;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}</div></div><div class="detail-actions"><button class="full-width-btn" onclick="openEditProductModal(${idx},{type:'detail'})" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:0;"><i class="fa-solid fa-pen" style="margin-right:6px"></i>${t('btnDuzenle')}</button><div class="button-row"><button onclick="quickAdjustOrder(${idx},1)" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">Spr +</button><button onclick="quickAdjustOrder(${idx},-1)" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6);">Spr -</button></div><div class="button-row"><button onclick="discardProduct()" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);"><i class="fa-solid fa-dumpster" style="margin-right:4px"></i>${t('btnAt')}</button><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:0;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button><button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:0;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button><button class="full-width-btn" onclick="openCompanyHistoryModal(${idx})" style="background:linear-gradient(135deg,#64748b,#475569)!important;margin-top:0;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>${t('btnFirmaGecmisi')}</button><button class="full-width-btn" onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669)!important;margin-top:0;"><i class="fa-solid fa-truck" style="margin-right:6px"></i>${t('btnTeslimatGecmisi')}</button><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
+    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>${t('titleUrunDetayi')}</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark"></i></button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<div style="margin:12px auto 2px;max-width:210px;background:white;border-radius:14px;padding:8px 10px 4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);"><svg id="detailBarcodeSvg" style="width:100%;height:auto;display:block;"></svg></div><div style="text-align:center;font-weight:900;font-size:0.9rem;letter-spacing:1.5px;color:#1e293b;margin-bottom:8px;">${p.barcode}</div><div style="color:#475569;margin-top:6px;font-size:0.9rem;line-height:1.6;">${t('lblFiyat')}: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>${t('lblStok')}: <span style="font-weight:700">${p.quantity}</span><br><span style="color:#ef4444;font-weight:900;font-size:1.05rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)}</span>${expiredTag(p)}${getLastDeliverySummary(p)}</div>${p.company?`<button onclick="closeProductDetailModal();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin-top:10px;background:rgba(30,41,59,0.08);border:1px solid rgba(30,41,59,0.15);border-radius:30px;padding:8px 16px;color:#1e293b;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}</div></div><div class="detail-actions"><button class="full-width-btn" onclick="openEditProductModal(${idx},{type:'detail'})" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:0;"><i class="fa-solid fa-pen" style="margin-right:6px"></i>${t('btnDuzenle')}</button><div class="button-row"><button onclick="quickAdjustOrder(${idx},1)" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">Spr +</button><button onclick="quickAdjustOrder(${idx},-1)" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6);">Spr -</button></div><div class="button-row"><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:0;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button><button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:0;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button><button class="full-width-btn" onclick="openCompanyHistoryModal(${idx})" style="background:linear-gradient(135deg,#64748b,#475569)!important;margin-top:0;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>${t('btnFirmaGecmisi')}</button><button class="full-width-btn" onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669)!important;margin-top:0;"><i class="fa-solid fa-truck" style="margin-right:6px"></i>${t('btnTeslimatGecmisi')}</button><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
     modal.style.display="flex";
     setTimeout(()=>{
         try{ JsBarcode("#detailBarcodeSvg", p.barcode, {format:"CODE128", width:1.7, height:42, displayValue:false, margin:0}); }catch(e){}
@@ -2016,17 +2014,6 @@ function closeProductDetailModal(){
         document.getElementById("inventoryModal").style.display="flex";
         renderInventoryList();
     }
-}
-async function discardProduct(){
-    let idx=currentEditingProductId;
-    let p=products[idx];
-    if(!p) return;
-    if(!confirm(`${p.name} atildi olarak isaretlensin mi? (Stok 0 yapilacak, urun kaydi kalir)`)) return;
-    p.quantity=0;
-    await saveProducts();
-    await updateUI();
-    openProductDetailModal(idx);
-    showToast(`${p.name} atildi olarak isaretlendi`);
 }
 // ==============================================================
 //  ODAKLI DUZENLE MODALI: sadece duzenlenebilir alanlari gosterir,
@@ -2669,6 +2656,20 @@ async function openContinuousScanCamera(mode, statusHtml, handlerFn){
 function openQuickPriceCamera(){
     openContinuousScanCamera('quickprice', '<i class="fa-solid fa-tag" style="margin-right:6px"></i>HIZLI FIYAT: bir urun okutun...', handleQuickPriceScan);
 }
+function parseSpokenPrice(text){
+    if(!text) return null;
+    let norm = text.trim();
+    // "2.09" / "2,09" / "2 . 09" gibi aci ondalik ayirici (bosluklu olsa da) iceren format
+    let withSep = norm.match(/(\d{1,4})\s*[.,]\s*(\d{1,2})\b/);
+    if(withSep) return parseFloat(`${withSep[1]}.${withSep[2].padStart(2,'0')}`);
+    // "2 09" gibi lira ve kurusun ayri ayri, sadece bosluklu soylendigi durum
+    let twoNums = norm.match(/\b(\d{1,4})\s+(\d{1,2})\b/);
+    if(twoNums) return parseFloat(`${twoNums[1]}.${twoNums[2].padStart(2,'0')}`);
+    // sadece tam sayi (kurus soylenmemis)
+    let onlyInt = norm.match(/\d+/);
+    if(onlyInt) return parseFloat(onlyInt[0]);
+    return null;
+}
 async function handleQuickPriceScan(code, statusHtml){
     let status = document.getElementById('cameraModalStatus');
     let p = findByBarcode(code);
@@ -2676,14 +2677,13 @@ async function handleQuickPriceScan(code, statusHtml){
     playBeep();
     status.innerHTML = `<i class="fa-solid fa-tag" style="margin-right:6px"></i>${escapeHtml(p.name)} — eski fiyat: ${p.price.toFixed(2)}€, yeni fiyati soyleyin...`;
     let raw = await vgListenOnce(`${p.name} icin yeni fiyat`);
-    let match = raw ? raw.replace(',', '.').match(/\d+(\.\d+)?/) : null;
-    let newPrice = match ? parseFloat(match[0]) : null;
+    let newPrice = raw ? parseSpokenPrice(raw) : null;
     if(newPrice===null){
         let manual = prompt(`${p.name}\nEski fiyat: ${p.price.toFixed(2)}€\n\nYeni fiyat (€):`, p.price);
         if(manual===null){ status.innerHTML = statusHtml; return; }
-        newPrice = parseFloat(manual.replace(',', '.'));
+        newPrice = parseSpokenPrice(manual);
     }
-    if(isNaN(newPrice) || newPrice<=0){ showToast('Gecersiz fiyat!'); status.innerHTML = statusHtml; return; }
+    if(newPrice===null || isNaN(newPrice) || newPrice<=0){ showToast('Gecersiz fiyat!'); status.innerHTML = statusHtml; return; }
     logPriceChange(p, newPrice);
     p.price = newPrice;
     await saveProducts();
@@ -3030,7 +3030,7 @@ function showResult(p){
         <div class="detail-actions" style="margin-top:14px;">
             <button class="full-width-btn" onclick="openEditProductModal(${idx},{type:'result'})" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:0;"><i class="fa-solid fa-pen" style="margin-right:6px"></i>${t('btnDuzenle')}</button>
             <div class="button-row"><button onclick="quickAdjustOrder(${idx},1)" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">Spr +</button><button onclick="quickAdjustOrder(${idx},-1)" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6);">Spr -</button></div>
-            <div class="button-row"><button onclick="discardFromResult()" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);"><i class="fa-solid fa-dumpster" style="margin-right:4px"></i>${t('btnAt')}</button><button onclick="deleteFromResult()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button></div>
+            <div class="button-row"><button onclick="deleteFromResult()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button></div>
             <div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToResult('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div>
             <div class="button-row"><button onclick="addImageToResult('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForResult()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div>
             <button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button>
@@ -3043,18 +3043,6 @@ function showResult(p){
     try{ JsBarcode("#resultBarcodeSvg", p.barcode, {format:"CODE128", width:1.6, height:40, displayValue:true, fontSize:13, margin:2}); }catch(e){}
 }
 
-async function discardFromResult(){
-    if(!lastScannedProduct) return;
-    let idx=products.findIndex(pr=>pr.id===lastScannedProduct.id);
-    if(idx===-1) return;
-    let p=products[idx];
-    if(!confirm(`${p.name} atildi olarak isaretlensin mi? (Stok 0 yapilacak, urun kaydi kalir)`)) return;
-    p.quantity=0;
-    await saveProducts();
-    await updateUI();
-    showResult(products[idx]);
-    showToast(`${p.name} atildi olarak isaretlendi`);
-}
 async function deleteFromResult(){
     if(!lastScannedProduct) return;
     let idx=products.findIndex(pr=>pr.id===lastScannedProduct.id);
