@@ -132,11 +132,11 @@
         .label-noimg{color:#ccc;font-size:5pt;font-family:Arial,sans-serif;font-weight:700}
         .label-text{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:1mm}
         .label-product-name{font-family:Georgia,'Times New Roman',serif;font-size:8.6pt;font-weight:900;color:#1a1a1a;line-height:1.15;width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
-        .label-price-row{display:flex;align-items:baseline}
+        .label-price-row{display:flex;align-items:baseline;width:100%;justify-content:flex-end;padding-right:1.5mm;box-sizing:border-box}
         .label-price{font-family:Georgia,'Times New Roman',serif;font-size:24pt;font-weight:900;color:#c60000;line-height:1}
         .label-price .cents{font-size:14pt}
         .label-price .currency{font-family:Georgia,serif;font-size:16pt;font-weight:900;color:#c60000;margin-left:1mm}
-        .label-barcode{align-self:flex-start;width:26mm;margin:0 0 0.8mm 2.5mm;border-top:0.25mm dashed #999;padding:0.3mm 0 0;display:flex;align-items:center;justify-content:center;height:7mm;box-sizing:border-box}
+        .label-barcode{align-self:flex-start;width:34mm;margin:0 0 0.8mm 2.5mm;border-top:0.25mm dashed #999;padding:0.3mm 0 0;display:flex;align-items:center;justify-content:center;height:7mm;box-sizing:border-box}
         .barcode-svg{width:100%;height:auto;display:block}
         @media print{body *{visibility:hidden}.print-modal,.print-modal *{visibility:visible}.print-modal{position:absolute;top:0;left:0;width:100%}.label-grid-container{page-break-after:always}}
         .drawer-btn{background:rgba(147,197,253,0.32);border:none;border-radius:40px;padding:14px 18px;color:var(--text-primary);font-weight:700;font-size:0.9rem;cursor:pointer;text-align:left;width:100%;transition:all 0.2s;border:1px solid rgba(59,130,246,0.12);display:flex;align-items:center;gap:10px}
@@ -2295,11 +2295,11 @@ body{margin:0;padding:0;background:white;}
 .label-noimg{color:#ccc;font-size:5pt;font-family:Arial,sans-serif;font-weight:700;}
 .label-text{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:1mm;}
 .label-product-name{font-family:Georgia,'Times New Roman',serif;font-size:8.6pt;font-weight:900;color:#1a1a1a;line-height:1.15;width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}
-.label-price-row{display:flex;align-items:baseline;}
+.label-price-row{display:flex;align-items:baseline;width:100%;justify-content:flex-end;padding-right:1.5mm;box-sizing:border-box;}
 .label-price{font-family:Georgia,'Times New Roman',serif;font-size:24pt;font-weight:900;color:#c60000;line-height:1;}
 .label-price .cents{font-size:14pt;}
 .label-price .currency{font-family:Georgia,serif;font-size:16pt;font-weight:900;color:#c60000;margin-left:1mm;}
-.label-barcode{align-self:flex-start;width:26mm;margin:0 0 0.8mm 2.5mm;border-top:0.25mm dashed #999;padding:0.3mm 0 0;display:flex;align-items:center;justify-content:center;height:7mm;box-sizing:border-box;}
+.label-barcode{align-self:flex-start;width:34mm;margin:0 0 0.8mm 2.5mm;border-top:0.25mm dashed #999;padding:0.3mm 0 0;display:flex;align-items:center;justify-content:center;height:7mm;box-sizing:border-box;}
 .barcode-svg{width:100%;height:auto;display:block;}
 @media print{.toolbar{display:none!important;}.sheets{margin-top:0!important;}}
 </style>`;
@@ -3000,12 +3000,52 @@ checkBackupReminder();
 //  (race condition) olusmaz ve geri tusu her zaman bir onceki
 //  ekrana doner.
 // ==============================================================
+// ==============================================================
+//  GERI TUSU / KAYDIRMA ILE MODAL KAPATMA (gelistirilmis versiyon)
+//  Kural: bir ekran ACILDIGINDA her zaman "ileri" sayilir (push).
+//  Bir ekran, YANINDA baska bir sey ACILMADAN kapatiliyorsa bu
+//  gercek bir "geri/iptal" hareketidir (pop). Envanter->Detay gibi
+//  "yerine gecme" (once kapat, sonra ac) durumlarinda ise sadece
+//  yeni acilan icin push yapilir; kapanan ekranin girisi tarihcede
+//  saklı kalir, boylece daha sonra gercekten geri gidildiginde o
+//  ekrana tekrar donulebilir (Envanter -> Detay -> Teslimat -> geri
+//  -> Detay -> geri -> Envanter -> geri -> Ana Sayfa gibi).
+//  Kamera penceresi kalici bir "ekran" sayilmadigi icin izlenmez.
+// ==============================================================
 (function setupBackGestureSupport(){
-    let modalEls = Array.from(document.querySelectorAll('.modal'));
+    let modalEls = Array.from(document.querySelectorAll('.modal')).filter(m=>m.id!=='cameraModal');
+
+    // Her modalin GERCEK kapatma fonksiyonu: sadece gizlemekle kalmaz,
+    // uygulamanin "onceki ekrana don" mantigini (orn. envantere geri
+    // donme bayragi) da calistirir.
+    const modalCloseFns = {
+        resultModal: ()=>clearResult(),
+        addFormModal: ()=>closeAddForm(),
+        inventoryModal: ()=>closeInventoryModal(),
+        productDetailModal: ()=>closeProductDetailModal(),
+        editProductModal: ()=>closeEditProductModal(),
+        urgentModal: ()=>closeUrgentModal(),
+        priceHistoryModal: ()=>closePriceHistoryModal(),
+        companyHistoryModal: ()=>closeCompanyHistoryModal(),
+        deliveryHistoryModal: ()=>closeDeliveryHistoryModal(),
+        noteModal: ()=>closeNoteModal(),
+        orderModeModal: ()=>closeOrderModeModal(),
+        orderCompanyPickModal: ()=>closeOrderCompanyPickModal(),
+        orderHistoryModal: ()=>closeOrderHistoryModal(),
+        sayimModal: ()=>closeSayimModal(),
+        manualAddModal: ()=>closeManualAddModal(),
+        printModal: ()=>{ document.getElementById('printModal').style.display='none'; },
+        queueModal: ()=>closeQueueModal(),
+        companyModal: ()=>closeCompanyModal(),
+        angebotModal: ()=>{ document.getElementById('angebotModal').style.display='none'; },
+        angebotPreviewModal: ()=>closeAngebotPreview(),
+    };
+
     function isOpen(m){ return m.style.display==='flex' || m.style.display==='block'; }
     let prevOpen = new Set(modalEls.filter(isOpen).map(m=>m.id));
+    let openStack = modalEls.filter(isOpen).map(m=>m.id); // gercekten gorunur olanlarin acilis sirasi
 
-    let pendingSelfBacks = 0;      // bizim programatik history.back() cagrilarimizdan beklenen popstate sayisi
+    let pendingSelfBacks = 0;         // bizim programatik history.back() cagrilarimizdan beklenen popstate sayisi
     let isClosingFromGesture = false; // gercek geri hareketiyle kapatirken tekrar history'ye dokunmayi engeller
     let historyQueue = Promise.resolve();
 
@@ -3036,9 +3076,21 @@ checkBackupReminder();
         let closed = [...prevOpen].filter(id=>!currentOpen.has(id));
         let opened = [...currentOpen].filter(id=>!prevOpen.has(id));
         prevOpen = currentOpen;
-        if(isClosingFromGesture) return;
-        closed.forEach(()=> queuedBack());
-        opened.forEach(()=> queuedPush());
+
+        // gorunur-ekranlar sirasini guncelle (gestureden bagimsiz, her zaman dogru olsun)
+        closed.forEach(id=>{ let i=openStack.indexOf(id); if(i!==-1) openStack.splice(i,1); });
+        opened.forEach(id=>{ if(!openStack.includes(id)) openStack.push(id); });
+
+        if(isClosingFromGesture) return; // bu degisiklik zaten gercek bir geri navigasyonunun sonucu
+
+        if(opened.length){
+            // "yerine gecme" (once kapat sonra ac) ya da normal ust-modal acma: sadece yeni acilanlar icin ileri git.
+            // Kapanan(lar)in eski girisi tarihcede saklı kalir; daha sonra gercekten geri gidilince ona donulur.
+            opened.forEach(()=> queuedPush());
+        } else if(closed.length){
+            // Hicbir sey acilmadan sadece kapatma oldu: bu gercek bir "geri/iptal" hareketi, bir adim geri al.
+            closed.forEach(()=> queuedBack());
+        }
     }
 
     let mo = new MutationObserver(processDiff);
@@ -3046,11 +3098,11 @@ checkBackupReminder();
 
     window.addEventListener('popstate', ()=>{
         if(pendingSelfBacks>0){ pendingSelfBacks--; return; }
-        let openModals = modalEls.filter(isOpen);
-        let top = openModals[openModals.length-1];
-        if(top){
+        let topId = openStack[openStack.length-1];
+        if(topId){
             isClosingFromGesture = true;
-            top.style.display = 'none';
+            let fn = modalCloseFns[topId];
+            if(fn) fn(); else { let el=document.getElementById(topId); if(el) el.style.display='none'; }
             setTimeout(()=>{ isClosingFromGesture = false; }, 0);
         }
     });
