@@ -3260,7 +3260,7 @@ checkBackupReminder();
     let pushedCount = openStack.length; // su an bizim kuyruga verdigimiz, henuz tuketilmemis push sayisi
 
     let pendingSelfBacks = 0;   // bizim programatik history.back() cagrilarimizdan beklenen popstate sayisi
-    let suppressNextDiff = false; // gesture isleyicisi durumu zaten senkron guncelledi, bir sonraki gozlemci turunu atla
+    let cameFromGesture = false; // az once gercek bir geri hareketi bir push'u fiziksel olarak tuketti
     let historyQueue = Promise.resolve();
 
     function queuedBack(){
@@ -3293,15 +3293,13 @@ checkBackupReminder();
         for(let id of currentOpen){ if(!newStack.includes(id)) newStack.push(id); }
         openStack = newStack;
 
-        if(suppressNextDiff){
-            // gesture isleyicisi bu degisikligi zaten senkron olarak islendi (push dahil, gerekiyorsa);
-            // burada tekrar islemeyelim, sadece bayragi tuket.
-            suppressNextDiff = false;
-            return;
-        }
-
         let newCount = openStack.length;
         let delta = newCount - pushedCount;
+        if(cameFromGesture){
+            // gercek geri hareketi zaten bir girisi fiziksel olarak tuketti; onu tekrar dusmeyelim
+            delta += 1;
+            cameFromGesture = false;
+        }
         if(delta > 0){ for(let i=0;i<delta;i++) queuedPush(); }
         else if(delta < 0){ for(let i=0;i<-delta;i++) queuedBack(); }
         pushedCount = newCount;
@@ -3313,24 +3311,15 @@ checkBackupReminder();
     window.addEventListener('popstate', ()=>{
         if(pendingSelfBacks>0){ pendingSelfBacks--; return; }
         let topId = openStack[openStack.length-1];
-        if(!topId) return; // acik modal yoksa hicbir sey yapma, tarayici kendiliginden cikar
-
-        let fn = modalCloseFns[topId];
-        if(fn) fn(); else { let el=document.getElementById(topId); if(el) el.style.display='none'; }
-
-        // ONEMLI: telafi edici push'u (gerekiyorsa) burada, HEMEN ve senkron olarak yap.
-        // Async kuyruga birakirsak, kullanici hizlica bir kez daha geri cekerse
-        // telafi yetismeden sayfanin kendi kokunu de gecip telefon ana ekranina
-        // cikilabiliyordu - bu yuzden bekletmeden dogrudan burada hallediyoruz.
-        let stillOpen = modalEls.filter(isOpen).map(m=>m.id);
-        openStack = stillOpen;
-        pushedCount = Math.max(0, pushedCount - 1); // fiziksel geri hareketi tam olarak bir girisi tuketti
-        if(stillOpen.length > pushedCount){
-            let need = stillOpen.length - pushedCount;
-            for(let i=0;i<need;i++){ try{ history.pushState({mpModal:true}, ''); }catch(e){} }
-            pushedCount = stillOpen.length;
+        if(topId){
+            cameFromGesture = true;
+            let fn = modalCloseFns[topId];
+            if(fn) fn(); else { let el=document.getElementById(topId); if(el) el.style.display='none'; }
+            setTimeout(()=>{ cameFromGesture = false; }, 300);
         }
-        suppressNextDiff = true;
+        // eger acik hicbir modal yoksa burada bilerek bir sey yapmiyoruz:
+        // tarayici/uygulama fazladan girisi olmadigi icin kendiliginden
+        // telefonun ana ekranina/onceki sayfaya cikar.
     });
 })();
 
