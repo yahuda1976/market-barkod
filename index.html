@@ -3284,8 +3284,8 @@ checkBackupReminder();
         sessionActive = false;
         consumed = 0;
         if(remaining > 0){
-            pendingSelfBacks += remaining;
-            try{ history.go(-remaining); }catch(e){ pendingSelfBacks = Math.max(0, pendingSelfBacks - remaining); }
+            pendingSelfBacks += 1; // history.go(-N) NE KADAR ADIM ATLARSA ATLASIN, TEK BIR popstate tetikler
+            try{ history.go(-remaining); }catch(e){ pendingSelfBacks = Math.max(0, pendingSelfBacks - 1); }
         }
     }
 
