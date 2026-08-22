@@ -223,6 +223,8 @@
         <button class="drawer-btn" onclick="closeDrawer();openLabelDesignModal();"><i class="fa-solid fa-palette" style="width:20px;text-align:center"></i> <span data-i18n="btnEtiketTasarim">ETIKET TASARIMI</span></button>
         <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-microphone" style="margin-right:6px"></i><span data-i18n="drawerSesli">SESLI</span></div>
         <button class="drawer-btn" onclick="closeDrawer();startVoiceGuidedAdd();"><i class="fa-solid fa-microphone-lines" style="width:20px;text-align:center"></i> <span data-i18n="btnSesliEkle">SESLI URUN EKLE</span></button>
+        <button class="drawer-btn" onclick="closeDrawer();openQuickPriceCamera();"><i class="fa-solid fa-tag" style="width:20px;text-align:center"></i> <span data-i18n="btnHizliFiyat">HIZLI FIYAT GUNCELLE</span></button>
+        <button class="drawer-btn" onclick="closeDrawer();openVoiceExpiryCamera();"><i class="fa-solid fa-calendar-days" style="width:20px;text-align:center"></i> <span data-i18n="btnSesliSkt">SESLI SKT GUNCELLE</span></button>
         <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-cloud-arrow-down" style="margin-right:6px"></i><span data-i18n="drawerYedek">YEDEKLEME</span></div>
         <button class="drawer-btn" onclick="closeDrawer();backupData();"><i class="fa-solid fa-download" style="width:20px;text-align:center"></i> <span data-i18n="btnYedekTelefon">TELEFONA YEDEK AL</span></button>
         <button class="drawer-btn" onclick="closeDrawer();backupToGoogleDrive();"><i class="fa-brands fa-google-drive" style="width:20px;text-align:center"></i> <span data-i18n="btnYedekDrive">GOOGLE DRIVE'A YEDEKLE</span></button>
@@ -722,7 +724,7 @@ const I18N = {
         btnCompanies: 'FIRMALAR', btnManualAdd: 'MANUEL EKLE', navInventory: 'ENVANTERI GORUNTULE', countSuffix: 'cesit',
         drawerView: 'GORUNUM', darkOn: 'KARANLIK MODA GEC', darkOff: 'AYDINLIK MODA GEC',
         drawerSayim: 'SAYIM', btnSayim: 'STOK SAYIMI YAP',
-        drawerEtiket: 'ETIKETLER', btnEtiketYonet: 'ETIKET LISTESINI YONET', btnEtiketTasarim: 'ETIKET TASARIMI', lblEtiketRenk: 'FIYAT RENGI', lblEtiketLogo: 'LOGO (ISTEGE BAGLI)', btnLogoSec: 'LOGO SEC', btnLogoKaldir: 'KALDIR', drawerSesli: 'SESLI', btnSesliEkle: 'SESLI URUN EKLE',
+        drawerEtiket: 'ETIKETLER', btnEtiketYonet: 'ETIKET LISTESINI YONET', btnEtiketTasarim: 'ETIKET TASARIMI', lblEtiketRenk: 'FIYAT RENGI', lblEtiketLogo: 'LOGO (ISTEGE BAGLI)', btnLogoSec: 'LOGO SEC', btnLogoKaldir: 'KALDIR', drawerSesli: 'SESLI', btnSesliEkle: 'SESLI URUN EKLE', btnHizliFiyat: 'HIZLI FIYAT GUNCELLE', btnSesliSkt: 'SESLI SKT GUNCELLE',
         drawerYedek: 'YEDEKLEME', btnYedekTelefon: 'TELEFONA YEDEK AL', btnYedekDrive: "GOOGLE DRIVE'A YEDEKLE", btnYedekGeri: 'YEDEKTEN GERI YUKLE',
         drawerRapor: 'RAPORLAR', btnCsv: 'CSV RAPORU INDIR', btnYazdir: 'ENVANTERI YAZDIR',
         drawerDiger: 'DIGER', btnSikistir: 'RESIMLERI SIKISTIR', drawerDil: 'DIL / LANGUAGE',
@@ -751,7 +753,7 @@ const I18N = {
         btnCompanies: 'FIRMEN', btnManualAdd: 'MANUELL HINZUFUGEN', navInventory: 'BESTAND ANZEIGEN', countSuffix: 'Artikel',
         drawerView: 'ANSICHT', darkOn: 'DUNKLER MODUS', darkOff: 'HELLER MODUS',
         drawerSayim: 'INVENTUR', btnSayim: 'BESTAND ZAHLEN',
-        drawerEtiket: 'ETIKETTEN', btnEtiketYonet: 'ETIKETTENLISTE VERWALTEN', btnEtiketTasarim: 'ETIKETTENDESIGN', lblEtiketRenk: 'PREISFARBE', lblEtiketLogo: 'LOGO (OPTIONAL)', btnLogoSec: 'LOGO WAHLEN', btnLogoKaldir: 'ENTFERNEN', drawerSesli: 'SPRACHE', btnSesliEkle: 'PER SPRACHE HINZUFUGEN',
+        drawerEtiket: 'ETIKETTEN', btnEtiketYonet: 'ETIKETTENLISTE VERWALTEN', btnEtiketTasarim: 'ETIKETTENDESIGN', lblEtiketRenk: 'PREISFARBE', lblEtiketLogo: 'LOGO (OPTIONAL)', btnLogoSec: 'LOGO WAHLEN', btnLogoKaldir: 'ENTFERNEN', drawerSesli: 'SPRACHE', btnSesliEkle: 'PER SPRACHE HINZUFUGEN', btnHizliFiyat: 'PREIS PER SPRACHE ANDERN', btnSesliSkt: 'MHD PER SPRACHE ANDERN',
         drawerYedek: 'SICHERUNG', btnYedekTelefon: 'AUF TELEFON SICHERN', btnYedekDrive: 'IN GOOGLE DRIVE SICHERN', btnYedekGeri: 'AUS SICHERUNG WIEDERHERSTELLEN',
         drawerRapor: 'BERICHTE', btnCsv: 'CSV-BERICHT HERUNTERLADEN', btnYazdir: 'BESTAND DRUCKEN',
         drawerDiger: 'WEITERES', btnSikistir: 'BILDER KOMPRIMIEREN', drawerDil: 'SPRACHE / DIL',
@@ -780,7 +782,7 @@ const I18N = {
         btnCompanies: 'COMPANIES', btnManualAdd: 'MANUAL ADD', navInventory: 'VIEW INVENTORY', countSuffix: 'items',
         drawerView: 'APPEARANCE', darkOn: 'SWITCH TO DARK MODE', darkOff: 'SWITCH TO LIGHT MODE',
         drawerSayim: 'STOCKTAKE', btnSayim: 'DO STOCKTAKE',
-        drawerEtiket: 'LABELS', btnEtiketYonet: 'MANAGE LABEL LIST', btnEtiketTasarim: 'LABEL DESIGN', lblEtiketRenk: 'PRICE COLOR', lblEtiketLogo: 'LOGO (OPTIONAL)', btnLogoSec: 'CHOOSE LOGO', btnLogoKaldir: 'REMOVE', drawerSesli: 'VOICE', btnSesliEkle: 'ADD PRODUCT BY VOICE',
+        drawerEtiket: 'LABELS', btnEtiketYonet: 'MANAGE LABEL LIST', btnEtiketTasarim: 'LABEL DESIGN', lblEtiketRenk: 'PRICE COLOR', lblEtiketLogo: 'LOGO (OPTIONAL)', btnLogoSec: 'CHOOSE LOGO', btnLogoKaldir: 'REMOVE', drawerSesli: 'VOICE', btnSesliEkle: 'ADD PRODUCT BY VOICE', btnHizliFiyat: 'QUICK PRICE UPDATE', btnSesliSkt: 'VOICE EXPIRY UPDATE',
         drawerYedek: 'BACKUP', btnYedekTelefon: 'BACKUP TO PHONE', btnYedekDrive: 'BACKUP TO GOOGLE DRIVE', btnYedekGeri: 'RESTORE FROM BACKUP',
         drawerRapor: 'REPORTS', btnCsv: 'DOWNLOAD CSV REPORT', btnYazdir: 'PRINT INVENTORY',
         drawerDiger: 'OTHER', btnSikistir: 'COMPRESS IMAGES', drawerDil: 'LANGUAGE / DIL',
@@ -2647,6 +2649,134 @@ async function openCameraModal(mode){
         setTimeout(()=>closeCameraModal(),2000);
     }
 }
+
+// ==============================================================
+//  SUREKLI TARAMA MODU: kamerayi tek seferde ac, her okutmada
+//  kamerayi kapatmadan siradaki urune gecer (Hizli Fiyat ve
+//  Sesli SKT guncelleme icin kullanilir).
+// ==============================================================
+async function openContinuousScanCamera(mode, statusHtml, handlerFn){
+    unlockAudio();
+    let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
+    currentCameraMode=mode;
+    let torchBtn=document.getElementById('torchToggleBtn');
+    if(torchBtn) torchBtn.classList.remove('torch-active');
+    modal.style.display="flex";
+    status.innerHTML='<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px"></i>BASLATILIYOR...';
+    try{
+        if(currentStopScan){ currentStopScan(); currentStopScan=null; }
+        if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
+        let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment", width:{ideal:1280}, height:{ideal:720}}});
+        video.srcObject=stream;
+        currentStream=stream;
+        currentVideoTrack=stream.getVideoTracks()[0]||null;
+        await video.play();
+        forceContinuousFocus(currentVideoTrack);
+        attachTapToFocus(video, ()=>currentVideoTrack);
+        status.innerHTML = statusHtml;
+        let scanCounts={}, lastProcessed=null, cooldownUntil=0, busy=false;
+        currentStopScan = await startBarcodeScan(video, code=>{
+            if(busy) return;
+            if(!code||code.length<4) return;
+            if(!isValidChecksum(code)) return;
+            let now=Date.now();
+            if(code===lastProcessed && now<cooldownUntil) return;
+            scanCounts[code]=(scanCounts[code]||0)+1;
+            if(scanCounts[code]<2) return;
+            scanCounts={};
+            lastProcessed=code; cooldownUntil=now+3000;
+            busy=true;
+            Promise.resolve(handlerFn(code, statusHtml)).finally(()=>{ busy=false; });
+        });
+    } catch(e){
+        status.innerHTML='<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px"></i>KAMERA IZNI GEREKLI';
+        setTimeout(()=>closeCameraModal(),2000);
+    }
+}
+
+function openQuickPriceCamera(){
+    openContinuousScanCamera('quickprice', '<i class="fa-solid fa-tag" style="margin-right:6px"></i>HIZLI FIYAT: bir urun okutun...', handleQuickPriceScan);
+}
+async function handleQuickPriceScan(code, statusHtml){
+    let status = document.getElementById('cameraModalStatus');
+    let p = findByBarcode(code);
+    if(!p){ playScanSound(null); showToast(`"${code}" sistemde kayitli degil`); return; }
+    playBeep();
+    status.innerHTML = `<i class="fa-solid fa-tag" style="margin-right:6px"></i>${escapeHtml(p.name)} — eski fiyat: ${p.price.toFixed(2)}€, yeni fiyati soyleyin...`;
+    let raw = await vgListenOnce(`${p.name} icin yeni fiyat`);
+    let match = raw ? raw.replace(',', '.').match(/\d+(\.\d+)?/) : null;
+    let newPrice = match ? parseFloat(match[0]) : null;
+    if(newPrice===null){
+        let manual = prompt(`${p.name}\nEski fiyat: ${p.price.toFixed(2)}€\n\nYeni fiyat (€):`, p.price);
+        if(manual===null){ status.innerHTML = statusHtml; return; }
+        newPrice = parseFloat(manual.replace(',', '.'));
+    }
+    if(isNaN(newPrice) || newPrice<=0){ showToast('Gecersiz fiyat!'); status.innerHTML = statusHtml; return; }
+    logPriceChange(p, newPrice);
+    p.price = newPrice;
+    await saveProducts();
+    await updateUI();
+    playBeep();
+    showToast(`${p.name}: ${newPrice.toFixed(2)}€`);
+    status.innerHTML = statusHtml;
+}
+
+function openVoiceExpiryCamera(){
+    openContinuousScanCamera('voiceexpiry', '<i class="fa-solid fa-calendar-days" style="margin-right:6px"></i>SESLI SKT: bir urun okutun...', handleVoiceExpiryScan);
+}
+function parseSpokenDateTR(text){
+    let norm = normalizeSearchText(text);
+    const monthNames = {ocak:1, subat:2, mart:3, nisan:4, mayis:5, haziran:6, temmuz:7, agustos:8, eylul:9, ekim:10, kasim:11, aralik:12};
+    let month = null;
+    for(let name in monthNames){ if(norm.includes(name)){ month = monthNames[name]; break; } }
+    let dayMatch = norm.match(/\b(\d{1,2})\b/);
+    let day = dayMatch ? parseInt(dayMatch[1]) : null;
+    if(month && day && day>=1 && day<=31){
+        let yearMatch = norm.match(/\b(20\d{2})\b/);
+        let year = yearMatch ? parseInt(yearMatch[1]) : null;
+        if(!year){
+            year = new Date().getFullYear();
+            let candidate = new Date(year, month-1, day);
+            if(candidate < new Date()) year += 1;
+        }
+        return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    }
+    // yedek: 15.09.2026 / 15/09/2026 / 15 09 2026 gibi rakamsal formatlar
+    let numMatch = norm.match(/(\d{1,2})[.\/\s]+(\d{1,2})(?:[.\/\s]+(\d{2,4}))?/);
+    if(numMatch){
+        let d = parseInt(numMatch[1]), m = parseInt(numMatch[2]);
+        let y = numMatch[3] ? parseInt(numMatch[3]) : new Date().getFullYear();
+        if(y<100) y += 2000;
+        if(d>=1&&d<=31&&m>=1&&m<=12) return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    }
+    return null;
+}
+async function handleVoiceExpiryScan(code, statusHtml){
+    let status = document.getElementById('cameraModalStatus');
+    let p = findByBarcode(code);
+    if(!p){ playScanSound(null); showToast(`"${code}" sistemde kayitli degil`); return; }
+    playBeep();
+    status.innerHTML = `<i class="fa-solid fa-calendar-days" style="margin-right:6px"></i>${escapeHtml(p.name)} — SKT tarihini soyleyin (orn: 15 eylul)...`;
+    let raw = await vgListenOnce(`${p.name} icin SKT`);
+    let iso = raw ? parseSpokenDateTR(raw) : null;
+    if(!iso){
+        let manual = prompt(`${p.name}\nSKT tarihini GG.AA.YYYY seklinde girin:`, formatDateDMY(p.expiry));
+        if(manual===null){ status.innerHTML = statusHtml; return; }
+        let parts = manual.split('.');
+        if(parts.length===3){ iso = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`; }
+    }
+    if(!iso){ showToast('Tarih anlasilamadi!'); status.innerHTML = statusHtml; return; }
+    p.expiry = iso;
+    if(!Array.isArray(p.deliveryHistory)) p.deliveryHistory=[];
+    p.deliveryHistory.push({date:new Date().toISOString(), company:p.company||'', expiry:iso, boxes:null});
+    if(p.deliveryHistory.length>30) p.deliveryHistory = p.deliveryHistory.slice(-30);
+    await saveProducts();
+    await updateUI();
+    playBeep();
+    showToast(`${p.name}: SKT ${formatDateDMY(iso)}`);
+    status.innerHTML = statusHtml;
+}
+
 function closeCameraModal(){
     if(currentStopScan){ currentStopScan(); currentStopScan=null; }
     if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
@@ -2730,6 +2860,29 @@ function showBalloonIntro(){
     el.innerHTML=`<div class="balloon-shape"><div class="balloon-text">TOKAS MARKET</div></div>`;
     document.body.appendChild(el);
     setTimeout(()=>{ el.remove(); }, 2300);
+}
+// ==============================================================
+//  ANA EKRAN KISAYOLU: sayfa "?action=search" gibi bir parametreyle
+//  acilirsa, uygulama menu aramaya gerek kalmadan direkt o islemi
+//  baslatir. Telefonda tarayicidan bu adrese (orn. index.html?action=search)
+//  gidip "Ana Ekrana Ekle" yapinca, o kisayol tek dokunusla direkt
+//  kamerayi/ekrani acar.
+// ==============================================================
+function handleLaunchAction(){
+    try{
+        let params = new URLSearchParams(window.location.search);
+        let action = params.get('action');
+        if(!action) return false;
+        setTimeout(()=>{
+            if(action==='search') openCameraModal('search');
+            else if(action==='add') openCameraModal('add');
+            else if(action==='order') openOrderModeModal();
+            else if(action==='inventory') openInventoryModal();
+            else if(action==='sayim') openSayimModal();
+            else return;
+        }, 50);
+        return true;
+    }catch(e){ return false; }
 }
 function showCelebration(title, subtitle){
     fireConfetti();
@@ -3416,7 +3569,9 @@ async function initApp(){
     if(!startupOk){
         showToast("Depolama yedek modda calisiyor (tarayici hafizasi)");
     }
-    showBalloonIntro();
+    if(!handleLaunchAction()){
+        showBalloonIntro();
+    }
 
     document.getElementById('searchBtn').addEventListener('click', () => openCameraModal('search'));
     document.getElementById('addBtn').addEventListener('click', () => openCameraModal('add'));
