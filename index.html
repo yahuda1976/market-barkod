@@ -3270,7 +3270,14 @@ checkBackupReminder();
     function startSession(){
         sessionActive = true;
         consumed = 0;
-        for(let i=0;i<BATCH_SIZE;i++){ try{ history.pushState({mpModal:true}, ''); }catch(e){} }
+        let i = 0;
+        function pushNext(){
+            if(i >= BATCH_SIZE) return;
+            try{ history.pushState({mpModal:true}, ''); }catch(e){}
+            i++;
+            setTimeout(pushNext, 4);
+        }
+        pushNext();
     }
     function endSession(){
         let remaining = BATCH_SIZE - consumed;
