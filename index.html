@@ -3213,23 +3213,20 @@ async function checkBackupReminder(){
 checkBackupReminder();
 
 // ==============================================================
-//  GERI TUSU / KAYDIRMA ILE MODAL KAPATMA (koklu, kendi kendini
-//  duzelten versiyon)
+//  GERI TUSU / KAYDIRMA ILE MODAL KAPATMA (buyuk-tampon versiyonu)
 //
-//  Onceki tasarimlar "kac seviye derinlikteyiz" diye SAYMAYA
-//  calisiyordu; bu sayim zamanla gercek durumdan sapabiliyordu
-//  (bazen erken ana ekrana cikiyor, bazen fazladan basila basila
-//  bitmiyordu). Bu versiyon hic sayim yapmiyor. Tek bir kurala
-//  dayanir: "su an herhangi bir modal aciksa, tarayicida TAM OLARAK
-//  bir tane fazladan giris bulunsun; hicbir modal acik degilse hic
-//  fazladan giris bulunmasin." Bu kural her degisiklikte YENIDEN
-//  degerlendirilir (gecmise dayali bir sayac tutulmaz), bu yuzden
-//  hicbir zaman kayma/birikme olamaz. Sonuc: ne kadar Envanter->
-//  Detay->Teslimat gibi ic ice/yerine-gecen ekran degistirilirse
-//  degistirilsin, ana ekrana tam doğru sayida geri basisla donulur
-//  ve ana ekrandan bir geri hareketi daima duzgun sekilde telefonun
-//  kendi ana ekranina cikar. Kamera penceresi kalici bir "ekran"
-//  sayilmadigi icin izlenmez.
+//  Onceki versiyon her tek geri hareketinde tarihceye HEMEN yeni
+//  bir giris ekliyordu; bu, Android'in kaydirma hareketiyle
+//  celisip duzensiz atlamalara yol acabiliyordu. Bu versiyon farkli
+//  bir strateji kullanir: bir modal zinciri basladiginda (Envanter
+//  acildiginda gibi) tarihceye TEK SEFERDE buyukce bir tampon
+//  (20 giris) eklenir ve zincir tamamen kapanip ana ekrana
+//  donulene kadar bir daha HIC dokunulmaz. Sadece zincir bitince,
+//  kullanilmayan fazlalik tek bir hamlede geri alinir. Boylece
+//  gecis sirasinda tarihceyle "canli" ugrasilmadigi icin
+//  isletim sisteminin kaydirma hareketiyle celismesi cok daha az
+//  olasi. Kamera penceresi kalici bir "ekran" sayilmadigi icin
+//  izlenmez.
 // ==============================================================
 (function setupBackGestureSupport(){
     let modalEls = Array.from(document.querySelectorAll('.modal')).filter(m=>m.id!=='cameraModal');
@@ -3263,17 +3260,28 @@ checkBackupReminder();
     function isOpen(m){ return m.style.display==='flex' || m.style.display==='block'; }
     function getOpenIds(){ return modalEls.filter(isOpen).map(m=>m.id); }
 
-    let openStack = getOpenIds();          // gorunur modallerin acilis sirasi (en sonuncusu = en ustteki)
-    let hasBuffer = openStack.length > 0;  // su an gercekten push edilmis, tuketilmemis TEK bir girisimiz var mi
-    let pendingSelfBacks = 0;              // bizim kendi history.back() cagrilarimizdan beklenen popstate sayisi
+    const BATCH_SIZE = 20; // pratikte hicbir zinicirde tukenmeyecek kadar buyuk bir tampon
 
-    function safePush(){ try{ history.pushState({mpModal:true}, ''); }catch(e){} }
-    function safeBack(){
-        pendingSelfBacks++;
-        try{ history.back(); }catch(e){ pendingSelfBacks = Math.max(0, pendingSelfBacks-1); }
+    let openStack = getOpenIds();              // gorunur modallerin acilis sirasi
+    let sessionActive = openStack.length > 0;  // su an bir "modal oturumu" icinde miyiz (tampon basiliymis gibi)
+    let consumed = 0;                          // bu oturumda kullanicinin gercekten tukettigi giris sayisi
+    let pendingSelfBacks = 0;                  // bizim kendi history hareketlerimizden beklenen popstate sayisi
+
+    function startSession(){
+        sessionActive = true;
+        consumed = 0;
+        for(let i=0;i<BATCH_SIZE;i++){ try{ history.pushState({mpModal:true}, ''); }catch(e){} }
+    }
+    function endSession(){
+        let remaining = BATCH_SIZE - consumed;
+        sessionActive = false;
+        consumed = 0;
+        if(remaining > 0){
+            pendingSelfBacks += remaining;
+            try{ history.go(-remaining); }catch(e){ pendingSelfBacks = Math.max(0, pendingSelfBacks - remaining); }
+        }
     }
 
-    // Su anki gercek acik-modal durumunu openStack'e isler ve "en az bir sey acik mi" doner.
     function syncStack(){
         let current = getOpenIds();
         let newStack = openStack.filter(id=>current.includes(id));
@@ -3282,9 +3290,8 @@ checkBackupReminder();
         return openStack.length > 0;
     }
 
-    // Ayni senkron islem icinde birden fazla stil degisikligi olsa da (orn. bir modal
-    // kapanip digeri aciliyor), tum MutationObserver bildirimlerini TEK bir kontrole
-    // indirger; boylece ara durumlar icin yanlislikla fazladan push/pop yapilmaz.
+    // Ayni senkron islem icinde birden fazla stil degisikligi olsa da, tum
+    // MutationObserver bildirimlerini TEK bir kontrole indirger.
     let diffScheduled = false;
     function scheduleDiff(){
         if(diffScheduled) return;
@@ -3296,13 +3303,9 @@ checkBackupReminder();
     }
     function processDiff(){
         let anyOpen = syncStack();
-        if(anyOpen && !hasBuffer){
-            hasBuffer = true;
-            safePush();
-        } else if(!anyOpen && hasBuffer){
-            hasBuffer = false;
-            safeBack();
-        }
+        if(anyOpen && !sessionActive) startSession();
+        else if(!anyOpen && sessionActive) endSession();
+        // aciksa ve oturum zaten aktifse: hicbir sey yapma, tampondan yeterince var
     }
 
     let mo = new MutationObserver(scheduleDiff);
@@ -3310,22 +3313,21 @@ checkBackupReminder();
 
     window.addEventListener('popstate', ()=>{
         if(pendingSelfBacks>0){ pendingSelfBacks--; return; }
+        // gercek bir kullanici hareketi: eger bir oturum icindeysek, tampondan bir tanesi tuketildi
+        if(sessionActive) consumed++;
+
         let topId = openStack[openStack.length-1];
         if(!topId) return; // acik modal yoksa dokunma; tarayici kendiliginden telefonun ana ekranina cikar
 
         let fn = modalCloseFns[topId];
         if(fn) fn(); else { let el=document.getElementById(topId); if(el) el.style.display='none'; }
 
-        // Kapatma sonrasi hala acik bir sey varsa (baska bir modal, ya da uygulamanin
-        // "onceki ekrana don" mantigiyla yeniden acilan bir ekran), tamponu HEMEN,
-        // senkron olarak tazeleyelim ki bir sonraki geri hareketi de dogru calissin.
         let anyOpen = syncStack();
-        if(anyOpen){
-            hasBuffer = true;
-            safePush();
-        } else {
-            hasBuffer = false;
+        if(!anyOpen && sessionActive){
+            // zincir tamamen kapandi: kullanilmayan tampon fazlasini tek seferde geri al
+            endSession();
         }
+        // hala bir sey aciksa: tamponda zaten yeterince var, hicbir sey yapmaya gerek yok
     });
 })();
 
