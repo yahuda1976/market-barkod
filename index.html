@@ -2697,10 +2697,13 @@ function openVoiceExpiryCamera(){
     openContinuousScanCamera('voiceexpiry', '<i class="fa-solid fa-calendar-days" style="margin-right:6px"></i>SESLI SKT: bir urun okutun...', handleVoiceExpiryScan);
 }
 function parseSpokenDateTR(text){
-    let norm = normalizeSearchText(text);
+    if(!text) return null;
+    let raw = text.trim();
 
-    // ONCELIK: sayisal "gun ay yil" formati (orn. "24 08 2027", "24.08.2027", "24/08/2027")
-    let numMatch = norm.match(/\b(\d{1,2})[.\/\s]+(\d{1,2})(?:[.\/\s]+(\d{2,4}))?\b/);
+    // ONCELIK: sayisal "gun ay yil" formati - orijinal metin uzerinde calisir,
+    // noktalari/bosluklari SILMEDEN (normalizeSearchText tarih ayiraclarini
+    // yok ettigi icin burada kullanilmiyor).
+    let numMatch = raw.match(/\b(\d{1,2})[.\/\s]+(\d{1,2})(?:[.\/\s]+(\d{2,4}))?\b/);
     if(numMatch){
         let d = parseInt(numMatch[1]), m = parseInt(numMatch[2]);
         let y = numMatch[3] ? parseInt(numMatch[3]) : null;
@@ -2715,14 +2718,17 @@ function parseSpokenDateTR(text){
         }
     }
 
-    // yedek: ay ismi soylenirse (orn. "15 eylul", "15 eylul 2026")
+    // yedek: ay ismi soylenirse (orn. "15 eylul", "15 eylul 2026") - burada sadece
+    // turkce karakterleri sadelestiriyoruz, noktalamayi bozmuyoruz.
+    let folded = raw.toLowerCase()
+        .replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ş/g,'s').replace(/ü/g,'u');
     const monthNames = {ocak:1, subat:2, mart:3, nisan:4, mayis:5, haziran:6, temmuz:7, agustos:8, eylul:9, ekim:10, kasim:11, aralik:12};
     let month = null;
-    for(let name in monthNames){ if(norm.includes(name)){ month = monthNames[name]; break; } }
-    let dayMatch = norm.match(/\b(\d{1,2})\b/);
+    for(let name in monthNames){ if(folded.includes(name)){ month = monthNames[name]; break; } }
+    let dayMatch = folded.match(/\b(\d{1,2})\b/);
     let day = dayMatch ? parseInt(dayMatch[1]) : null;
     if(month && day && day>=1 && day<=31){
-        let yearMatch = norm.match(/\b(20\d{2})\b/);
+        let yearMatch = folded.match(/\b(20\d{2})\b/);
         let year = yearMatch ? parseInt(yearMatch[1]) : null;
         if(!year){
             year = new Date().getFullYear();
