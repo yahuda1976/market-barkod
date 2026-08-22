@@ -136,7 +136,7 @@
         .label-price{font-family:Georgia,'Times New Roman',serif;font-size:24pt;font-weight:900;color:#c60000;line-height:1}
         .label-price .cents{font-size:14pt}
         .label-price .currency{font-family:Georgia,serif;font-size:16pt;font-weight:900;color:#c60000;margin-left:1mm}
-        .label-barcode{border-top:0.25mm dashed #999;padding:0.4mm 3mm 0.3mm;display:flex;align-items:center;justify-content:center;height:8mm;box-sizing:border-box}
+        .label-barcode{align-self:flex-start;width:26mm;margin:0 0 0.8mm 2.5mm;border-top:0.25mm dashed #999;padding:0.3mm 0 0;display:flex;align-items:center;justify-content:center;height:7mm;box-sizing:border-box}
         .barcode-svg{width:100%;height:auto;display:block}
         @media print{body *{visibility:hidden}.print-modal,.print-modal *{visibility:visible}.print-modal{position:absolute;top:0;left:0;width:100%}.label-grid-container{page-break-after:always}}
         .drawer-btn{background:rgba(147,197,253,0.32);border:none;border-radius:40px;padding:14px 18px;color:var(--text-primary);font-weight:700;font-size:0.9rem;cursor:pointer;text-align:left;width:100%;transition:all 0.2s;border:1px solid rgba(59,130,246,0.12);display:flex;align-items:center;gap:10px}
@@ -297,6 +297,15 @@
     </div>
 </div>
 <div id="productDetailModal" class="modal"><div class="modal-content" id="productDetailContent"></div></div>
+<div id="editProductModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa-solid fa-pen" style="margin-right:8px"></i><span data-i18n="btnDuzenle">DUZENLE</span></span>
+            <button class="close-modal-btn" onclick="closeEditProductModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="editProductFormContainer"></div>
+    </div>
+</div>
 <div id="urgentModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -1353,7 +1362,6 @@ async function openIndexedDB() {
         dbUnavailable = false;
         return db;
     } catch (e) {
-        // Bozuk/eski bir veritabani baglantiyi engelliyor olabilir; bir kez temizleyip yeniden dene
         console.warn('IndexedDB ilk denemede acilamadi, yeniden deneniyor...', e);
         await deleteIndexedDBOnce();
         try {
@@ -1421,7 +1429,6 @@ async function loadMetadata(key) {
         } catch(e) { reject(e); }
     });
 }
-// ---- LOCALSTORAGE YEDEK MEKANIZMASI: IndexedDB tamamen kullanilamazsa devreye girer ----
 function loadProductsFromLocalFallback() {
     try {
         let raw = localStorage.getItem('marketpro_products_fallback');
@@ -1638,8 +1645,6 @@ function normalizeSearchText(str){
     return s.replace(/\s+/g,' ').trim();
 }
 function isValidChecksum(code){
-    // Sadece rakamlardan olusan standart uzunluktaki barkodlar (EAN-8/UPC-A/EAN-13) icin checksum dogrulamasi yapar.
-    // Kod128 gibi harf iceren veya farkli uzunluktaki kodlarda dogrulama atlanir (true doner).
     if(!/^\d+$/.test(code)) return true;
     let len = code.length;
     if(len!==8 && len!==12 && len!==13) return true;
@@ -1655,10 +1660,6 @@ function isValidChecksum(code){
     let calc = (10 - (sum % 10)) % 10;
     return calc === checkDigit;
 }
-// ==============================================================
-//  BARKOD TARAMA MOTORU: Once tarayicinin kendi yerlesik motoru
-//  (BarcodeDetector - hizli, donanim destekli), yoksa ZXing yedegi
-// ==============================================================
 let zxingLoadPromise = null;
 function loadZXing(){
     if(window.ZXing) return Promise.resolve(window.ZXing);
@@ -1684,14 +1685,13 @@ async function startBarcodeScan(video, onDetect){
                 try{
                     let results=await detector.detect(video);
                     if(results && results.length){ onDetect(results[0].rawValue); }
-                }catch(e){ /* video henuz hazir olmayabilir, sorun degil */ }
+                }catch(e){ }
                 if(!stopped) rafId=requestAnimationFrame(tick);
             }
             rafId=requestAnimationFrame(tick);
             return ()=>{ stopped=true; if(rafId) cancelAnimationFrame(rafId); };
         }
     }
-    // Yedek yol: native destegi olmayan tarayicilar icin ZXing
     try{
         let ZXing=await withTimeout(loadZXing(), 6000);
         if(!ZXing) throw new Error('ZXing yuklenemedi');
@@ -1885,7 +1885,6 @@ function renderInventoryList(){
     else if(inventoryFilterMode==='zero')filtered=filtered.filter(p=>p.quantity===0); 
     else if(inventoryFilterMode==='urgent')filtered=filtered.filter(p=>p.expiry&&p.quantity>0&&Math.ceil((new Date(p.expiry)-new Date())/86400000)<=7); 
     
-    // === SIRALAMA MANTIGI: TOPLAM MODUNDA RENK ONCELIGI ===
     let sorted;
     if (inventoryFilterMode === 'all') {
         const colorPriority = {
@@ -1916,7 +1915,6 @@ function renderInventoryList(){
             return new Date(a.expiry) - new Date(b.expiry);
         });
     }
-    // =========================================================
     if(!sorted.length){
         container.innerHTML="<div style='text-align:center;padding:24px;color:var(--text-secondary);font-weight:500;'><i class='fa-solid fa-inbox' style='font-size:2rem;margin-bottom:8px;display:block;opacity:0.5'></i>Bu grupta urun yok</div>";
         return;
@@ -1931,9 +1929,11 @@ function setInventoryFilter(mode){ inventoryFilterMode=mode; renderInventoryList
 function openProductDetailModal(idx){
     let p=products[idx];currentEditingProductId=idx;let color=getProductColorClass(p);
     let modal=document.getElementById("productDetailModal"),content=document.getElementById("productDetailContent");
-    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>${t('titleUrunDetayi')}</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark"></i></button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}${p.note?' <i class="fa-solid fa-note-sticky" style="color:#d97706;font-size:0.85rem;" title="Not var"></i>':''}<div style="background:white;border-radius:10px;padding:6px 10px;margin-top:8px;display:inline-block;"><svg id="detailBarcodeSvg"></svg></div><div style="color:#475569;margin-top:6px;font-size:0.9rem;line-height:1.6;">${t('lblFiyat')}: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>${t('lblStok')}: <span style="font-weight:700">${p.quantity}</span><br><span style="color:#ef4444;font-weight:900;font-size:1.05rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)}</span>${expiredTag(p)}${getLastDeliverySummary(p)}</div>${p.company?`<button onclick="closeProductDetailModal();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin-top:10px;background:rgba(30,41,59,0.08);border:1px solid rgba(30,41,59,0.15);border-radius:30px;padding:8px 16px;color:#1e293b;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}</div><div class="detail-actions"><button class="full-width-btn" onclick="toggleEditMode()" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:0;"><i class="fa-solid fa-pen" style="margin-right:6px"></i>${t('btnDuzenle')}</button><div class="button-row"><button onclick="quickAdjustOrder(${idx},1)" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">Spr +</button><button onclick="quickAdjustOrder(${idx},-1)" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6);">Spr -</button></div><div class="button-row"><button onclick="discardProduct()" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);"><i class="fa-solid fa-dumpster" style="margin-right:4px"></i>${t('btnAt')}</button><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:0;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button><button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:0;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button><button class="full-width-btn" onclick="openCompanyHistoryModal(${idx})" style="background:linear-gradient(135deg,#64748b,#475569)!important;margin-top:0;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>${t('btnFirmaGecmisi')}</button><button class="full-width-btn" onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669)!important;margin-top:0;"><i class="fa-solid fa-truck" style="margin-right:6px"></i>${t('btnTeslimatGecmisi')}</button><button class="full-width-btn" onclick="openNoteModal(${idx})" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:0;"><i class="fa-solid fa-note-sticky" style="margin-right:6px"></i>${t('btnNot')}${p.note?' <i class="fa-solid fa-circle" style="font-size:0.4rem;vertical-align:middle;margin-left:4px;"></i>':''}</button></div><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
-    try{ JsBarcode("#detailBarcodeSvg", p.barcode, {format:"CODE128", width:1.6, height:40, displayValue:true, fontSize:13, margin:2}); }catch(e){}
+    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>${t('titleUrunDetayi')}</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark"></i></button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}${p.note?' <i class="fa-solid fa-note-sticky" style="color:#d97706;font-size:0.85rem;" title="Not var"></i>':''}<div style="margin:12px auto 2px;max-width:210px;background:white;border-radius:14px;padding:8px 10px 4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);"><svg id="detailBarcodeSvg" style="width:100%;height:auto;display:block;"></svg></div><div style="text-align:center;font-weight:900;font-size:0.9rem;letter-spacing:1.5px;color:#1e293b;margin-bottom:8px;">${p.barcode}</div><div style="color:#475569;margin-top:6px;font-size:0.9rem;line-height:1.6;">${t('lblFiyat')}: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>${t('lblStok')}: <span style="font-weight:700">${p.quantity}</span><br><span style="color:#ef4444;font-weight:900;font-size:1.05rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)}</span>${expiredTag(p)}${getLastDeliverySummary(p)}</div>${p.company?`<button onclick="closeProductDetailModal();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin-top:10px;background:rgba(30,41,59,0.08);border:1px solid rgba(30,41,59,0.15);border-radius:30px;padding:8px 16px;color:#1e293b;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}</div><div class="detail-actions"><button class="full-width-btn" onclick="openEditProductModal(${idx},{type:'detail'})" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:0;"><i class="fa-solid fa-pen" style="margin-right:6px"></i>${t('btnDuzenle')}</button><div class="button-row"><button onclick="quickAdjustOrder(${idx},1)" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">Spr +</button><button onclick="quickAdjustOrder(${idx},-1)" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6);">Spr -</button></div><div class="button-row"><button onclick="discardProduct()" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);"><i class="fa-solid fa-dumpster" style="margin-right:4px"></i>${t('btnAt')}</button><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:0;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button><button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:0;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button><button class="full-width-btn" onclick="openCompanyHistoryModal(${idx})" style="background:linear-gradient(135deg,#64748b,#475569)!important;margin-top:0;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>${t('btnFirmaGecmisi')}</button><button class="full-width-btn" onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669)!important;margin-top:0;"><i class="fa-solid fa-truck" style="margin-right:6px"></i>${t('btnTeslimatGecmisi')}</button><button class="full-width-btn" onclick="openNoteModal(${idx})" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:0;"><i class="fa-solid fa-note-sticky" style="margin-right:6px"></i>${t('btnNot')}${p.note?' <i class="fa-solid fa-circle" style="font-size:0.4rem;vertical-align:middle;margin-left:4px;"></i>':''}</button></div><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
     modal.style.display="flex";
+    setTimeout(()=>{
+        try{ JsBarcode("#detailBarcodeSvg", p.barcode, {format:"CODE128", width:1.7, height:42, displayValue:false, margin:0}); }catch(e){}
+    }, 30);
 }
 function closeProductDetailModal(){
     document.getElementById("productDetailModal").style.display="none";
@@ -1959,6 +1959,51 @@ async function discardProduct(){
     openProductDetailModal(idx);
     showToast(`${p.name} atildi olarak isaretlendi`);
 }
+// ==============================================================
+//  ODAKLI DUZENLE MODALI: sadece duzenlenebilir alanlari gosterir,
+//  kaydedince kaynagina (detay veya sonuc ekrani) en basa donerek doner
+// ==============================================================
+let editProductReturnTo = null;
+function openEditProductModal(idx, returnTo){
+    editProductReturnTo = returnTo || {type:'detail'};
+    let p = products[idx];
+    if(!p) return;
+    let c = document.getElementById('editProductFormContainer');
+    c.innerHTML = `<input id="epName" value="${escapeHtml(p.name)}" maxlength="35" placeholder="${t('phUrunAdi')}"><input id="epBarcode" value="${p.barcode}" placeholder="${t('phBarkod')}"><input id="epPrice" value="${p.price}" placeholder="${t('phFiyat')}"><input id="epCost" value="${p.cost||''}" placeholder="${t('phMaliyet')}"><div id="epProfitBox" class="profit-box"></div><select id="epCategory">${buildCategoryOptions(p.category)}</select><select id="epCompany">${buildCompanyOptions(p.company||'')}</select><input id="epQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}" placeholder="${t('phStok')}" type="number"><input id="epExpiry" type="date" value="${p.expiry||''}"><div class="edit-form-buttons"><button class="btn-save" onclick="saveEditProductModal(${idx})"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>${t('btnKaydet')}</button><button class="btn-cancel" onclick="closeEditProductModal()">${t('btnIptal')}</button></div>`;
+    setupPriceFields('epCost','epPrice','epProfitBox');
+    document.getElementById('editProductModal').style.display='flex';
+}
+function closeEditProductModal(){
+    document.getElementById('editProductModal').style.display='none';
+}
+async function saveEditProductModal(idx){
+    let p = products[idx];
+    if(!p) return;
+    p.name = document.getElementById('epName').value.trim().toUpperCase();
+    p.barcode = normBarcode(document.getElementById('epBarcode').value);
+    let newPrice = parseFloat(document.getElementById('epPrice').value);
+    logPriceChange(p, newPrice);
+    p.price = newPrice;
+    p.cost = parseFloat(document.getElementById('epCost').value) || null;
+    p.category = document.getElementById('epCategory').value;
+    let newCompany = document.getElementById('epCompany').value;
+    logCompanyChange(p, newCompany);
+    p.company = newCompany;
+    let _q = parseInt(document.getElementById('epQuantity').value);
+    if(isNaN(_q) || _q<=0) _q=1;
+    p.quantity = _q;
+    p.expiry = document.getElementById('epExpiry').value;
+    await saveProducts();
+    await updateUI();
+    closeEditProductModal();
+    playBeep();
+    if(editProductReturnTo && editProductReturnTo.type==='result'){
+        showResult(products[idx]);
+    } else {
+        openProductDetailModal(idx);
+    }
+}
+
 function toggleEditMode(){
     let editDiv=document.getElementById("editFields"),p=products[currentEditingProductId];
     if(editDiv.style.display==="none"){
@@ -2254,7 +2299,7 @@ body{margin:0;padding:0;background:white;}
 .label-price{font-family:Georgia,'Times New Roman',serif;font-size:24pt;font-weight:900;color:#c60000;line-height:1;}
 .label-price .cents{font-size:14pt;}
 .label-price .currency{font-family:Georgia,serif;font-size:16pt;font-weight:900;color:#c60000;margin-left:1mm;}
-.label-barcode{border-top:0.25mm dashed #999;padding:0.4mm 3mm 0.3mm;display:flex;align-items:center;justify-content:center;height:8mm;box-sizing:border-box;}
+.label-barcode{align-self:flex-start;width:26mm;margin:0 0 0.8mm 2.5mm;border-top:0.25mm dashed #999;padding:0.3mm 0 0;display:flex;align-items:center;justify-content:center;height:7mm;box-sizing:border-box;}
 .barcode-svg{width:100%;height:auto;display:block;}
 @media print{.toolbar{display:none!important;}.sheets{margin-top:0!important;}}
 </style>`;
@@ -2341,9 +2386,6 @@ function buildAngebotPrintHTML(size, orientation, p, discountPrice){
     let oldPriceHTML = showDiscount ? `<div class="old-price">Statt ${oip},${ocents}&nbsp;€</div>` : '';
     let nameEsc = escapeHtml(p.name);
 
-    // Reference design values at full A4 size (portrait 210x297mm, landscape 297x210mm).
-    // A5 is exactly 1/sqrt(2) the linear size of A4 with the same aspect ratio, so A5 cells
-    // reuse the same layout scaled down by that factor - no separate design needed.
     const SCALE_A5 = 0.707;
 
     function posterCell(isPortrait, scale){
@@ -2392,14 +2434,11 @@ function buildAngebotPrintHTML(size, orientation, p, discountPrice){
 
     let bodyCSS='', bodyHTML='';
     if(size==='a5'){
-        // Two A5 cells fit exactly on one A4 sheet of the matching orientation.
         let isPortrait = (orientation==='portrait');
         let cell = posterCell(isPortrait, SCALE_A5);
         if(isPortrait){
-            // Two A5-portrait cells side by side = one A4-landscape sheet
             bodyCSS = `@page{size:A4 landscape;margin:0;}html,body{width:297mm;height:210mm;margin:0;padding:0;overflow:hidden;}body{display:flex;}.cell{width:148.5mm;height:210mm;box-sizing:border-box;}.cell:first-child{border-right:1px dashed #bbb;}${cell.css}`;
         } else {
-            // Two A5-landscape cells stacked = one A4-portrait sheet
             bodyCSS = `@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;}body{display:flex;flex-direction:column;}.cell{width:210mm;height:148.5mm;box-sizing:border-box;}.cell:first-child{border-bottom:1px dashed #bbb;}${cell.css}`;
         }
         bodyHTML = `<div class="cell">${cell.html}</div><div class="cell">${cell.html}</div>`;
@@ -2670,7 +2709,7 @@ async function openSayimKamera(){
 }
 
 // ==============================================================
-//  TOPLU SKT GUNCELLEME (birden fazla urunun SKT'sini tek seferde ayarla)
+//  TOPLU SKT GUNCELLEME
 // ==============================================================
 function showAddFormForBarcode(barcode){
     document.getElementById("resultModal").style.display="none";
@@ -2757,7 +2796,7 @@ function showResult(p){
         ${getLastDeliverySummary(p)}
         ${p.company?`<button onclick="clearResult();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin:10px auto 0;display:block;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.15);border-radius:30px;padding:8px 16px;color:inherit;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}
         <div class="detail-actions" style="margin-top:14px;">
-            <button class="full-width-btn" onclick="showInlineEdit()" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:0;"><i class="fa-solid fa-pen" style="margin-right:6px"></i>${t('btnDuzenle')}</button>
+            <button class="full-width-btn" onclick="openEditProductModal(${idx},{type:'result'})" style="background:linear-gradient(135deg,#f59e0b,#d97706)!important;margin-top:0;"><i class="fa-solid fa-pen" style="margin-right:6px"></i>${t('btnDuzenle')}</button>
             <div class="button-row"><button onclick="quickAdjustOrder(${idx},1)" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">Spr +</button><button onclick="quickAdjustOrder(${idx},-1)" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6);">Spr -</button></div>
             <div class="button-row"><button onclick="discardFromResult()" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);"><i class="fa-solid fa-dumpster" style="margin-right:4px"></i>${t('btnAt')}</button><button onclick="deleteFromResult()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button></div>
             <div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToResult('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div>
@@ -2951,40 +2990,72 @@ async function checkBackupReminder(){
     }
 }
 checkBackupReminder();
-(function setupBackGestureSupport(){
-    let modals = Array.from(document.querySelectorAll('.modal'));
-    let ignoreNextPopstate = false;
-    let closingFromGesture = false;
 
-    modals.forEach(modal=>{
-        modal._mpOpen = false;
-        new MutationObserver(()=>{
-            let isOpen = (modal.style.display === 'flex' || modal.style.display === 'block');
-            if(isOpen && !modal._mpOpen){
-                modal._mpOpen = true;
-                if(!closingFromGesture) history.pushState({mpModal:true}, '');
-            } else if(!isOpen && modal._mpOpen){
-                modal._mpOpen = false;
-                if(!closingFromGesture && history.state && history.state.mpModal){
-                    ignoreNextPopstate = true;
-                    history.back();
-                }
+// ==============================================================
+//  GERI TUSU / KAYDIRMA ILE MODAL KAPATMA (guvenilir versiyon)
+//  Her modal acilisi/kapanisi degisikligi tek bir gozlemciyle
+//  toplu (batch) olarak okunur ve history islemleri sirali bir
+//  kuyrukta calistirilir; boylece ayni anda kapanip acilan
+//  modallerde (orn. firma listesinden envantere gecis) yarisma
+//  (race condition) olusmaz ve geri tusu her zaman bir onceki
+//  ekrana doner.
+// ==============================================================
+(function setupBackGestureSupport(){
+    let modalEls = Array.from(document.querySelectorAll('.modal'));
+    function isOpen(m){ return m.style.display==='flex' || m.style.display==='block'; }
+    let prevOpen = new Set(modalEls.filter(isOpen).map(m=>m.id));
+
+    let pendingSelfBacks = 0;      // bizim programatik history.back() cagrilarimizdan beklenen popstate sayisi
+    let isClosingFromGesture = false; // gercek geri hareketiyle kapatirken tekrar history'ye dokunmayi engeller
+    let historyQueue = Promise.resolve();
+
+    function queuedBack(){
+        historyQueue = historyQueue.then(()=> new Promise(resolve=>{
+            pendingSelfBacks++;
+            let done=false;
+            function onPop(){
+                if(done) return; done=true;
+                window.removeEventListener('popstate', onPop);
+                resolve();
             }
-        }).observe(modal, {attributes:true, attributeFilter:['style']});
-    });
+            window.addEventListener('popstate', onPop);
+            try{ history.back(); }catch(e){ done=true; window.removeEventListener('popstate', onPop); resolve(); }
+            setTimeout(()=>{ if(!done){ done=true; window.removeEventListener('popstate', onPop); resolve(); } }, 400);
+        }));
+        return historyQueue;
+    }
+    function queuedPush(){
+        historyQueue = historyQueue.then(()=>{
+            try{ history.pushState({mpModal:true}, ''); }catch(e){}
+        });
+        return historyQueue;
+    }
+
+    function processDiff(){
+        let currentOpen = new Set(modalEls.filter(isOpen).map(m=>m.id));
+        let closed = [...prevOpen].filter(id=>!currentOpen.has(id));
+        let opened = [...currentOpen].filter(id=>!prevOpen.has(id));
+        prevOpen = currentOpen;
+        if(isClosingFromGesture) return;
+        closed.forEach(()=> queuedBack());
+        opened.forEach(()=> queuedPush());
+    }
+
+    let mo = new MutationObserver(processDiff);
+    modalEls.forEach(m=> mo.observe(m, {attributes:true, attributeFilter:['style']}));
 
     window.addEventListener('popstate', ()=>{
-        if(ignoreNextPopstate){ ignoreNextPopstate = false; return; }
-        let openModals = modals.filter(m => m.style.display==='flex' || m.style.display==='block');
-        let topModal = openModals[openModals.length-1];
-        if(topModal){
-            closingFromGesture = true;
-            topModal.style.display = 'none';
-            topModal._mpOpen = false;
-            setTimeout(()=>{ closingFromGesture = false; }, 30);
+        if(pendingSelfBacks>0){ pendingSelfBacks--; return; }
+        let openModals = modalEls.filter(isOpen);
+        let top = openModals[openModals.length-1];
+        if(top){
+            isClosingFromGesture = true;
+            top.style.display = 'none';
+            setTimeout(()=>{ isClosingFromGesture = false; }, 0);
         }
     });
 })();
+
 (async function initOrderBadge(){
     try{
         let saved = await loadMetadata('orderModeSession');
@@ -3048,20 +3119,13 @@ function backupToGoogleDrive(){
     }catch(e){ showToast("Google Drive yedegi basarisiz"); }
 }
 
-// ==============================================================
-//  YEDEKTEN GERI YUKLEME - dosya okuma hem FileReader hem de
-//  file.text() ile denenir (bazi Android/WebView ortamlarinda
-//  content:// URI'lerinde FileReader tek basina calismayabiliyor)
-// ==============================================================
 async function readFileAsTextRobust(file){
-    // Once modern File.text() API'sini dene
     if (typeof file.text === 'function') {
         try {
             let t = await file.text();
             if (t && t.length) return t;
         } catch(e) { console.warn('file.text() basarisiz, FileReader deneniyor', e); }
     }
-    // Yedek: FileReader
     return new Promise((resolve, reject) => {
         try{
             let reader = new FileReader();
@@ -3230,6 +3294,7 @@ if(document.readyState === 'loading'){
 } else {
     initApp();
 }
+
 </script>
 </body>
 </html>
