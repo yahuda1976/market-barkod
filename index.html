@@ -3213,17 +3213,23 @@ async function checkBackupReminder(){
 checkBackupReminder();
 
 // ==============================================================
-//  GERI TUSU / KAYDIRMA ILE MODAL KAPATMA (derinlik-senkronlu versiyon)
-//  Tarihce derinligi HER ZAMAN o an gercekten acik olan modal
-//  sayisina esitlenir (Envanter->Detay gibi "yerine gecme"
-//  gecislerinde sayi degismedigi icin push/pop yapilmaz, boylece
-//  hicbir zaman fazladan "hayalet" giris birikmez). Bir modal,
-//  uygulamanin kendi "onceki ekrana don" mantigiyla (orn. detaydan
-//  envantere donme bayragi) baska bir modali tekrar acarsa, bu
-//  durumda telafi edici bir push yapilarak derinlik dogru tutulur.
-//  Sonuc: Ana ekrandayken bir geri hareketi daima telefonun ana
-//  ekranina cikar, arada takilip kalinmaz. Kamera penceresi kalici
-//  bir "ekran" sayilmadigi icin izlenmez.
+//  GERI TUSU / KAYDIRMA ILE MODAL KAPATMA (koklu, kendi kendini
+//  duzelten versiyon)
+//
+//  Onceki tasarimlar "kac seviye derinlikteyiz" diye SAYMAYA
+//  calisiyordu; bu sayim zamanla gercek durumdan sapabiliyordu
+//  (bazen erken ana ekrana cikiyor, bazen fazladan basila basila
+//  bitmiyordu). Bu versiyon hic sayim yapmiyor. Tek bir kurala
+//  dayanir: "su an herhangi bir modal aciksa, tarayicida TAM OLARAK
+//  bir tane fazladan giris bulunsun; hicbir modal acik degilse hic
+//  fazladan giris bulunmasin." Bu kural her degisiklikte YENIDEN
+//  degerlendirilir (gecmise dayali bir sayac tutulmaz), bu yuzden
+//  hicbir zaman kayma/birikme olamaz. Sonuc: ne kadar Envanter->
+//  Detay->Teslimat gibi ic ice/yerine-gecen ekran degistirilirse
+//  degistirilsin, ana ekrana tam doğru sayida geri basisla donulur
+//  ve ana ekrandan bir geri hareketi daima duzgun sekilde telefonun
+//  kendi ana ekranina cikar. Kamera penceresi kalici bir "ekran"
+//  sayilmadigi icin izlenmez.
 // ==============================================================
 (function setupBackGestureSupport(){
     let modalEls = Array.from(document.querySelectorAll('.modal')).filter(m=>m.id!=='cameraModal');
@@ -3255,71 +3261,71 @@ checkBackupReminder();
     };
 
     function isOpen(m){ return m.style.display==='flex' || m.style.display==='block'; }
-    let prevOpen = new Set(modalEls.filter(isOpen).map(m=>m.id));
-    let openStack = modalEls.filter(isOpen).map(m=>m.id); // gercekten gorunur olanlarin sirasi
-    let pushedCount = openStack.length; // su an bizim kuyruga verdigimiz, henuz tuketilmemis push sayisi
+    function getOpenIds(){ return modalEls.filter(isOpen).map(m=>m.id); }
 
-    let pendingSelfBacks = 0;   // bizim programatik history.back() cagrilarimizdan beklenen popstate sayisi
-    let cameFromGesture = false; // az once gercek bir geri hareketi bir push'u fiziksel olarak tuketti
-    let historyQueue = Promise.resolve();
+    let openStack = getOpenIds();          // gorunur modallerin acilis sirasi (en sonuncusu = en ustteki)
+    let hasBuffer = openStack.length > 0;  // su an gercekten push edilmis, tuketilmemis TEK bir girisimiz var mi
+    let pendingSelfBacks = 0;              // bizim kendi history.back() cagrilarimizdan beklenen popstate sayisi
 
-    function queuedBack(){
-        historyQueue = historyQueue.then(()=> new Promise(resolve=>{
-            pendingSelfBacks++;
-            let done=false;
-            function onPop(){
-                if(done) return; done=true;
-                window.removeEventListener('popstate', onPop);
-                resolve();
-            }
-            window.addEventListener('popstate', onPop);
-            try{ history.back(); }catch(e){ done=true; window.removeEventListener('popstate', onPop); resolve(); }
-            setTimeout(()=>{ if(!done){ done=true; window.removeEventListener('popstate', onPop); resolve(); } }, 400);
-        }));
-        return historyQueue;
-    }
-    function queuedPush(){
-        historyQueue = historyQueue.then(()=>{
-            try{ history.pushState({mpModal:true}, ''); }catch(e){}
-        });
-        return historyQueue;
+    function safePush(){ try{ history.pushState({mpModal:true}, ''); }catch(e){} }
+    function safeBack(){
+        pendingSelfBacks++;
+        try{ history.back(); }catch(e){ pendingSelfBacks = Math.max(0, pendingSelfBacks-1); }
     }
 
-    function processDiff(){
-        let currentOpen = new Set(modalEls.filter(isOpen).map(m=>m.id));
-        prevOpen = currentOpen;
-
-        let newStack = openStack.filter(id=>currentOpen.has(id));
-        for(let id of currentOpen){ if(!newStack.includes(id)) newStack.push(id); }
+    // Su anki gercek acik-modal durumunu openStack'e isler ve "en az bir sey acik mi" doner.
+    function syncStack(){
+        let current = getOpenIds();
+        let newStack = openStack.filter(id=>current.includes(id));
+        for(let id of current){ if(!newStack.includes(id)) newStack.push(id); }
         openStack = newStack;
-
-        let newCount = openStack.length;
-        let delta = newCount - pushedCount;
-        if(cameFromGesture){
-            // gercek geri hareketi zaten bir girisi fiziksel olarak tuketti; onu tekrar dusmeyelim
-            delta += 1;
-            cameFromGesture = false;
-        }
-        if(delta > 0){ for(let i=0;i<delta;i++) queuedPush(); }
-        else if(delta < 0){ for(let i=0;i<-delta;i++) queuedBack(); }
-        pushedCount = newCount;
+        return openStack.length > 0;
     }
 
-    let mo = new MutationObserver(processDiff);
+    // Ayni senkron islem icinde birden fazla stil degisikligi olsa da (orn. bir modal
+    // kapanip digeri aciliyor), tum MutationObserver bildirimlerini TEK bir kontrole
+    // indirger; boylece ara durumlar icin yanlislikla fazladan push/pop yapilmaz.
+    let diffScheduled = false;
+    function scheduleDiff(){
+        if(diffScheduled) return;
+        diffScheduled = true;
+        Promise.resolve().then(()=>{
+            diffScheduled = false;
+            processDiff();
+        });
+    }
+    function processDiff(){
+        let anyOpen = syncStack();
+        if(anyOpen && !hasBuffer){
+            hasBuffer = true;
+            safePush();
+        } else if(!anyOpen && hasBuffer){
+            hasBuffer = false;
+            safeBack();
+        }
+    }
+
+    let mo = new MutationObserver(scheduleDiff);
     modalEls.forEach(m=> mo.observe(m, {attributes:true, attributeFilter:['style']}));
 
     window.addEventListener('popstate', ()=>{
         if(pendingSelfBacks>0){ pendingSelfBacks--; return; }
         let topId = openStack[openStack.length-1];
-        if(topId){
-            cameFromGesture = true;
-            let fn = modalCloseFns[topId];
-            if(fn) fn(); else { let el=document.getElementById(topId); if(el) el.style.display='none'; }
-            setTimeout(()=>{ cameFromGesture = false; }, 300);
+        if(!topId) return; // acik modal yoksa dokunma; tarayici kendiliginden telefonun ana ekranina cikar
+
+        let fn = modalCloseFns[topId];
+        if(fn) fn(); else { let el=document.getElementById(topId); if(el) el.style.display='none'; }
+
+        // Kapatma sonrasi hala acik bir sey varsa (baska bir modal, ya da uygulamanin
+        // "onceki ekrana don" mantigiyla yeniden acilan bir ekran), tamponu HEMEN,
+        // senkron olarak tazeleyelim ki bir sonraki geri hareketi de dogru calissin.
+        let anyOpen = syncStack();
+        if(anyOpen){
+            hasBuffer = true;
+            safePush();
+        } else {
+            hasBuffer = false;
         }
-        // eger acik hicbir modal yoksa burada bilerek bir sey yapmiyoruz:
-        // tarayici/uygulama fazladan girisi olmadigi icin kendiliginden
-        // telefonun ana ekranina/onceki sayfaya cikar.
     });
 })();
 
