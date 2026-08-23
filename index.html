@@ -295,7 +295,13 @@
             <button class="close-modal-btn" onclick="closeInventoryModal()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div id="inventoryStats" class="inventory-stats"></div>
+        <button id="angebotMultiToggleBtn" onclick="toggleAngebotMultiMode()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:30px;padding:9px;font-weight:800;font-size:0.72rem;cursor:pointer;margin-bottom:8px;letter-spacing:0.3px;"><i class="fa-solid fa-tag" style="margin-right:6px"></i><span data-i18n="btnCokluAngebotSec">COKLU ANGEBOT SEC</span></button>
         <div id="modalProductList" class="product-list-simple"></div>
+        <div id="angebotMultiBar" style="display:none;align-items:center;gap:10px;margin-top:10px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:10px 14px;">
+            <span id="angebotMultiCount" style="flex:1;font-weight:800;font-size:0.8rem;color:#8b5cf6;">0/4 secili</span>
+            <button onclick="toggleAngebotMultiMode()" style="background:rgba(100,116,139,0.2);color:var(--text-primary);border:none;border-radius:20px;padding:8px 14px;font-weight:700;font-size:0.72rem;cursor:pointer;" data-i18n="btnIptal">IPTAL</button>
+            <button onclick="confirmAngebotMultiSelection()" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:white;border:none;border-radius:20px;padding:8px 16px;font-weight:800;font-size:0.72rem;cursor:pointer;" data-i18n="btnDevamEt">DEVAM ET</button>
+        </div>
     </div>
 </div>
 <div id="productDetailModal" class="modal"><div class="modal-content" id="productDetailContent"></div></div>
@@ -450,28 +456,21 @@
             <span class="modal-title"><i class="fa-solid fa-tag" style="margin-right:8px"></i><span data-i18n="titleAngebot">ANGEBOT HAZIRLA</span></span>
             <button class="close-modal-btn" onclick="document.getElementById('angebotModal').style.display='none'"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div id="angebotProductName" style="font-size:1.1rem;font-weight:800;color:#fdba74;margin-bottom:10px;text-align:center;font-family:'Outfit',sans-serif"></div>
-        <div style="background:rgba(255,255,255,0.04);border-radius:32px;padding:16px;margin-bottom:18px;border:1px solid rgba(255,255,255,0.06)">
-            <div style="font-size:0.95rem;color:var(--text-secondary);">Normal fiyat: <strong id="angebotOriginalPrice" style="color:var(--text-primary)"></strong> €</div>
-            <input type="number" id="angebotDiscountPrice" step="0.01" placeholder="Indirimli fiyat (€)" style="margin:12px 0 0;" data-i18n-ph="phIndirimliFiyat">
+        <div id="angebotProductName" style="font-size:1.02rem;font-weight:800;color:#fdba74;margin-bottom:14px;text-align:center;font-family:'Outfit',sans-serif;line-height:1.5;"></div>
+        <div style="background:rgba(255,255,255,0.04);border-radius:32px;padding:16px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.06)">
+            <input type="number" id="angebotPrice" step="0.01" placeholder="Angebot fiyati (€)" style="margin:0 0 12px;" data-i18n-ph="phAngebotFiyat">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <input type="date" id="angebotStartDate" style="margin:0;">
+                <input type="date" id="angebotEndDate" style="margin:0;">
+            </div>
             <div id="angebotError" style="color:#f87171;font-size:0.8rem;margin-top:8px;font-weight:600;"></div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:12px">
-            <div style="color:var(--text-secondary);font-size:0.75rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase">A4</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <button onclick="generateAngebotWithDiscount('a4','portrait')" style="background:linear-gradient(135deg,#60a5fa,#3b82f6);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-eye" style="margin-right:4px"></i>A4 DIKEY</button>
-                <button onclick="generateAngebotWithDiscount('a4','landscape')" style="background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-eye" style="margin-right:4px"></i>A4 YATAY</button>
-            </div>
-            <div style="color:var(--text-secondary);font-size:0.75rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase">A5</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <button onclick="generateAngebotWithDiscount('a5','portrait')" style="background:linear-gradient(135deg,#34d399,#10b981);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-eye" style="margin-right:4px"></i>A5 DIKEY</button>
-                <button onclick="generateAngebotWithDiscount('a5','landscape')" style="background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-eye" style="margin-right:4px"></i>A5 YATAY</button>
-            </div>
-            <div style="color:var(--text-secondary);font-size:0.75rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase">ETIKET (21'li / Coklu Urun)</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <button onclick="showMultiLabelPreview()" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-eye" style="margin-right:4px"></i>ONIZLE</button>
-                <button onclick="printMultiLabelPoster()" style="background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-print" style="margin-right:4px"></i>YAZDIR</button>
-            </div>
+        <div style="color:var(--text-secondary);font-size:0.75rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;" data-i18n="lblTasarimSec">TASARIM SEC</div>
+        <div id="angebotTemplateGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;"></div>
+        <div style="color:var(--text-secondary);font-size:0.75rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase">ETIKET (21'li / Coklu Urun)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <button onclick="showMultiLabelPreview()" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-eye" style="margin-right:4px"></i>ONIZLE</button>
+            <button onclick="printMultiLabelPoster()" style="background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;transition:all 0.2s;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-print" style="margin-right:4px"></i>YAZDIR</button>
         </div>
     </div>
 </div>
@@ -529,9 +528,7 @@ let orderKameraMode = false;
 let pendingOrderScan = null;
 let pendingOrderQuickAdd = false;
 let orderHistory = [];
-let tempImageData = null, currentEditingProductId = null, angebotProduct = null;
-let currentAngebotSize = 'a4', currentAngebotOrientation = 'portrait';
-let currentDiscountPrice = null;
+let tempImageData = null, currentEditingProductId = null;
 let labelDesign = { color: '#c60000', logo: null };
 let dbUnavailable = false;
 
@@ -666,6 +663,9 @@ const PHRASE_DICT = [
     ["Tema degistiriliyor", "Design wird geandert", "Switching theme"],
     ["CSV raporu indiriliyor", "CSV-Bericht wird heruntergeladen", "Downloading CSV report"],
     ["Etiket tasarimi kaydedildi", "Etikettendesign gespeichert", "Label design saved"],
+    ["secili", "ausgewahlt", "selected"],
+    ["En fazla 4 urun secebilirsin", "Du kannst maximal 4 Produkte auswahlen", "You can select up to 4 products"],
+    ["En az 1 urun sec", "Wahle mindestens 1 Produkt", "Select at least 1 product"],
 ];
 function translateText(str){
     if(currentLang==='tr' || !str) return str;
@@ -726,7 +726,7 @@ const I18N = {
         btnTarihiUygula: 'TARIHI UYGULA', titleManuelEkle: 'MANUEL URUN EKLE',
         titleRapor: 'ENVANTER RAPORU', btnYaziciAc: 'YAZICIYI AC', titleEtiketListesi: 'ETIKET LISTESI',
         btnListeyiTemizle: 'LISTEYI TEMIZLE', phYeniFirma: 'Yeni firma adi...',
-        titleAngebot: 'ANGEBOT HAZIRLA', phIndirimliFiyat: 'Indirimli fiyat (€)', titleOnizleme: 'ONIZLEME',
+        titleAngebot: 'ANGEBOT HAZIRLA', phIndirimliFiyat: 'Indirimli fiyat (€)', phAngebotFiyat: 'Angebot fiyati (€)', lblTasarimSec: 'TASARIM SEC', btnCokluAngebotSec: 'COKLU ANGEBOT SEC', titleOnizleme: 'ONIZLEME',
         titleUrunDetayi: 'URUN DETAYI', lblBarkod: 'Barkod', lblFirma: 'Firma', lblFiyat: 'Fiyat', lblStok: 'Stok',
         lblSkt: 'SKT', lblBelirtilmedi: 'BELIRTILMEDI', lblSistem: 'Sistem', lblMevcut: 'Mevcut', lblEnYakinSkt: 'En yakin SKT',
         btnUzat: '+1 GUN UZAT', btnDuzenle: 'DUZENLE', btnSil: 'SIL', btnSatildi: 'SATILDI',
@@ -755,7 +755,7 @@ const I18N = {
         btnTarihiUygula: 'DATUM ANWENDEN', titleManuelEkle: 'PRODUKT MANUELL HINZUFUGEN',
         titleRapor: 'BESTANDSBERICHT', btnYaziciAc: 'DRUCKER OFFNEN', titleEtiketListesi: 'ETIKETTENLISTE',
         btnListeyiTemizle: 'LISTE LEEREN', phYeniFirma: 'Neue Firma...',
-        titleAngebot: 'ANGEBOT ERSTELLEN', phIndirimliFiyat: 'Rabattpreis (€)', titleOnizleme: 'VORSCHAU',
+        titleAngebot: 'ANGEBOT ERSTELLEN', phIndirimliFiyat: 'Rabattpreis (€)', phAngebotFiyat: 'Angebotspreis (€)', lblTasarimSec: 'DESIGN WAHLEN', btnCokluAngebotSec: 'MEHRFACH-ANGEBOT', titleOnizleme: 'VORSCHAU',
         titleUrunDetayi: 'PRODUKTDETAILS', lblBarkod: 'Barcode', lblFirma: 'Firma', lblFiyat: 'Preis', lblStok: 'Bestand',
         lblSkt: 'MHD', lblBelirtilmedi: 'NICHT ANGEGEBEN', lblSistem: 'System', lblMevcut: 'Vorhanden', lblEnYakinSkt: 'Nächstes MHD',
         btnUzat: '+1 TAG VERLANGERN', btnDuzenle: 'BEARBEITEN', btnSil: 'LOSCHEN', btnSatildi: 'VERKAUFT',
@@ -784,7 +784,7 @@ const I18N = {
         btnTarihiUygula: 'APPLY DATE', titleManuelEkle: 'MANUALLY ADD PRODUCT',
         titleRapor: 'INVENTORY REPORT', btnYaziciAc: 'OPEN PRINTER', titleEtiketListesi: 'LABEL LIST',
         btnListeyiTemizle: 'CLEAR LIST', phYeniFirma: 'New company...',
-        titleAngebot: 'CREATE OFFER', phIndirimliFiyat: 'Discounted price (€)', titleOnizleme: 'PREVIEW',
+        titleAngebot: 'CREATE OFFER', phIndirimliFiyat: 'Discounted price (€)', phAngebotFiyat: 'Offer price (€)', lblTasarimSec: 'CHOOSE DESIGN', btnCokluAngebotSec: 'MULTI-PRODUCT OFFER', titleOnizleme: 'PREVIEW',
         titleUrunDetayi: 'PRODUCT DETAILS', lblBarkod: 'Barcode', lblFirma: 'Company', lblFiyat: 'Price', lblStok: 'Stock',
         lblSkt: 'Expiry', lblBelirtilmedi: 'NOT SPECIFIED', lblSistem: 'System', lblMevcut: 'Current', lblEnYakinSkt: 'Nearest expiry',
         btnUzat: '+1 DAY EXTEND', btnDuzenle: 'EDIT', btnSil: 'DELETE', btnSatildi: 'SOLD',
@@ -1387,7 +1387,7 @@ function playScanSound(p){
     if(!p){ playTone(1200,0.1); return; }
     if(p.quantity===0){ playTone(700,0.09); playTone(480,0.11,'sine',0.1); return; }
     if(p.expiry){
-        let d=Math.ceil((new Date(p.expiry)-new Date())/86400000);
+        let d=daysUntilExpiry(p.expiry);
         if(!isNaN(d) && d<0){ playTone(320,0.15,'square'); playTone(260,0.18,'square',0.17); speakExpiredWarning(p.name); return; }
     }
     playTone(1200,0.1);
@@ -1654,7 +1654,7 @@ function escapeJsString(s){ if(!s)return'';return s.replace(/\\/g,'\\\\').replac
 function getProductColorClass(p){ 
     if(p.quantity===0) return "expiry-zero-stock"; 
     if(!p.expiry) return "expiry-no-date"; 
-    let d=Math.ceil((new Date(p.expiry)-new Date())/86400000); 
+    let d=daysUntilExpiry(p.expiry); 
     if(isNaN(d)) return "expiry-no-date"; 
     if(d<0) return "expiry-expired";
     if(d<=7) return "expiry-red"; 
@@ -1732,6 +1732,22 @@ function setupPriceFields(costId, priceId, boxId){
     priceEl.addEventListener('blur',()=>{ autoDecimal(priceEl); recalc(); }); 
     recalc(); 
 }
+// SKT gun farkini SAATTEN/ZAMAN DILIMINDEN bagimsiz, sadece takvim
+// gunu olarak hesaplar. Eskiden "new Date(p.expiry)-new Date()" kullanilirdi;
+// bu, SKT'yi UTC gece yarisi olarak, "simdi"yi ise yerel saat olarak
+// yorumluyordu - Turkiye UTC+3 oldugu icin gece saatlerinde 1 gunluk
+// kaymaya (erken/gec gorunmeye) yol aciyordu.
+function daysUntilExpiry(expiryStr){
+    if(!expiryStr) return NaN;
+    let parts = String(expiryStr).split('-');
+    if(parts.length!==3) return NaN;
+    let y=parseInt(parts[0],10), m=parseInt(parts[1],10), d=parseInt(parts[2],10);
+    if(isNaN(y)||isNaN(m)||isNaN(d)) return NaN;
+    let expiryLocal = new Date(y, m-1, d);
+    let now = new Date();
+    let todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.round((expiryLocal - todayLocal) / 86400000);
+}
 function formatDateDMY(dateStr){
     if(!dateStr) return "YOK";
     let parts = String(dateStr).split('-');
@@ -1740,7 +1756,7 @@ function formatDateDMY(dateStr){
 }
 function expiredTag(p){
     if(!p.expiry) return '';
-    let d=Math.ceil((new Date(p.expiry)-new Date())/86400000);
+    let d=daysUntilExpiry(p.expiry);
     if(isNaN(d)) return '';
     if(d<0) return ' <span style="background:#b91c1c;color:white;font-weight:900;font-size:0.7rem;padding:3px 9px;border-radius:10px;margin-left:6px;vertical-align:middle;">'+translateText('SURESI GECTI')+'</span>';
     if(p.quantity>0 && d===0) return ' <span class="blink-badge" style="background:#dc2626;"><i class="fa-solid fa-bolt"></i> '+translateText('BUGUN BITIYOR')+'</span>';
@@ -1943,7 +1959,7 @@ function findIdxByBarcode(code){
 }
 async function updateUI(){ 
     let today=new Date(); 
-    let withDays = products.filter(p=>p.expiry&&p.quantity>0).map(p=>Math.ceil((new Date(p.expiry)-today)/86400000));
+    let withDays = products.filter(p=>p.expiry&&p.quantity>0).map(p=>daysUntilExpiry(p.expiry));
     let expiredCount = withDays.filter(d=>d<0).length;
     let soonCount = withDays.filter(d=>d>=0&&d<=7).length;
     document.getElementById('productCountBadge').innerText=products.length+' '+((I18N[currentLang]||I18N.tr).countSuffix); 
@@ -1991,7 +2007,7 @@ function renderInventoryList(){
     let baseList = companyFilter ? products.filter(p=>p.company===companyFilter) : products;
     let statsEl=document.getElementById("inventoryStats"); 
     if(statsEl){ 
-        let total=baseList.length,active=baseList.filter(p=>p.quantity>0).length,zero=baseList.filter(p=>p.quantity===0).length,urgent=baseList.filter(p=>p.expiry&&p.quantity>0&&Math.ceil((new Date(p.expiry)-new Date())/86400000)<=7).length,noimg=baseList.filter(p=>!p.image).length; 
+        let total=baseList.length,active=baseList.filter(p=>p.quantity>0).length,zero=baseList.filter(p=>p.quantity===0).length,urgent=baseList.filter(p=>p.expiry&&p.quantity>0&&daysUntilExpiry(p.expiry)<=7).length,noimg=baseList.filter(p=>!p.image).length; 
         let allStyle=inventoryFilterMode==='all'?'box-shadow:0 0 0 2px rgba(255,255,255,0.5);transform:translateY(-1px);':''; 
         let actStyle=inventoryFilterMode==='active'?'box-shadow:0 0 0 2px rgba(255,255,255,0.5);transform:translateY(-1px);':''; 
         let zeroStyle=inventoryFilterMode==='zero'?'box-shadow:0 0 0 2px rgba(255,255,255,0.5);transform:translateY(-1px);':''; 
@@ -2008,7 +2024,7 @@ function renderInventoryList(){
     }) : baseList;
     if(inventoryFilterMode==='active')filtered=filtered.filter(p=>p.quantity>0); 
     else if(inventoryFilterMode==='zero')filtered=filtered.filter(p=>p.quantity===0); 
-    else if(inventoryFilterMode==='urgent')filtered=filtered.filter(p=>p.expiry&&p.quantity>0&&Math.ceil((new Date(p.expiry)-new Date())/86400000)<=7); 
+    else if(inventoryFilterMode==='urgent')filtered=filtered.filter(p=>p.expiry&&p.quantity>0&&daysUntilExpiry(p.expiry)<=7); 
     else if(inventoryFilterMode==='noimage')filtered=filtered.filter(p=>!p.image); 
     
     let sorted;
@@ -2047,6 +2063,10 @@ function renderInventoryList(){
     }
     container.innerHTML=sorted.map((p, index)=>{
         let idx=products.findIndex(pr=>pr.id===p.id),cc=getProductColorClass(p);
+        if(angebotMultiMode){
+            let checked = angebotMultiSelected.includes(p.id);
+            return `<div class="envanter-item ${cc}" style="animation-delay:${Math.min(index*0.02,0.3)}s;${checked?'box-shadow:0 0 0 2px #8b5cf6;':''}"><div class="product-name-item" onclick="toggleAngebotSelect(${p.id})" style="display:flex;align-items:center;gap:8px;"><i class="fa-solid ${checked?'fa-square-check':'fa-square'}" style="color:#8b5cf6;flex-shrink:0;"></i>${getCategoryBadge(p.category)}${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-weight:600">(${p.quantity})</span>${expiredTag(p)}</div></div>`;
+        }
         return `<div class="envanter-item ${cc}" style="animation-delay:${Math.min(index*0.02,0.3)}s"><div class="product-name-item" onclick="returnToInventoryModal=true;document.getElementById('inventoryModal').style.display='none';openProductDetailModal(${idx})">${getCategoryBadge(p.category)}${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-weight:600">(${p.quantity})</span>${expiredTag(p)}</div><div class="envanter-item-actions"><button onclick="quickAdjustOrder(${idx},1)" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">Spr +</button><button onclick="quickAdjustOrder(${idx},-1)" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6);">Spr -</button><button class="btn-add-queue-list" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:3px;font-size:0.6rem"></i>${t('lblEtiket')}</button></div></div>`;
     }).join('');
 }
@@ -2055,7 +2075,7 @@ function setInventoryFilter(mode){ inventoryFilterMode=mode; renderInventoryList
 function openProductDetailModal(idx){
     let p=products[idx];currentEditingProductId=idx;let color=getProductColorClass(p);
     let modal=document.getElementById("productDetailModal"),content=document.getElementById("productDetailContent");
-    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>${t('titleUrunDetayi')}</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark"></i></button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<div style="margin:12px auto 2px;max-width:210px;background:white;border-radius:14px;padding:8px 10px 4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);"><svg id="detailBarcodeSvg" style="width:100%;height:auto;display:block;"></svg></div><div style="text-align:center;font-weight:900;font-size:0.9rem;letter-spacing:1.5px;color:#1e293b;margin-bottom:8px;">${p.barcode}</div><div style="color:#475569;margin-top:6px;font-size:0.9rem;line-height:1.6;">${t('lblFiyat')}: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>${t('lblStok')}: <span style="font-weight:700">${p.quantity}</span><br><span style="color:#ef4444;font-weight:900;font-size:1.05rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)}</span>${expiredTag(p)}${getLastDeliverySummary(p)}</div>${p.company?`<button onclick="closeProductDetailModal();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin-top:10px;background:rgba(30,41,59,0.08);border:1px solid rgba(30,41,59,0.15);border-radius:30px;padding:8px 16px;color:#1e293b;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}</div></div><div class="detail-actions"><div class="button-row"><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button><button onclick="openEditProductModal(${idx},{type:'detail'})" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fa-solid fa-pen" style="margin-right:4px"></i>${t('btnDuzenle')}</button></div><div class="button-row"><button onclick="quickAdjustOrder(${idx},1)" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">Spr +</button><button onclick="quickAdjustOrder(${idx},-1)" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6);">Spr -</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:0;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button><button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:0;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button><button class="full-width-btn" onclick="openCompanyHistoryModal(${idx})" style="background:linear-gradient(135deg,#64748b,#475569)!important;margin-top:0;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>${t('btnFirmaGecmisi')}</button><button class="full-width-btn" onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669)!important;margin-top:0;"><i class="fa-solid fa-truck" style="margin-right:6px"></i>${t('btnTeslimatGecmisi')}</button><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
+    content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>${t('titleUrunDetayi')}</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark"></i></button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<div style="margin:12px auto 2px;max-width:210px;background:white;border-radius:14px;padding:8px 10px 4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);"><svg id="detailBarcodeSvg" style="width:100%;height:auto;display:block;"></svg></div><div style="text-align:center;font-weight:900;font-size:0.9rem;letter-spacing:1.5px;color:#1e293b;margin-bottom:8px;">${p.barcode}</div><div style="color:#475569;margin-top:6px;font-size:0.9rem;line-height:1.6;">${t('lblFiyat')}: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>${t('lblStok')}: <span style="font-weight:700">${p.quantity}</span><br><span style="color:#ef4444;font-weight:900;font-size:1.05rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)}</span>${expiredTag(p)}${getLastDeliverySummary(p)}</div>${p.company?`<button onclick="closeProductDetailModal();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin-top:10px;background:rgba(30,41,59,0.08);border:1px solid rgba(30,41,59,0.15);border-radius:30px;padding:8px 16px;color:#1e293b;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}</div></div><div class="detail-actions"><div class="button-row"><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button><button onclick="openEditProductModal(${idx},{type:'detail'})" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fa-solid fa-pen" style="margin-right:4px"></i>${t('btnDuzenle')}</button></div><div class="button-row"><button onclick="quickAdjustOrder(${idx},1)" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">Spr +</button><button onclick="quickAdjustOrder(${idx},-1)" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6);">Spr -</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button><button class="full-width-btn" onclick="openAngebotFlow([${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:0;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button><button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:0;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button><button class="full-width-btn" onclick="openCompanyHistoryModal(${idx})" style="background:linear-gradient(135deg,#64748b,#475569)!important;margin-top:0;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>${t('btnFirmaGecmisi')}</button><button class="full-width-btn" onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669)!important;margin-top:0;"><i class="fa-solid fa-truck" style="margin-right:6px"></i>${t('btnTeslimatGecmisi')}</button><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
     modal.style.display="flex";
     setTimeout(()=>{
         try{ JsBarcode("#detailBarcodeSvg", p.barcode, {format:"CODE128", width:1.7, height:42, displayValue:false, margin:0}); fitBarcodeSvg('detailBarcodeSvg'); }catch(e){}
@@ -2312,7 +2332,7 @@ function renderCompanyList(){
         let nearestHtml='';
         if(withExpiry.length){
             let nearest=withExpiry.reduce((a,b)=> new Date(a.expiry) < new Date(b.expiry) ? a : b);
-            let d=Math.ceil((new Date(nearest.expiry)-new Date())/86400000);
+            let d=daysUntilExpiry(nearest.expiry);
             let color = d<0 ? '#b91c1c' : (d<=7 ? '#ef4444' : (d<=14 ? '#d97706' : '#059669'));
             let label = d<0 ? 'SURESI GECTI!' : formatDateDMY(nearest.expiry);
             nearestHtml=`<div style="font-size:0.72rem;color:${color};font-weight:800;margin-top:3px;"><i class="fa-solid fa-calendar-days" style="margin-right:4px"></i>${t('lblEnYakinSkt')}: ${label}</div>`;
@@ -2436,147 +2456,151 @@ body{margin:0;padding:0;background:white;}
     showToast("Yazdirma penceresi acildi. Liste korunuyor.");
 }
 
-function openAngebotModal(p){
-    angebotProduct=p;
-    document.getElementById('angebotProductName').innerHTML=`${escapeHtml(p.name)} — ${p.price.toFixed(2)} €`;
-    document.getElementById('angebotOriginalPrice').innerHTML=p.price.toFixed(2);
-    document.getElementById('angebotDiscountPrice').value='';
+// ==============================================================
+//  ANGEBOT (YENI SISTEM): tek ya da coklu (4'e kadar) urun secilir,
+//  fiyat ve kampanya tarih araligi girilir, 4 farkli tasarimdan biri
+//  secilerek A4 poster olarak onizlenir/yazdirilir.
+// ==============================================================
+let angebotFlowIndexes = [];
+let currentAngebotTemplate = null;
+
+function openAngebotFlow(indexes){
+    angebotFlowIndexes = indexes.slice(0,4);
+    let items = angebotFlowIndexes.map(i=>products[i]).filter(Boolean);
+    if(!items.length) return;
+    document.getElementById('angebotProductName').innerHTML = escapeHtml(items.map(p=>p.name).join(', '));
+    document.getElementById('angebotPrice').value = items[0].price;
+    let today = new Date();
+    let in5 = new Date(today.getTime()+5*86400000);
+    document.getElementById('angebotStartDate').value = today.toISOString().slice(0,10);
+    document.getElementById('angebotEndDate').value = in5.toISOString().slice(0,10);
     document.getElementById('angebotError').innerHTML='';
+    renderAngebotTemplateGrid(items.length);
     document.getElementById('angebotModal').style.display='flex';
 }
-function validateDiscountPrice(originalPrice, discountPrice){
-    if(discountPrice===null || discountPrice===undefined || isNaN(discountPrice)) return false;
-    if(discountPrice>=originalPrice){
-        document.getElementById('angebotError').innerHTML='<i class="fa-solid fa-circle-xmark" style="margin-right:4px"></i>Indirimli fiyat, normal fiyattan kucuk olmalidir!';
-        return false;
-    }
-    if(discountPrice<=0){
-        document.getElementById('angebotError').innerHTML='<i class="fa-solid fa-circle-xmark" style="margin-right:4px"></i>Gecerli bir indirimli fiyat girin.';
-        return false;
-    }
-    document.getElementById('angebotError').innerHTML='';
-    return true;
+function renderAngebotTemplateGrid(itemCount){
+    let grid = document.getElementById('angebotTemplateGrid');
+    const templates = [
+        {id:'vertical', label:'DIKEY — UST RESIM', icon:'fa-image', single:true},
+        {id:'vertical-reverse', label:'DIKEY — ALT RESIM', icon:'fa-image', single:true},
+        {id:'horizontal', label:'YATAY — SOL RESIM', icon:'fa-table-columns', single:true},
+        {id:'multi', label:'COKLU URUN', icon:'fa-layer-group', single:false},
+    ];
+    let usable = itemCount>1 ? templates.filter(t=>!t.single) : templates;
+    grid.innerHTML = usable.map(t=>`<button onclick="generateAngebotFromTemplate('${t.id}')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;border-radius:24px;padding:16px 8px;color:white;font-weight:800;font-size:0.7rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;"><i class="fa-solid ${t.icon}" style="font-size:1.15rem;"></i>${t.label}</button>`).join('');
 }
-function generateAngebotWithDiscount(size, orientation){
-    if(!angebotProduct) return;
-    let discountVal=parseFloat(document.getElementById('angebotDiscountPrice').value);
-    if(!validateDiscountPrice(angebotProduct.price, discountVal)) return;
-    currentDiscountPrice=discountVal; currentAngebotSize=size; currentAngebotOrientation=orientation;
-    let modal=document.getElementById('angebotPreviewModal');
-    let content=document.getElementById('angebotPreviewContent');
-    let title=document.getElementById('angebotPreviewTitle');
-    let labelMap={a4:'A4',a5:'A5'};
-    title.innerHTML=`<i class="fa-solid fa-eye" style="margin-right:8px"></i>${labelMap[size]} ${orientation==='portrait'?'DIKEY':'YATAY'}`;
-    let printHTML=buildAngebotPrintHTML(size, orientation, angebotProduct, currentDiscountPrice);
-    printHTML=printHTML.replace('<div class="toolbar"><button onclick="window.print()">YAZDIR</button></div>','');
-    printHTML=printHTML.replace(/<script>window\.addEventListener\("load".*?<\/script>/s, '');
-    let escaped=printHTML.replace(/"/g,'&quot;');
-    let pwMM=210, phMM=297;
-    if(size==='a4' && orientation==='landscape'){ pwMM=297; phMM=210; }
-    let pxW=Math.round(pwMM*3.779527), pxH=Math.round(phMM*3.779527);
-    let scale=Math.min((window.innerWidth*0.85-48)/pxW,(window.innerHeight*0.70)/pxH,1);
-    let scaledW=Math.round(pxW*scale), scaledH=Math.round(pxH*scale);
-    content.innerHTML=`<div style="width:${scaledW}px;height:${scaledH}px;margin:0 auto;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.45);background:white;"><iframe srcdoc="${escaped}" style="width:${pxW}px;height:${pxH}px;border:none;transform:scale(${scale});transform-origin:top left;" scrolling="no"></iframe></div>`;
+function validateAngebotInputs(){
+    let price = parseFloat(document.getElementById('angebotPrice').value);
+    let start = document.getElementById('angebotStartDate').value;
+    let end = document.getElementById('angebotEndDate').value;
+    let errEl = document.getElementById('angebotError');
+    if(isNaN(price) || price<=0){ errEl.innerHTML='<i class="fa-solid fa-circle-xmark" style="margin-right:4px"></i>Gecerli bir fiyat girin.'; return null; }
+    errEl.innerHTML='';
+    return {price, start, end};
+}
+function generateAngebotFromTemplate(templateId){
+    let vals = validateAngebotInputs();
+    if(!vals) return;
+    currentAngebotTemplate = templateId;
+    let items = angebotFlowIndexes.map(i=>products[i]).filter(Boolean);
+    let printHTML = buildFlyerHTML(templateId, items, vals.price, vals.start, vals.end);
+    let modal = document.getElementById('angebotPreviewModal');
+    let content = document.getElementById('angebotPreviewContent');
+    let title = document.getElementById('angebotPreviewTitle');
+    title.innerHTML = `<i class="fa-solid fa-eye" style="margin-right:8px"></i>${t('titleOnizleme')}`;
+    let cleaned = printHTML.replace('<div class="toolbar"><button onclick="window.print()">YAZDIR</button></div>','').replace(/<script>window\.addEventListener\("load".*?<\/script>/s, '');
+    let escaped = cleaned.replace(/"/g,'&quot;');
+    let pxW = Math.round(210*3.779527), pxH = Math.round(297*3.779527);
+    let scale = Math.min((window.innerWidth*0.85-48)/pxW,(window.innerHeight*0.70)/pxH,1);
+    let scaledW = Math.round(pxW*scale), scaledH = Math.round(pxH*scale);
+    content.innerHTML = `<div style="width:${scaledW}px;height:${scaledH}px;margin:0 auto;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.45);background:white;"><iframe srcdoc="${escaped}" style="width:${pxW}px;height:${pxH}px;border:none;transform:scale(${scale});transform-origin:top left;" scrolling="no"></iframe></div>`;
     document.getElementById('angebotModal').style.display='none';
     modal.style.display='flex';
-    document.getElementById('angebotPreviewPrintBtn').onclick=()=>{ printAngebotDirectWithDiscount(size, orientation); };
+    document.getElementById('angebotPreviewPrintBtn').onclick=()=>{ printCurrentAngebot(); };
 }
-function printAngebotDirectWithDiscount(size, orientation){
-    if(!angebotProduct) return;
-    let discountVal=parseFloat(document.getElementById('angebotDiscountPrice').value);
-    if(!validateDiscountPrice(angebotProduct.price, discountVal)) return;
-    currentDiscountPrice=discountVal;
-    let w=window.open('', '_blank');
+function printCurrentAngebot(){
+    let vals = validateAngebotInputs();
+    if(!vals || !currentAngebotTemplate) return;
+    let items = angebotFlowIndexes.map(i=>products[i]).filter(Boolean);
+    let w = window.open('', '_blank');
     if(!w){ showToast("Acilir pencere engellendi! Izin verin."); return; }
-    w.document.write(buildAngebotPrintHTML(size, orientation, angebotProduct, currentDiscountPrice));
+    w.document.write(buildFlyerHTML(currentAngebotTemplate, items, vals.price, vals.start, vals.end));
     w.document.close();
 }
-function printCurrentAngebot(){ printAngebotDirectWithDiscount(currentAngebotSize, currentAngebotOrientation); }
 function closeAngebotPreview(){ document.getElementById('angebotPreviewModal').style.display='none'; document.getElementById('angebotModal').style.display='flex'; }
 
-function buildAngebotPrintHTML(size, orientation, p, discountPrice){
-    let originalPrice = p.price;
-    let showDiscount = (discountPrice !== null && discountPrice < originalPrice);
-    let finalPrice = showDiscount ? discountPrice : originalPrice;
-    let ip = Math.floor(finalPrice);
-    let ic = Math.round((finalPrice - ip) * 100);
-    let cents = ic < 10 ? '0'+ic : ''+ic;
-    let imgSrc = p.image ? `<img src="${p.image}">` : '<div class="no-img">FOTO</div>';
-    let oip = Math.floor(originalPrice);
-    let oic = Math.round((originalPrice - oip) * 100);
-    let ocents = oic < 10 ? '0'+oic : ''+oic;
-    let oldPriceHTML = showDiscount ? `<div class="old-price">Statt ${oip},${ocents}&nbsp;€</div>` : '';
-    let nameEsc = escapeHtml(p.name);
+function buildFlyerHTML(templateId, items, priceVal, dateStart, dateEnd){
+    let priceNum = parseFloat(priceVal) || 0;
+    let ip = Math.floor(priceNum);
+    let ic = Math.round((priceNum-ip)*100);
+    let cents = ic<10?'0'+ic:''+ic;
+    let dateRangeText = (dateStart && dateEnd) ? `${formatDateDMY(dateStart)} - ${formatDateDMY(dateEnd)}` : '';
+    let logoTag = labelDesign.logo ? `<img src="${labelDesign.logo}" style="max-height:14mm;max-width:55mm;object-fit:contain;">` : '';
+    let accent = labelDesign.color || '#c60000';
+    const PAGE_CSS = `@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;background:#f7f7f7;font-family:Arial,sans-serif;}`;
 
-    const SCALE_A5 = 0.707;
-
-    function posterCell(isPortrait, scale){
-        let s = v => Math.round(v*scale*10)/10;
-        if(isPortrait){
-            return {
-                css:`
-                    .poster{width:100%;height:100%;position:relative;overflow:hidden;box-sizing:border-box;background:linear-gradient(160deg,#ffffff 0%,#ffffff 62%,#fff0f0 62%,#ffe1e1 100%);display:flex;flex-direction:column;align-items:center;}
-                    .angebot-wrap{width:100%;box-sizing:border-box;padding:0 ${s(12)}mm;margin-top:${s(20)}mm;text-align:center;overflow:visible;}
-                    .angebot-text{display:inline-block;font-style:italic;font-size:${s(30)}mm;font-weight:900;background:linear-gradient(180deg,#ff3b3b,#a80000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;-webkit-text-stroke:${s(0.9)}mm #4a0000;transform:rotate(-4deg);letter-spacing:1mm;filter:drop-shadow(${s(1.6)}mm ${s(2)}mm 0 rgba(0,0,0,0.18));}
-                    .product-card{margin-top:${s(4)}mm;width:${s(138)}mm;height:${s(122)}mm;background:white;border-radius:${s(8)}mm;display:flex;align-items:center;justify-content:center;box-shadow:0 ${s(5)}mm ${s(11)}mm rgba(0,0,0,0.16);border:${s(0.5)}mm solid #f5f5f5;overflow:hidden;}
-                    .product-card img{max-width:100%;max-height:100%;object-fit:contain;}
-                    .no-img{color:#bbb;font-size:${s(5)}mm;font-family:Arial,sans-serif;font-weight:700;}
-                    .price-badge{position:absolute;right:${s(18)}mm;top:${s(170)}mm;width:${s(74)}mm;height:${s(74)}mm;border-radius:50%;background:radial-gradient(circle at 35% 28%,#ff4b4b,#b60000 72%);border:${s(2)}mm solid white;box-shadow:0 ${s(4)}mm ${s(9)}mm rgba(0,0,0,0.3);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;transform:rotate(-8deg);font-family:Arial,sans-serif;}
-                    .price-num{font-size:${s(20.5)}mm;font-weight:900;line-height:1;letter-spacing:-0.5mm;}
-                    .price-eur{font-size:${s(8)}mm;font-weight:700;margin-top:-${s(1.5)}mm;}
-                    .price-ribbon{position:absolute;right:${s(20)}mm;top:${s(231)}mm;background:linear-gradient(135deg,#c60000,#7a0000);color:white;font-weight:900;font-size:${s(7)}mm;font-family:Arial,sans-serif;padding:${s(3.5)}mm ${s(8)}mm;border-radius:${s(2)}mm;transform:rotate(-4deg);box-shadow:0 ${s(2)}mm ${s(4.5)}mm rgba(0,0,0,0.25);white-space:nowrap;}
-                    .name-block{margin-top:${s(66)}mm;padding:0 ${s(18)}mm;width:100%;box-sizing:border-box;font-family:Arial,sans-serif;}
-                    .pname{color:#1a1a2e;font-weight:900;font-size:${s(13.5)}mm;line-height:1.15;text-transform:uppercase;}
-                    .old-price{color:#888;font-size:${s(7.5)}mm;text-decoration:line-through;margin-top:${s(3.5)}mm;font-weight:600;font-family:Arial,sans-serif;}
-                `,
-                html:`<div class="poster"><div class="angebot-wrap"><div class="angebot-text">ANGEBOT</div></div><div class="product-card">${imgSrc}</div><div class="price-badge"><div class="price-num">${ip},${cents}</div><div class="price-eur">€</div></div><div class="price-ribbon">JETZT SPAREN!</div><div class="name-block"><div class="pname">${nameEsc}</div>${oldPriceHTML}</div></div>`
-            };
-        } else {
-            return {
-                css:`
-                    .poster{width:100%;height:100%;position:relative;overflow:hidden;box-sizing:border-box;background:linear-gradient(115deg,#ffffff 0%,#ffffff 60%,#fff0f0 60%,#ffe1e1 100%);display:flex;align-items:center;}
-                    .left-col{width:52%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 ${s(6)}mm 0 ${s(5)}mm;box-sizing:border-box;overflow:visible;}
-                    .angebot-text{display:inline-block;font-style:italic;font-size:${s(24)}mm;font-weight:900;background:linear-gradient(180deg,#ff3b3b,#a80000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;-webkit-text-stroke:${s(0.8)}mm #4a0000;transform:rotate(-4deg);letter-spacing:0.5mm;filter:drop-shadow(${s(1.3)}mm ${s(1.6)}mm 0 rgba(0,0,0,0.18));margin-bottom:${s(4)}mm;}
-                    .product-card{width:${s(111)}mm;height:${s(111)}mm;background:white;border-radius:${s(8)}mm;display:flex;align-items:center;justify-content:center;box-shadow:0 ${s(5)}mm ${s(11)}mm rgba(0,0,0,0.16);border:${s(0.5)}mm solid #f5f5f5;overflow:hidden;}
-                    .product-card img{max-width:100%;max-height:100%;object-fit:contain;}
-                    .no-img{color:#bbb;font-size:${s(4.5)}mm;font-family:Arial,sans-serif;font-weight:700;}
-                    .right-col{width:48%;height:100%;box-sizing:border-box;padding-right:${s(16)}mm;display:flex;flex-direction:column;justify-content:center;font-family:Arial,sans-serif;}
-                    .price-badge{width:${s(69)}mm;height:${s(69)}mm;margin-left:auto;margin-right:${s(8)}mm;border-radius:50%;background:radial-gradient(circle at 35% 28%,#ff4b4b,#b60000 72%);border:${s(2)}mm solid white;box-shadow:0 ${s(4)}mm ${s(9)}mm rgba(0,0,0,0.3);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;transform:rotate(-8deg);}
-                    .price-num{font-size:${s(18.5)}mm;font-weight:900;line-height:1;letter-spacing:-0.5mm;}
-                    .price-eur{font-size:${s(7)}mm;font-weight:700;margin-top:-${s(1.5)}mm;}
-                    .price-ribbon{margin-left:auto;margin-right:${s(16)}mm;margin-top:-${s(8)}mm;width:fit-content;background:linear-gradient(135deg,#c60000,#7a0000);color:white;font-weight:900;font-size:${s(6.5)}mm;padding:${s(3)}mm ${s(7)}mm;border-radius:${s(2)}mm;transform:rotate(-4deg);box-shadow:0 ${s(2)}mm ${s(4.5)}mm rgba(0,0,0,0.25);white-space:nowrap;}
-                    .name-block{margin-top:${s(13)}mm;text-align:right;padding-right:${s(5)}mm;}
-                    .pname{color:#1a1a2e;font-weight:900;font-size:${s(11.5)}mm;line-height:1.15;text-transform:uppercase;}
-                    .old-price{color:#888;font-size:${s(6.5)}mm;text-decoration:line-through;margin-top:${s(3)}mm;font-weight:600;}
-                `,
-                html:`<div class="poster"><div class="left-col"><div class="angebot-text">ANGEBOT</div><div class="product-card">${imgSrc}</div></div><div class="right-col"><div class="price-badge"><div class="price-num">${ip},${cents}</div><div class="price-eur">€</div></div><div class="price-ribbon">JETZT SPAREN!</div><div class="name-block"><div class="pname">${nameEsc}</div>${oldPriceHTML}</div></div></div>`
-            };
-        }
+    function imgOrPlaceholder(it){
+        return (it && it.image) ? `<img src="${it.image}" style="max-width:100%;max-height:100%;object-fit:contain;">` : `<div style="color:#ccc;font-weight:800;font-size:5mm;">FOTO</div>`;
     }
+    let badgeHTML = dateRangeText ? `<div style="display:inline-block;background:${accent};color:white;font-weight:800;font-size:4.6mm;padding:2.2mm 6mm;border-radius:20mm;margin-bottom:6mm;letter-spacing:0.3mm;">ANGEBOT ${dateRangeText}</div>` : '';
 
-    let bodyCSS='', bodyHTML='';
-    if(size==='a5'){
-        let isPortrait = (orientation==='portrait');
-        let cell = posterCell(isPortrait, SCALE_A5);
-        if(isPortrait){
-            bodyCSS = `@page{size:A4 landscape;margin:0;}html,body{width:297mm;height:210mm;margin:0;padding:0;overflow:hidden;}body{display:flex;}.cell{width:148.5mm;height:210mm;box-sizing:border-box;}.cell:first-child{border-right:1px dashed #bbb;}${cell.css}`;
-        } else {
-            bodyCSS = `@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;}body{display:flex;flex-direction:column;}.cell{width:210mm;height:148.5mm;box-sizing:border-box;}.cell:first-child{border-bottom:1px dashed #bbb;}${cell.css}`;
-        }
-        bodyHTML = `<div class="cell">${cell.html}</div><div class="cell">${cell.html}</div>`;
-    } else {
-        let isPortrait = (orientation==='portrait');
-        let cell = posterCell(isPortrait, 1);
-        if(isPortrait){
-            bodyCSS = `@page{size:A4 portrait;margin:0;}html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden;}${cell.css}`;
-        } else {
-            bodyCSS = `@page{size:A4 landscape;margin:0;}html,body{width:297mm;height:210mm;margin:0;padding:0;overflow:hidden;}${cell.css}`;
-        }
-        bodyHTML = cell.html;
+    let bodyHTML='';
+    if(templateId==='vertical' || templateId==='vertical-reverse'){
+        let it = items[0] || {};
+        let photoBlock = `<div style="width:150mm;height:150mm;background:white;border-radius:10mm;box-shadow:0 6mm 14mm rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:center;overflow:hidden;">${imgOrPlaceholder(it)}</div>`;
+        let infoBlock = `<div style="text-align:center;">${badgeHTML}<div style="font-family:Georgia,'Times New Roman',serif;font-weight:900;font-size:10mm;color:#1a1a2e;text-transform:uppercase;line-height:1.2;margin-bottom:6mm;">${escapeHtml(it.name||'')}</div><div style="font-family:Georgia,'Times New Roman',serif;font-weight:900;font-size:26mm;color:${accent};line-height:1;">${ip}<span style="font-size:15mm;">,${cents}</span><span style="font-size:16mm;margin-left:2mm;">€</span></div>${logoTag?`<div style="margin-top:9mm;">${logoTag}</div>`:''}</div>`;
+        let order = templateId==='vertical' ? photoBlock+infoBlock : infoBlock+photoBlock;
+        bodyHTML = `<div style="width:210mm;height:297mm;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13mm;box-sizing:border-box;padding:15mm;">${order}</div>`;
+    } else if(templateId==='horizontal'){
+        let it = items[0] || {};
+        bodyHTML = `<div style="width:210mm;height:297mm;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:18mm;gap:13mm;"><div style="width:100mm;height:100mm;flex-shrink:0;background:white;border-radius:8mm;box-shadow:0 6mm 14mm rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:center;overflow:hidden;">${imgOrPlaceholder(it)}</div><div style="flex:1;">${badgeHTML}<div style="font-family:Georgia,'Times New Roman',serif;font-weight:900;font-size:8mm;color:#1a1a2e;text-transform:uppercase;line-height:1.2;margin-bottom:6mm;">${escapeHtml(it.name||'')}</div><div style="font-family:Georgia,'Times New Roman',serif;font-weight:900;font-size:20mm;color:${accent};line-height:1;">${ip}<span style="font-size:12mm;">,${cents}</span><span style="font-size:13mm;margin-left:2mm;">€</span></div>${logoTag?`<div style="margin-top:9mm;">${logoTag}</div>`:''}</div></div>`;
+    } else if(templateId==='multi'){
+        let photos = items.slice(0,4).map(it=>`<div style="width:52mm;height:52mm;background:white;border-radius:6mm;box-shadow:0 3mm 8mm rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:6mm;">${imgOrPlaceholder(it)}</div>`).join('');
+        let names = items.slice(0,4).map(it=>`<div style="font-weight:700;font-size:5.2mm;color:#1a1a2e;margin-bottom:3mm;">${escapeHtml(it.name||'')}</div>`).join('');
+        bodyHTML = `<div style="width:210mm;height:297mm;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:18mm;gap:12mm;"><div style="display:flex;flex-direction:column;align-items:center;">${photos}</div><div style="flex:1;">${badgeHTML}<div style="margin-bottom:7mm;">${names}</div><div style="font-family:Georgia,'Times New Roman',serif;font-weight:900;font-size:20mm;color:${accent};line-height:1;">${ip}<span style="font-size:12mm;">,${cents}</span><span style="font-size:13mm;margin-left:2mm;">€</span></div>${logoTag?`<div style="margin-top:9mm;">${logoTag}</div>`:''}</div></div>`;
     }
 
     let jsBlock = '<sc'+'ript>window.addEventListener("load",function(){setTimeout(function(){try{window.focus();}catch(e){}window.print();},700);});</sc'+'ript>';
-    return '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>.toolbar{position:fixed;top:0;left:0;width:100%;background:#222;color:white;padding:12px;text-align:center;z-index:99;font-family:system-ui,sans-serif;}.toolbar button{background:#e67e22;border:none;border-radius:30px;padding:12px 28px;color:white;font-weight:800;font-size:16px;cursor:pointer;}@media print{.toolbar{display:none!important;}}'+bodyCSS+'</style></head><body><div class="toolbar"><button onclick="window.print()">YAZDIR</button></div>'+bodyHTML+jsBlock+'</body></html>';
+    return '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>.toolbar{position:fixed;top:0;left:0;width:100%;background:#222;color:white;padding:12px;text-align:center;z-index:99;font-family:system-ui,sans-serif;}.toolbar button{background:#e67e22;border:none;border-radius:30px;padding:12px 28px;color:white;font-weight:800;font-size:16px;cursor:pointer;}@media print{.toolbar{display:none!important;}}'+PAGE_CSS+'</style></head><body><div class="toolbar"><button onclick="window.print()">YAZDIR</button></div>'+bodyHTML+jsBlock+'</body></html>';
+}
+
+// ---- Envanterden coklu urun secip Angebot hazirlama ----
+let angebotMultiMode = false;
+let angebotMultiSelected = [];
+function toggleAngebotMultiMode(){
+    angebotMultiMode = !angebotMultiMode;
+    angebotMultiSelected = [];
+    let btn = document.getElementById('angebotMultiToggleBtn');
+    if(btn) btn.style.display = angebotMultiMode ? 'none' : 'block';
+    renderAngebotMultiBar();
+    renderInventoryList();
+}
+function renderAngebotMultiBar(){
+    let bar = document.getElementById('angebotMultiBar');
+    if(!bar) return;
+    bar.style.display = angebotMultiMode ? 'flex' : 'none';
+    let countEl = document.getElementById('angebotMultiCount');
+    if(countEl) countEl.textContent = angebotMultiSelected.length + '/4 ' + translateText('secili');
+}
+function toggleAngebotSelect(id){
+    let idx = angebotMultiSelected.indexOf(id);
+    if(idx!==-1){ angebotMultiSelected.splice(idx,1); }
+    else {
+        if(angebotMultiSelected.length>=4){ showToast(translateText('En fazla 4 urun secebilirsin')); return; }
+        angebotMultiSelected.push(id);
+    }
+    renderAngebotMultiBar();
+    renderInventoryList();
+}
+function confirmAngebotMultiSelection(){
+    if(!angebotMultiSelected.length){ showToast(translateText('En az 1 urun sec')); return; }
+    let idxs = angebotMultiSelected.map(id=>products.findIndex(p=>p.id===id)).filter(i=>i!==-1);
+    angebotMultiMode = false;
+    let btn = document.getElementById('angebotMultiToggleBtn');
+    if(btn) btn.style.display = 'block';
+    renderAngebotMultiBar();
+    closeInventoryModal();
+    openAngebotFlow(idxs);
 }
 
 function buildUrgentItemHtml(p, d){
@@ -2596,7 +2620,7 @@ function buildUrgentItemHtml(p, d){
 }
 function openUrgentModal(){
     let today=new Date();
-    let withDays = products.filter(p=>p.expiry && p.quantity>0).map(p=>({p, d: Math.ceil((new Date(p.expiry)-today)/86400000)}));
+    let withDays = products.filter(p=>p.expiry && p.quantity>0).map(p=>({p, d: daysUntilExpiry(p.expiry)}));
     let expired = withDays.filter(x=>x.d<0).sort((a,b)=>a.d-b.d);
     let soon = withDays.filter(x=>x.d>=0 && x.d<=7).sort((a,b)=>a.d-b.d);
     let c=document.getElementById("urgentProductList");
@@ -3148,7 +3172,7 @@ function showResult(p){
             <div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToResult('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div>
             <div class="button-row"><button onclick="addImageToResult('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForResult()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div>
             <button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button>
-            <button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:0;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button>
+            <button class="full-width-btn" onclick="openAngebotFlow([${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:0;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button>
             <button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:0;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button>
             <button class="full-width-btn" onclick="openCompanyHistoryModal(${idx})" style="background:linear-gradient(135deg,#64748b,#475569)!important;margin-top:0;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>${t('btnFirmaGecmisi')}</button>
             <button class="full-width-btn" onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669)!important;margin-top:0;"><i class="fa-solid fa-truck" style="margin-right:6px"></i>${t('btnTeslimatGecmisi')}</button>
@@ -3605,7 +3629,7 @@ function printReport(){
     if(!products.length){ showToast("Envanter bos!"); return; }
     let rows=products.map(p=>{
         let durum=p.quantity===0?'<span style="color:#ef4444">STOKSUZ</span>':
-                   (p.expiry && Math.ceil((new Date(p.expiry)-new Date())/86400000)<=7?'<span style="color:#f59e0b">ACIL</span>':'<span style="color:#10b981">NORMAL</span>');
+                   (p.expiry && daysUntilExpiry(p.expiry)<=7?'<span style="color:#f59e0b">ACIL</span>':'<span style="color:#10b981">NORMAL</span>');
         return `<tr><td style="border:1px solid #ddd;padding:6px;font-size:0.85rem;">${escapeHtml(p.name)}</td><td style="border:1px solid #ddd;padding:6px;font-size:0.85rem;">${escapeHtml(p.company||'-')}</td><td style="border:1px solid #ddd;padding:6px;text-align:center;font-size:0.85rem;">${p.barcode}</td><td style="border:1px solid #ddd;padding:6px;text-align:right;font-size:0.85rem;">${p.price.toFixed(2)} €</td><td style="border:1px solid #ddd;padding:6px;text-align:center;font-size:0.85rem;">${p.quantity}</td><td style="border:1px solid #ddd;padding:6px;text-align:center;font-size:0.85rem;">${p.expiry||'-'}</td><td style="border:1px solid #ddd;padding:6px;text-align:center;font-size:0.85rem;">${durum}</td></tr>`;
     }).join('');
     let html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Envanter Raporu</title><style>body{font-family:system-ui,sans-serif;padding:20px;color:#333}table{width:100%;border-collapse:collapse}th{background:#f1f5f9;padding:8px;border:1px solid #ddd;text-align:left;font-size:0.85rem}h2{margin-bottom:12px}</style></head><body><h2>Market Pro - Envanter Raporu (${new Date().toLocaleDateString('tr-TR')})</h2><table><thead><tr><th>Urun</th><th>Firma</th><th>Barkod</th><th>Fiyat</th><th>Stok</th><th>SKT</th><th>Durum</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
