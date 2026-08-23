@@ -900,6 +900,25 @@ function buildQrSvgString(text){
         return svg;
     }catch(e){ return ''; }
 }
+// JsBarcode urettigi SVG'ye viewBox eklemiyor; bu yuzden CSS ile
+// "genislige sigdir" denince barkod olcekenmeden tasip kirpiliyordu.
+// Bu fonksiyon SVG'yi cagrildiktan hemen sonra dogru sekilde
+// olceklenebilir hale getirir.
+function fitBarcodeSvg(id){
+    try{
+        let svg = document.getElementById(id);
+        if(!svg) return;
+        let w = svg.getAttribute('width');
+        let h = svg.getAttribute('height');
+        if(w && h && !svg.getAttribute('viewBox')){
+            svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+        }
+        svg.setAttribute('width','100%');
+        svg.style.width='100%';
+        svg.style.height='auto';
+        svg.style.display='block';
+    }catch(e){}
+}
 function logPriceChange(product, newPrice){
     if(isNaN(newPrice) || product.price===newPrice) return;
     if(!Array.isArray(product.priceHistory)) product.priceHistory=[];
@@ -1927,8 +1946,6 @@ async function updateUI(){
     let withDays = products.filter(p=>p.expiry&&p.quantity>0).map(p=>Math.ceil((new Date(p.expiry)-today)/86400000));
     let expiredCount = withDays.filter(d=>d<0).length;
     let soonCount = withDays.filter(d=>d>=0&&d<=7).length;
-    let urgentBadge=document.getElementById('urgentCount');
-    if(urgentBadge) urgentBadge.innerText=soonCount; 
     document.getElementById('productCountBadge').innerText=products.length+' '+((I18N[currentLang]||I18N.tr).countSuffix); 
 
     let banner=document.getElementById('urgentBanner');
@@ -2041,7 +2058,7 @@ function openProductDetailModal(idx){
     content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>${t('titleUrunDetayi')}</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark"></i></button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}<div style="margin:12px auto 2px;max-width:210px;background:white;border-radius:14px;padding:8px 10px 4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);"><svg id="detailBarcodeSvg" style="width:100%;height:auto;display:block;"></svg></div><div style="text-align:center;font-weight:900;font-size:0.9rem;letter-spacing:1.5px;color:#1e293b;margin-bottom:8px;">${p.barcode}</div><div style="color:#475569;margin-top:6px;font-size:0.9rem;line-height:1.6;">${t('lblFiyat')}: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>${t('lblStok')}: <span style="font-weight:700">${p.quantity}</span><br><span style="color:#ef4444;font-weight:900;font-size:1.05rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)}</span>${expiredTag(p)}${getLastDeliverySummary(p)}</div>${p.company?`<button onclick="closeProductDetailModal();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin-top:10px;background:rgba(30,41,59,0.08);border:1px solid rgba(30,41,59,0.15);border-radius:30px;padding:8px 16px;color:#1e293b;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}</div></div><div class="detail-actions"><div class="button-row"><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button><button onclick="openEditProductModal(${idx},{type:'detail'})" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fa-solid fa-pen" style="margin-right:4px"></i>${t('btnDuzenle')}</button></div><div class="button-row"><button onclick="quickAdjustOrder(${idx},1)" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">Spr +</button><button onclick="quickAdjustOrder(${idx},-1)" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6);">Spr -</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button><button class="full-width-btn" onclick="openAngebotModal(products[${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:0;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button><button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:0;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button><button class="full-width-btn" onclick="openCompanyHistoryModal(${idx})" style="background:linear-gradient(135deg,#64748b,#475569)!important;margin-top:0;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>${t('btnFirmaGecmisi')}</button><button class="full-width-btn" onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669)!important;margin-top:0;"><i class="fa-solid fa-truck" style="margin-right:6px"></i>${t('btnTeslimatGecmisi')}</button><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
     modal.style.display="flex";
     setTimeout(()=>{
-        try{ JsBarcode("#detailBarcodeSvg", p.barcode, {format:"CODE128", width:1.7, height:42, displayValue:false, margin:0}); }catch(e){}
+        try{ JsBarcode("#detailBarcodeSvg", p.barcode, {format:"CODE128", width:1.7, height:42, displayValue:false, margin:0}); fitBarcodeSvg('detailBarcodeSvg'); }catch(e){}
     }, 30);
 }
 function closeProductDetailModal(){
@@ -2348,7 +2365,7 @@ function showMultiLabelPreview(){
     content.innerHTML=`<div style="width:${scaledW}px;margin:0 auto;max-height:${Math.round(window.innerHeight*0.72)}px;overflow-y:auto;display:flex;flex-direction:column;">${allPagesHtml}</div>`;
     setTimeout(()=>{
         barcodeIds.forEach(({id,barcode})=>{
-            try{ JsBarcode(`#${id}`,barcode,{format:"CODE128",width:1.7,height:32,displayValue:true,fontSize:12,margin:2}); }catch(e){}
+            try{ JsBarcode(`#${id}`,barcode,{format:"CODE128",width:1.7,height:32,displayValue:true,fontSize:12,margin:2}); fitBarcodeSvg(id); }catch(e){}
         });
     },80);
     document.getElementById('angebotModal').style.display='none';
@@ -2373,7 +2390,7 @@ function printMultiLabelPoster(){
             if(product){
                 items.push(buildLabelCellHtml(product, bId));
                 if(product.labelType !== 'qr'){
-                    barcodeInits+=`try{JsBarcode("#${bId}","${escapeJsString(product.barcode)}",{format:"CODE128",width:1.7,height:32,displayValue:true,fontSize:12,margin:2});}catch(e){}\n`;
+                    barcodeInits+=`try{JsBarcode("#${bId}","${escapeJsString(product.barcode)}",{format:"CODE128",width:1.7,height:32,displayValue:true,fontSize:12,margin:2});var _bsvg=document.getElementById("${bId}");if(_bsvg){var _w=_bsvg.getAttribute("width"),_h=_bsvg.getAttribute("height");if(_w&&_h&&!_bsvg.getAttribute("viewBox"))_bsvg.setAttribute("viewBox","0 0 "+_w+" "+_h);_bsvg.setAttribute("width","100%");_bsvg.style.width="100%";_bsvg.style.height="auto";}}catch(e){}\n`;
                 }
             } else {
                 items.push(`<td class="label-cell" style="visibility:hidden;"></td>`);
@@ -2947,6 +2964,51 @@ function handleSayimScan(code){
     renderSayimList();
     showToast(`✅ ${nm} → ${adet} adet`);
 }
+async function openOrderKamera(){
+    unlockAudio();
+    let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
+    orderKameraMode=true;
+    currentCameraMode='order';
+    let torchBtn=document.getElementById('torchToggleBtn');
+    if(torchBtn) torchBtn.classList.remove('torch-active');
+    document.getElementById("orderModeModal").style.display="none";
+    modal.style.display="flex";
+    status.innerHTML='<i class="fa-solid fa-barcode" style="margin-right:6px"></i>SIPARIS: BARKODU CERCEVEYE GETIR...';
+    try{
+        if(currentStopScan){ currentStopScan(); currentStopScan=null; }
+        if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
+        let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment", width:{ideal:1280}, height:{ideal:720}}});
+        video.srcObject=stream;
+        currentStream=stream;
+        currentVideoTrack=stream.getVideoTracks()[0]||null;
+        await video.play();
+        forceContinuousFocus(currentVideoTrack);
+        attachTapToFocus(video, ()=>currentVideoTrack);
+        status.innerHTML='<i class="fa-solid fa-barcode" style="margin-right:6px"></i>SIPARIS: BARKODU CERCEVEYE GETIR (odaklamak icin ekrana dokun)...';
+        let detected=false, scanCounts={};
+        currentStopScan = await startBarcodeScan(video, code=>{
+            if(detected) return;
+            if(!code||code.length<4) return;
+            if(!isValidChecksum(code)) return;
+            scanCounts[code]=(scanCounts[code]||0)+1;
+            status.innerHTML=`<i class="fa-solid fa-eye" style="margin-right:6px"></i>OKUNUYOR (${scanCounts[code]}/2)...`;
+            if(scanCounts[code]<2) return;
+            detected=true;
+            playBeep();
+            if(currentStopScan){ currentStopScan(); currentStopScan=null; }
+            if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
+            modal.style.display="none";
+            document.getElementById("orderModeModal").style.display="flex";
+            handleOrderScan(code);
+            orderKameraMode=false;
+        });
+    } catch(e){
+        modal.style.display="none";
+        document.getElementById("orderModeModal").style.display="flex";
+        showToast("Kamera acilamadi!");
+        orderKameraMode=false;
+    }
+}
 async function openSayimKamera(){
     unlockAudio();
     let modal=document.getElementById("cameraModal"),video=document.getElementById("cameraVideo"),status=document.getElementById("cameraModalStatus");
@@ -3092,7 +3154,7 @@ function showResult(p){
             <button class="full-width-btn" onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669)!important;margin-top:0;"><i class="fa-solid fa-truck" style="margin-right:6px"></i>${t('btnTeslimatGecmisi')}</button>
         </div>
     `;
-    try{ JsBarcode("#resultBarcodeSvg", p.barcode, {format:"CODE128", width:1.6, height:40, displayValue:true, fontSize:13, margin:2}); }catch(e){}
+    try{ JsBarcode("#resultBarcodeSvg", p.barcode, {format:"CODE128", width:1.6, height:40, displayValue:true, fontSize:13, margin:2}); fitBarcodeSvg('resultBarcodeSvg'); }catch(e){}
 }
 
 async function deleteFromResult(){
