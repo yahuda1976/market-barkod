@@ -492,14 +492,18 @@
         </div>
         <div id="angebotTextToolbar" style="display:none;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.25);border-radius:20px;padding:12px;margin-bottom:14px;">
             <div style="display:flex;gap:8px;margin-bottom:10px;">
-                <button onclick="editAngebotTextContent()" style="flex:1;background:#8b5cf6;color:white;border:none;border-radius:16px;padding:10px;font-weight:700;font-size:0.72rem;cursor:pointer;"><i class="fa-solid fa-pen" style="margin-right:4px"></i><span data-i18n="btnMetniDegistir">METNI DEGISTIR</span></button>
-                <button onclick="removeAngebotTextItem()" style="background:#ef4444;color:white;border:none;border-radius:16px;padding:10px 16px;font-weight:700;font-size:0.72rem;cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+                <textarea id="angebotTextEditArea" oninput="updateAngebotTextContent(this.value)" rows="2" placeholder="Metni yaz... (Enter ile alt satira gec)" data-i18n-ph="phMetinYaz" style="flex:1;margin:0;resize:none;font-size:0.85rem;"></textarea>
+                <button onclick="removeAngebotTextItem()" style="background:#ef4444;color:white;border:none;border-radius:16px;padding:0 16px;font-weight:700;font-size:0.9rem;cursor:pointer;flex-shrink:0;"><i class="fa-solid fa-trash"></i></button>
             </div>
             <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
                 <button onclick="adjustAngebotTextSize(-1)" style="background:rgba(139,92,246,0.2);color:var(--text-primary);border:none;border-radius:50%;width:38px;height:38px;font-weight:900;font-size:0.85rem;cursor:pointer;flex-shrink:0;">A-</button>
                 <span style="flex:1;text-align:center;font-size:0.7rem;font-weight:800;color:var(--text-secondary);letter-spacing:0.5px;" data-i18n="lblBoyut">BOYUT</span>
                 <button onclick="adjustAngebotTextSize(1)" style="background:rgba(139,92,246,0.2);color:var(--text-primary);border:none;border-radius:50%;width:38px;height:38px;font-weight:900;font-size:0.85rem;cursor:pointer;flex-shrink:0;">A+</button>
-                <button id="angebotBoldToggleBtn" onclick="toggleAngebotTextBold()" style="background:rgba(139,92,246,0.2);color:var(--text-primary);border:none;border-radius:16px;padding:9px 18px;font-weight:900;font-size:0.9rem;cursor:pointer;flex-shrink:0;">B</button>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
+                <button onclick="adjustAngebotTextWeight(-100)" style="background:rgba(139,92,246,0.2);color:var(--text-primary);border:none;border-radius:16px;padding:9px 14px;font-weight:400;font-size:0.75rem;cursor:pointer;flex-shrink:0;" data-i18n="btnInce">INCE</button>
+                <span id="angebotWeightLabel" style="flex:1;text-align:center;font-size:0.7rem;font-weight:800;color:var(--text-secondary);letter-spacing:0.5px;">900</span>
+                <button onclick="adjustAngebotTextWeight(100)" style="background:rgba(139,92,246,0.2);color:var(--text-primary);border:none;border-radius:16px;padding:9px 14px;font-weight:900;font-size:0.75rem;cursor:pointer;flex-shrink:0;" data-i18n="btnKalin">KALIN</button>
             </div>
             <div id="angebotColorPalette" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
         </div>
@@ -688,7 +692,6 @@ const PHRASE_DICT = [
     ["secili", "ausgewahlt", "selected"],
     ["En fazla 4 urun secebilirsin", "Du kannst maximal 4 Produkte auswahlen", "You can select up to 4 products"],
     ["En az 1 urun sec", "Wahle mindestens 1 Produkt", "Select at least 1 product"],
-    ["Metni girin:", "Text eingeben:", "Enter text:"],
 ];
 function translateText(str){
     if(currentLang==='tr' || !str) return str;
@@ -749,7 +752,7 @@ const I18N = {
         btnTarihiUygula: 'TARIHI UYGULA', titleManuelEkle: 'MANUEL URUN EKLE',
         titleRapor: 'ENVANTER RAPORU', btnYaziciAc: 'YAZICIYI AC', titleEtiketListesi: 'ETIKET LISTESI',
         btnListeyiTemizle: 'LISTEYI TEMIZLE', phYeniFirma: 'Yeni firma adi...',
-        titleAngebot: 'ANGEBOT HAZIRLA', phIndirimliFiyat: 'Indirimli fiyat (€)', phAngebotFiyat: 'Angebot fiyati (€)', lblTasarimSec: 'TASARIM SEC', btnCokluAngebotSec: 'COKLU ANGEBOT SEC', titleOnizleme: 'ONIZLEME', titleSerbestYerlesim: 'SERBEST YERLESIM', canvasHint: 'Resimlere ve yazilara surukleyerek tasi, resimlerde sag-alt kosedeki mor tutamactan boyutlandir. Bir yaziya dokunursan altta boyut/kalinlik/renk secenekleri cikar.', btnTamamOnizle: 'TAMAM, ONIZLE', btnMetinEkle: '+ METIN EKLE', btnMetniDegistir: 'METNI DEGISTIR', lblBoyut: 'BOYUT',
+        titleAngebot: 'ANGEBOT HAZIRLA', phIndirimliFiyat: 'Indirimli fiyat (€)', phAngebotFiyat: 'Angebot fiyati (€)', lblTasarimSec: 'TASARIM SEC', btnCokluAngebotSec: 'COKLU ANGEBOT SEC', titleOnizleme: 'ONIZLEME', titleSerbestYerlesim: 'SERBEST YERLESIM', canvasHint: 'Resimlere ve yazilara surukleyerek tasi, sag-alt kosedeki mor tutamactan boyutlandir (yazida yazi boyutunu da degistirir). Bir yaziya dokunursan altta metin/boyut/kalinlik/renk secenekleri cikar.', btnTamamOnizle: 'TAMAM, ONIZLE', btnMetinEkle: '+ METIN EKLE', phMetinYaz: 'Metni yaz... (Enter ile alt satira gec)', lblBoyut: 'BOYUT', btnInce: 'INCE', btnKalin: 'KALIN',
         titleUrunDetayi: 'URUN DETAYI', lblBarkod: 'Barkod', lblFirma: 'Firma', lblFiyat: 'Fiyat', lblStok: 'Stok',
         lblSkt: 'SKT', lblBelirtilmedi: 'BELIRTILMEDI', lblSistem: 'Sistem', lblMevcut: 'Mevcut', lblEnYakinSkt: 'En yakin SKT',
         btnUzat: '+1 GUN UZAT', btnDuzenle: 'DUZENLE', btnSil: 'SIL', btnSatildi: 'SATILDI',
@@ -778,7 +781,7 @@ const I18N = {
         btnTarihiUygula: 'DATUM ANWENDEN', titleManuelEkle: 'PRODUKT MANUELL HINZUFUGEN',
         titleRapor: 'BESTANDSBERICHT', btnYaziciAc: 'DRUCKER OFFNEN', titleEtiketListesi: 'ETIKETTENLISTE',
         btnListeyiTemizle: 'LISTE LEEREN', phYeniFirma: 'Neue Firma...',
-        titleAngebot: 'ANGEBOT ERSTELLEN', phIndirimliFiyat: 'Rabattpreis (€)', phAngebotFiyat: 'Angebotspreis (€)', lblTasarimSec: 'DESIGN WAHLEN', btnCokluAngebotSec: 'MEHRFACH-ANGEBOT', titleOnizleme: 'VORSCHAU', titleSerbestYerlesim: 'FREIE ANORDNUNG', canvasHint: 'Bilder und Texte durch Ziehen verschieben, bei Bildern mit dem lila Griff unten rechts vergroßern/verkleinern. Bei Textauswahl erscheinen unten Größe/Fett/Farbe.', btnTamamOnizle: 'FERTIG, VORSCHAU', btnMetinEkle: '+ TEXT HINZUFUGEN', btnMetniDegistir: 'TEXT ANDERN', lblBoyut: 'GROSSE',
+        titleAngebot: 'ANGEBOT ERSTELLEN', phIndirimliFiyat: 'Rabattpreis (€)', phAngebotFiyat: 'Angebotspreis (€)', lblTasarimSec: 'DESIGN WAHLEN', btnCokluAngebotSec: 'MEHRFACH-ANGEBOT', titleOnizleme: 'VORSCHAU', titleSerbestYerlesim: 'FREIE ANORDNUNG', canvasHint: 'Bilder und Texte durch Ziehen verschieben, mit dem lila Griff unten rechts vergroßern/verkleinern (bei Text auch die Schriftgroße). Bei Textauswahl erscheinen unten Text/Große/Fett/Farbe.', btnTamamOnizle: 'FERTIG, VORSCHAU', btnMetinEkle: '+ TEXT HINZUFUGEN', phMetinYaz: 'Text eingeben... (Enter fur neue Zeile)', lblBoyut: 'GROSSE', btnInce: 'DUNN', btnKalin: 'FETT',
         titleUrunDetayi: 'PRODUKTDETAILS', lblBarkod: 'Barcode', lblFirma: 'Firma', lblFiyat: 'Preis', lblStok: 'Bestand',
         lblSkt: 'MHD', lblBelirtilmedi: 'NICHT ANGEGEBEN', lblSistem: 'System', lblMevcut: 'Vorhanden', lblEnYakinSkt: 'Nächstes MHD',
         btnUzat: '+1 TAG VERLANGERN', btnDuzenle: 'BEARBEITEN', btnSil: 'LOSCHEN', btnSatildi: 'VERKAUFT',
@@ -807,7 +810,7 @@ const I18N = {
         btnTarihiUygula: 'APPLY DATE', titleManuelEkle: 'MANUALLY ADD PRODUCT',
         titleRapor: 'INVENTORY REPORT', btnYaziciAc: 'OPEN PRINTER', titleEtiketListesi: 'LABEL LIST',
         btnListeyiTemizle: 'CLEAR LIST', phYeniFirma: 'New company...',
-        titleAngebot: 'CREATE OFFER', phIndirimliFiyat: 'Discounted price (€)', phAngebotFiyat: 'Offer price (€)', lblTasarimSec: 'CHOOSE DESIGN', btnCokluAngebotSec: 'MULTI-PRODUCT OFFER', titleOnizleme: 'PREVIEW', titleSerbestYerlesim: 'FREE LAYOUT', canvasHint: 'Drag images and text to move them; on images, use the purple handle at the bottom-right to resize. Tap a text item to reveal size/bold/color options below.', btnTamamOnizle: 'DONE, PREVIEW', btnMetinEkle: '+ ADD TEXT', btnMetniDegistir: 'EDIT TEXT', lblBoyut: 'SIZE',
+        titleAngebot: 'CREATE OFFER', phIndirimliFiyat: 'Discounted price (€)', phAngebotFiyat: 'Offer price (€)', lblTasarimSec: 'CHOOSE DESIGN', btnCokluAngebotSec: 'MULTI-PRODUCT OFFER', titleOnizleme: 'PREVIEW', titleSerbestYerlesim: 'FREE LAYOUT', canvasHint: 'Drag images and text to move them, use the purple handle at the bottom-right to resize (for text this also changes font size). Tap a text item to reveal text/size/weight/color options below.', btnTamamOnizle: 'DONE, PREVIEW', btnMetinEkle: '+ ADD TEXT', phMetinYaz: 'Type text... (Enter for new line)', lblBoyut: 'SIZE', btnInce: 'THIN', btnKalin: 'BOLD',
         titleUrunDetayi: 'PRODUCT DETAILS', lblBarkod: 'Barcode', lblFirma: 'Company', lblFiyat: 'Price', lblStok: 'Stock',
         lblSkt: 'Expiry', lblBelirtilmedi: 'NOT SPECIFIED', lblSistem: 'System', lblMevcut: 'Current', lblEnYakinSkt: 'Nearest expiry',
         btnUzat: '+1 DAY EXTEND', btnDuzenle: 'EDIT', btnSil: 'DELETE', btnSatildi: 'SOLD',
@@ -2571,11 +2574,18 @@ function openAngebotCanvas(){
     angebotCanvasVals = vals;
     angebotCanvasSelectedId = null;
     let items = angebotFlowIndexes.map(i=>products[i]).filter(Boolean);
-    angebotCanvasItems = items.map((p,i)=>({
+    let imageItems = items.map((p,i)=>({
         id: 'img'+p.id, type:'image', name: p.name, image: p.image,
         x: 8 + (i%2)*46, y: 8 + Math.floor(i/2)*46,
         w: 40, h: 40, z: i+1
     }));
+    let ip = Math.floor(vals.price);
+    let ic = Math.round((vals.price-ip)*100);
+    let cents = ic<10?'0'+ic:''+ic;
+    let priceItem = { id:'price', type:'text', text:`${ip},${cents} €`, x:52, y:76, w:38, h:12, fontSize:15, fontWeight:900, color:(labelDesign.color||'#c60000'), z:imageItems.length+1 };
+    let dateText = (vals.start && vals.end) ? `ANGEBOT · ${formatDateDMY(vals.start)} - ${formatDateDMY(vals.end)}` : 'ANGEBOT';
+    let dateItem = { id:'datebadge', type:'text', text:dateText, x:6, y:4, w:65, h:6, fontSize:4.5, fontWeight:800, color:(labelDesign.color||'#c60000'), z:imageItems.length+2 };
+    angebotCanvasItems = [...imageItems, priceItem, dateItem];
     document.getElementById('angebotModal').style.display='none';
     document.getElementById('angebotCanvasModal').style.display='flex';
     renderAngebotCanvas();
@@ -2590,7 +2600,7 @@ function selectAngebotCanvasItem(id){
 function addAngebotTextItem(){
     let newId = 'txt'+Date.now();
     let maxZ = angebotCanvasItems.length ? Math.max(...angebotCanvasItems.map(i=>i.z||0)) : 0;
-    angebotCanvasItems.push({ id:newId, type:'text', text:'Metin', x:25, y:45, fontSize:8, bold:true, color:'#1a1a2e', z:maxZ+1 });
+    angebotCanvasItems.push({ id:newId, type:'text', text:'Metin', x:22, y:42, w:45, h:14, fontSize:8, fontWeight:900, color:'#1a1a2e', z:maxZ+1 });
     angebotCanvasSelectedId = newId;
     renderAngebotCanvas();
     renderAngebotTextToolbar();
@@ -2600,9 +2610,9 @@ function renderAngebotCanvas(){
     let canvasWidthPx = canvas.clientWidth || 380;
     canvas.innerHTML = angebotCanvasItems.map(it=>{
         if(it.type==='text'){
-            let fontPx = Math.max(8, Math.round((it.fontSize/210)*canvasWidthPx));
-            let selectedStyle = angebotCanvasSelectedId===it.id ? 'outline:2px dashed #8b5cf6;outline-offset:3px;' : '';
-            return `<div class="angebot-canvas-item angebot-canvas-text" data-id="${it.id}" style="position:absolute;left:${it.x}%;top:${it.y}%;z-index:${it.z};padding:3px 6px;white-space:nowrap;font-size:${fontPx}px;font-weight:${it.bold?'900':'400'};color:${it.color};font-family:Arial,sans-serif;cursor:move;${selectedStyle}">${escapeHtml(it.text||'')}</div>`;
+            let fontPx = Math.max(6, Math.round((it.fontSize/210)*canvasWidthPx));
+            let selectedStyle = angebotCanvasSelectedId===it.id ? 'outline:2px dashed #8b5cf6;outline-offset:2px;' : 'border:1px dashed rgba(139,92,246,0.35);';
+            return `<div class="angebot-canvas-item" data-id="${it.id}" style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;z-index:${it.z};box-sizing:border-box;padding:2px 4px;white-space:pre-wrap;word-break:break-word;overflow:hidden;font-size:${fontPx}px;font-weight:${it.fontWeight||900};color:${it.color};font-family:Arial,sans-serif;cursor:move;line-height:1.15;${selectedStyle}">${escapeHtml(it.text||'')}<div class="angebot-resize-handle" data-id="${it.id}" style="position:absolute;right:-10px;bottom:-10px;width:24px;height:24px;background:#8b5cf6;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div></div>`;
         }
         let imgTag = it.image ? `<img src="${it.image}" style="width:100%;height:100%;object-fit:contain;pointer-events:none;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#999;font-size:0.65rem;font-weight:700;pointer-events:none;padding:2px;text-align:center;">${escapeHtml((it.name||'').slice(0,16))}</div>`;
         return `<div class="angebot-canvas-item" data-id="${it.id}" style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;z-index:${it.z};border:2px dashed rgba(139,92,246,0.75);background:white;box-sizing:border-box;">${imgTag}<div class="angebot-resize-handle" data-id="${it.id}" style="position:absolute;right:-10px;bottom:-10px;width:24px;height:24px;background:#8b5cf6;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div></div>`;
@@ -2611,6 +2621,7 @@ function renderAngebotCanvas(){
 }
 function attachAngebotCanvasHandlers(){
     let canvas = document.getElementById('angebotCanvasArea');
+    let canvasWidthPx = canvas.clientWidth || 380;
     canvas.querySelectorAll('.angebot-canvas-item').forEach(el=>{
         let id = el.dataset.id;
         el.addEventListener('pointerdown', (e)=>{
@@ -2645,7 +2656,7 @@ function attachAngebotCanvasHandlers(){
             e.stopPropagation(); e.preventDefault();
             let item = findCanvasItem(id);
             let rect = canvas.getBoundingClientRect();
-            angebotCanvasDragState = {id, mode:'resize', startClientX:e.clientX, startClientY:e.clientY, startW:item.w, startH:item.h, canvasW:rect.width, canvasH:rect.height};
+            angebotCanvasDragState = {id, mode:'resize', startClientX:e.clientX, startClientY:e.clientY, startW:item.w, startH:item.h, startFontSize:item.fontSize, canvasW:rect.width, canvasH:rect.height};
             try{ handle.setPointerCapture(e.pointerId); }catch(err){}
         });
         handle.addEventListener('pointermove', (e)=>{
@@ -2654,9 +2665,14 @@ function attachAngebotCanvasHandlers(){
             let dwPct = (e.clientX - angebotCanvasDragState.startClientX)/angebotCanvasDragState.canvasW*100;
             let dhPct = (e.clientY - angebotCanvasDragState.startClientY)/angebotCanvasDragState.canvasH*100;
             item.w = Math.max(10, Math.min(100-item.x, angebotCanvasDragState.startW+dwPct));
-            item.h = Math.max(10, Math.min(100-item.y, angebotCanvasDragState.startH+dhPct));
+            item.h = Math.max(6, Math.min(100-item.y, angebotCanvasDragState.startH+dhPct));
             el.style.width = item.w+'%';
             el.style.height = item.h+'%';
+            if(item.type==='text' && angebotCanvasDragState.startH>0){
+                let scale = item.h / angebotCanvasDragState.startH;
+                item.fontSize = Math.max(3, Math.min(60, angebotCanvasDragState.startFontSize*scale));
+                el.style.fontSize = Math.max(6, Math.round((item.fontSize/210)*canvasWidthPx))+'px';
+            }
         });
         handle.addEventListener('pointerup', (e)=>{ e.stopPropagation(); if(angebotCanvasDragState && angebotCanvasDragState.id===id) angebotCanvasDragState=null; });
         handle.addEventListener('pointercancel', (e)=>{ e.stopPropagation(); if(angebotCanvasDragState && angebotCanvasDragState.id===id) angebotCanvasDragState=null; });
@@ -2668,19 +2684,17 @@ function renderAngebotTextToolbar(){
     let item = findSelectedTextItem();
     if(!item || item.type!=='text'){ toolbar.style.display='none'; return; }
     toolbar.style.display='block';
-    let boldBtn = document.getElementById('angebotBoldToggleBtn');
-    boldBtn.style.background = item.bold ? '#8b5cf6' : 'rgba(139,92,246,0.2)';
-    boldBtn.style.color = item.bold ? 'white' : 'var(--text-primary)';
+    let ta = document.getElementById('angebotTextEditArea');
+    if(document.activeElement !== ta) ta.value = item.text;
+    document.getElementById('angebotWeightLabel').textContent = item.fontWeight||900;
     let palette = document.getElementById('angebotColorPalette');
     palette.innerHTML = ANGEBOT_TEXT_COLORS.map(c=>`<button onclick="setAngebotTextColor('${c}')" style="width:32px;height:32px;border-radius:50%;background:${c};border:${item.color===c?'3px solid #8b5cf6':'2px solid rgba(0,0,0,0.15)'};cursor:pointer;padding:0;"></button>`).join('')
         + `<input type="color" value="${item.color}" oninput="setAngebotTextColor(this.value)" style="width:32px;height:32px;padding:0;border-radius:50%;border:2px solid rgba(0,0,0,0.15);cursor:pointer;">`;
 }
-function editAngebotTextContent(){
+function updateAngebotTextContent(val){
     let item = findSelectedTextItem();
     if(!item) return;
-    let val = prompt(translateText('Metni girin:'), item.text);
-    if(val===null) return;
-    item.text = val.trim() || 'Metin';
+    item.text = val;
     renderAngebotCanvas();
 }
 function removeAngebotTextItem(){
@@ -2694,13 +2708,13 @@ function removeAngebotTextItem(){
 function adjustAngebotTextSize(delta){
     let item = findSelectedTextItem();
     if(!item) return;
-    item.fontSize = Math.max(3, Math.min(30, Math.round((item.fontSize||8) + delta)));
+    item.fontSize = Math.max(3, Math.min(60, Math.round((item.fontSize||8) + delta)));
     renderAngebotCanvas();
 }
-function toggleAngebotTextBold(){
+function adjustAngebotTextWeight(delta){
     let item = findSelectedTextItem();
     if(!item) return;
-    item.bold = !item.bold;
+    item.fontWeight = Math.max(100, Math.min(900, (item.fontWeight||900) + delta));
     renderAngebotCanvas();
     renderAngebotTextToolbar();
 }
@@ -2809,15 +2823,13 @@ function buildFlyerHTML(templateId, items, priceVal, dateStart, dateEnd){
     } else if(templateId==='freeform'){
         let piecesHTML = items.map(it=>{
             if(it.type==='text'){
-                return `<div style="position:absolute;left:${it.x}%;top:${it.y}%;font-family:Arial,sans-serif;font-size:${it.fontSize}mm;font-weight:${it.bold?'900':'400'};color:${it.color};white-space:nowrap;">${escapeHtml(it.text||'')}</div>`;
+                return `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;box-sizing:border-box;font-family:Arial,sans-serif;font-size:${it.fontSize}mm;font-weight:${it.fontWeight||900};color:${it.color};white-space:pre-wrap;word-break:break-word;line-height:1.15;overflow:hidden;">${escapeHtml(it.text||'')}</div>`;
             }
             let img = it.image ? `<img src="${it.image}" style="width:100%;height:100%;object-fit:contain;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-weight:800;font-size:4mm;text-align:center;padding:2mm;">${escapeHtml(it.name||'')}</div>`;
             return `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;">${img}</div>`;
         }).join('');
         let inner = `
             <div style="position:absolute;inset:0;">${piecesHTML}</div>
-            ${dateRangeText?`<div style="position:absolute;top:6mm;left:6mm;background:${accent};color:white;font-weight:800;font-size:4mm;padding:2mm 5mm;border-radius:20mm;">ANGEBOT · ${dateRangeText}</div>`:''}
-            <div style="position:absolute;bottom:6mm;right:6mm;background:rgba(255,255,255,0.94);border-radius:8mm;padding:3mm 6mm;box-shadow:0 2mm 6mm rgba(0,0,0,0.18);"><div style="font-size:15mm;">${priceHTML}</div></div>
             ${logoTag?`<div style="position:absolute;bottom:6mm;left:6mm;background:rgba(255,255,255,0.94);border-radius:6mm;padding:2mm 4mm;">${logoTag}</div>`:''}`;
         bodyHTML = `<div style="width:210mm;height:297mm;box-sizing:border-box;padding:9mm;background:linear-gradient(160deg,${accent}18,${accent}05);"><div style="position:relative;width:100%;height:100%;box-sizing:border-box;background:white;border-radius:12mm;border:0.6mm solid ${accent}33;box-shadow:0 8mm 20mm rgba(0,0,0,0.10);overflow:hidden;">${inner}</div></div>`;
     }
