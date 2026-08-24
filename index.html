@@ -2669,7 +2669,7 @@ function attachAngebotCanvasHandlers(){
             let maxZ = Math.max(...angebotCanvasItems.map(i=>i.z||0));
             item.z = maxZ+1;
             el.style.zIndex = item.z;
-            if(item.type==='text') selectAngebotCanvasItem(id);
+            if(item.type==='text' || item.type==='price') selectAngebotCanvasItem(id);
             let rect = canvas.getBoundingClientRect();
             angebotCanvasDragState = {id, mode:'move', startClientX:e.clientX, startClientY:e.clientY, startX:item.x, startY:item.y, canvasW:rect.width, canvasH:rect.height};
             try{ el.setPointerCapture(e.pointerId); }catch(err){}
@@ -2680,8 +2680,8 @@ function attachAngebotCanvasHandlers(){
             let boundW = item.w || 0, boundH = item.h || 0;
             let dxPct = (e.clientX - angebotCanvasDragState.startClientX)/angebotCanvasDragState.canvasW*100;
             let dyPct = (e.clientY - angebotCanvasDragState.startClientY)/angebotCanvasDragState.canvasH*100;
-            item.x = Math.max(0, Math.min(100-boundW, angebotCanvasDragState.startX+dxPct));
-            item.y = Math.max(0, Math.min(100-boundH, angebotCanvasDragState.startY+dyPct));
+            item.x = Math.max(-boundW*0.85, Math.min(100 - boundW*0.15, angebotCanvasDragState.startX+dxPct));
+            item.y = Math.max(-boundH*0.85, Math.min(100 - boundH*0.15, angebotCanvasDragState.startY+dyPct));
             el.style.left = item.x+'%';
             el.style.top = item.y+'%';
         });
@@ -2701,8 +2701,8 @@ function attachAngebotCanvasHandlers(){
             let item = findCanvasItem(id);
             let dwPct = (e.clientX - angebotCanvasDragState.startClientX)/angebotCanvasDragState.canvasW*100;
             let dhPct = (e.clientY - angebotCanvasDragState.startClientY)/angebotCanvasDragState.canvasH*100;
-            item.w = Math.max(10, Math.min(100-item.x, angebotCanvasDragState.startW+dwPct));
-            item.h = Math.max(6, Math.min(100-item.y, angebotCanvasDragState.startH+dhPct));
+            item.w = Math.max(10, Math.min(150, angebotCanvasDragState.startW+dwPct));
+            item.h = Math.max(6, Math.min(150, angebotCanvasDragState.startH+dhPct));
             el.style.width = item.w+'%';
             el.style.height = item.h+'%';
             if((item.type==='text' || item.type==='price') && angebotCanvasDragState.startH>0){
