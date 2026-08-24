@@ -500,10 +500,10 @@
                 <span style="flex:1;text-align:center;font-size:0.7rem;font-weight:800;color:var(--text-secondary);letter-spacing:0.5px;" data-i18n="lblBoyut">BOYUT</span>
                 <button onclick="adjustAngebotTextSize(1)" style="background:rgba(139,92,246,0.2);color:var(--text-primary);border:none;border-radius:50%;width:38px;height:38px;font-weight:900;font-size:0.85rem;cursor:pointer;flex-shrink:0;">A+</button>
             </div>
-            <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
-                <button onclick="adjustAngebotTextWeight(-100)" style="background:rgba(139,92,246,0.2);color:var(--text-primary);border:none;border-radius:16px;padding:9px 14px;font-weight:400;font-size:0.75rem;cursor:pointer;flex-shrink:0;" data-i18n="btnInce">INCE</button>
-                <span id="angebotWeightLabel" style="flex:1;text-align:center;font-size:0.7rem;font-weight:800;color:var(--text-secondary);letter-spacing:0.5px;">900</span>
-                <button onclick="adjustAngebotTextWeight(100)" style="background:rgba(139,92,246,0.2);color:var(--text-primary);border:none;border-radius:16px;padding:9px 14px;font-weight:900;font-size:0.75rem;cursor:pointer;flex-shrink:0;" data-i18n="btnKalin">KALIN</button>
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+                <button id="angebotBoldLvl1" onclick="setAngebotBoldLevel(1)" style="flex:1;background:rgba(139,92,246,0.2);color:var(--text-primary);border:none;border-radius:16px;padding:9px 6px;font-weight:400;font-size:0.72rem;cursor:pointer;" data-i18n="btnInce">INCE</button>
+                <button id="angebotBoldLvl2" onclick="setAngebotBoldLevel(2)" style="flex:1;background:rgba(139,92,246,0.2);color:var(--text-primary);border:none;border-radius:16px;padding:9px 6px;font-weight:700;font-size:0.72rem;cursor:pointer;" data-i18n="btnOrta">ORTA</button>
+                <button id="angebotBoldLvl3" onclick="setAngebotBoldLevel(3)" style="flex:1;background:rgba(139,92,246,0.2);color:var(--text-primary);border:none;border-radius:16px;padding:9px 6px;font-weight:900;font-size:0.72rem;cursor:pointer;" data-i18n="btnKalin">KALIN</button>
             </div>
             <div id="angebotColorPalette" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
         </div>
@@ -752,7 +752,7 @@ const I18N = {
         btnTarihiUygula: 'TARIHI UYGULA', titleManuelEkle: 'MANUEL URUN EKLE',
         titleRapor: 'ENVANTER RAPORU', btnYaziciAc: 'YAZICIYI AC', titleEtiketListesi: 'ETIKET LISTESI',
         btnListeyiTemizle: 'LISTEYI TEMIZLE', phYeniFirma: 'Yeni firma adi...',
-        titleAngebot: 'ANGEBOT HAZIRLA', phIndirimliFiyat: 'Indirimli fiyat (€)', phAngebotFiyat: 'Angebot fiyati (€)', lblTasarimSec: 'TASARIM SEC', btnCokluAngebotSec: 'COKLU ANGEBOT SEC', titleOnizleme: 'ONIZLEME', titleSerbestYerlesim: 'SERBEST YERLESIM', canvasHint: 'Resimlere ve yazilara surukleyerek tasi, sag-alt kosedeki mor tutamactan boyutlandir (yazida yazi boyutunu da degistirir). Bir yaziya dokunursan altta metin/boyut/kalinlik/renk secenekleri cikar.', btnTamamOnizle: 'TAMAM, ONIZLE', btnMetinEkle: '+ METIN EKLE', phMetinYaz: 'Metni yaz... (Enter ile alt satira gec)', lblBoyut: 'BOYUT', btnInce: 'INCE', btnKalin: 'KALIN',
+        titleAngebot: 'ANGEBOT HAZIRLA', phIndirimliFiyat: 'Indirimli fiyat (€)', phAngebotFiyat: 'Angebot fiyati (€)', lblTasarimSec: 'TASARIM SEC', btnCokluAngebotSec: 'COKLU ANGEBOT SEC', titleOnizleme: 'ONIZLEME', titleSerbestYerlesim: 'SERBEST YERLESIM', canvasHint: 'Resimlere ve yazilara surukleyerek tasi, sag-alt kosedeki mor tutamactan boyutlandir (yazida yazi boyutunu da degistirir). Bir yaziya dokunursan altta metin/boyut/kalinlik/renk secenekleri cikar.', btnTamamOnizle: 'TAMAM, ONIZLE', btnMetinEkle: '+ METIN EKLE', phMetinYaz: 'Metni yaz... (Enter ile alt satira gec)', lblBoyut: 'BOYUT', btnInce: 'INCE', btnOrta: 'ORTA', btnKalin: 'KALIN',
         titleUrunDetayi: 'URUN DETAYI', lblBarkod: 'Barkod', lblFirma: 'Firma', lblFiyat: 'Fiyat', lblStok: 'Stok',
         lblSkt: 'SKT', lblBelirtilmedi: 'BELIRTILMEDI', lblSistem: 'Sistem', lblMevcut: 'Mevcut', lblEnYakinSkt: 'En yakin SKT',
         btnUzat: '+1 GUN UZAT', btnDuzenle: 'DUZENLE', btnSil: 'SIL', btnSatildi: 'SATILDI',
@@ -781,7 +781,7 @@ const I18N = {
         btnTarihiUygula: 'DATUM ANWENDEN', titleManuelEkle: 'PRODUKT MANUELL HINZUFUGEN',
         titleRapor: 'BESTANDSBERICHT', btnYaziciAc: 'DRUCKER OFFNEN', titleEtiketListesi: 'ETIKETTENLISTE',
         btnListeyiTemizle: 'LISTE LEEREN', phYeniFirma: 'Neue Firma...',
-        titleAngebot: 'ANGEBOT ERSTELLEN', phIndirimliFiyat: 'Rabattpreis (€)', phAngebotFiyat: 'Angebotspreis (€)', lblTasarimSec: 'DESIGN WAHLEN', btnCokluAngebotSec: 'MEHRFACH-ANGEBOT', titleOnizleme: 'VORSCHAU', titleSerbestYerlesim: 'FREIE ANORDNUNG', canvasHint: 'Bilder und Texte durch Ziehen verschieben, mit dem lila Griff unten rechts vergroßern/verkleinern (bei Text auch die Schriftgroße). Bei Textauswahl erscheinen unten Text/Große/Fett/Farbe.', btnTamamOnizle: 'FERTIG, VORSCHAU', btnMetinEkle: '+ TEXT HINZUFUGEN', phMetinYaz: 'Text eingeben... (Enter fur neue Zeile)', lblBoyut: 'GROSSE', btnInce: 'DUNN', btnKalin: 'FETT',
+        titleAngebot: 'ANGEBOT ERSTELLEN', phIndirimliFiyat: 'Rabattpreis (€)', phAngebotFiyat: 'Angebotspreis (€)', lblTasarimSec: 'DESIGN WAHLEN', btnCokluAngebotSec: 'MEHRFACH-ANGEBOT', titleOnizleme: 'VORSCHAU', titleSerbestYerlesim: 'FREIE ANORDNUNG', canvasHint: 'Bilder und Texte durch Ziehen verschieben, mit dem lila Griff unten rechts vergroßern/verkleinern (bei Text auch die Schriftgroße). Bei Textauswahl erscheinen unten Text/Große/Fett/Farbe.', btnTamamOnizle: 'FERTIG, VORSCHAU', btnMetinEkle: '+ TEXT HINZUFUGEN', phMetinYaz: 'Text eingeben... (Enter fur neue Zeile)', lblBoyut: 'GROSSE', btnInce: 'DUNN', btnOrta: 'MITTEL', btnKalin: 'FETT',
         titleUrunDetayi: 'PRODUKTDETAILS', lblBarkod: 'Barcode', lblFirma: 'Firma', lblFiyat: 'Preis', lblStok: 'Bestand',
         lblSkt: 'MHD', lblBelirtilmedi: 'NICHT ANGEGEBEN', lblSistem: 'System', lblMevcut: 'Vorhanden', lblEnYakinSkt: 'Nächstes MHD',
         btnUzat: '+1 TAG VERLANGERN', btnDuzenle: 'BEARBEITEN', btnSil: 'LOSCHEN', btnSatildi: 'VERKAUFT',
@@ -810,7 +810,7 @@ const I18N = {
         btnTarihiUygula: 'APPLY DATE', titleManuelEkle: 'MANUALLY ADD PRODUCT',
         titleRapor: 'INVENTORY REPORT', btnYaziciAc: 'OPEN PRINTER', titleEtiketListesi: 'LABEL LIST',
         btnListeyiTemizle: 'CLEAR LIST', phYeniFirma: 'New company...',
-        titleAngebot: 'CREATE OFFER', phIndirimliFiyat: 'Discounted price (€)', phAngebotFiyat: 'Offer price (€)', lblTasarimSec: 'CHOOSE DESIGN', btnCokluAngebotSec: 'MULTI-PRODUCT OFFER', titleOnizleme: 'PREVIEW', titleSerbestYerlesim: 'FREE LAYOUT', canvasHint: 'Drag images and text to move them, use the purple handle at the bottom-right to resize (for text this also changes font size). Tap a text item to reveal text/size/weight/color options below.', btnTamamOnizle: 'DONE, PREVIEW', btnMetinEkle: '+ ADD TEXT', phMetinYaz: 'Type text... (Enter for new line)', lblBoyut: 'SIZE', btnInce: 'THIN', btnKalin: 'BOLD',
+        titleAngebot: 'CREATE OFFER', phIndirimliFiyat: 'Discounted price (€)', phAngebotFiyat: 'Offer price (€)', lblTasarimSec: 'CHOOSE DESIGN', btnCokluAngebotSec: 'MULTI-PRODUCT OFFER', titleOnizleme: 'PREVIEW', titleSerbestYerlesim: 'FREE LAYOUT', canvasHint: 'Drag images and text to move them, use the purple handle at the bottom-right to resize (for text this also changes font size). Tap a text item to reveal text/size/weight/color options below.', btnTamamOnizle: 'DONE, PREVIEW', btnMetinEkle: '+ ADD TEXT', phMetinYaz: 'Type text... (Enter for new line)', lblBoyut: 'SIZE', btnInce: 'THIN', btnOrta: 'MEDIUM', btnKalin: 'BOLD',
         titleUrunDetayi: 'PRODUCT DETAILS', lblBarkod: 'Barcode', lblFirma: 'Company', lblFiyat: 'Price', lblStok: 'Stock',
         lblSkt: 'Expiry', lblBelirtilmedi: 'NOT SPECIFIED', lblSistem: 'System', lblMevcut: 'Current', lblEnYakinSkt: 'Nearest expiry',
         btnUzat: '+1 DAY EXTEND', btnDuzenle: 'EDIT', btnSil: 'DELETE', btnSatildi: 'SOLD',
@@ -946,14 +946,15 @@ function fitBarcodeSvg(id){
     }catch(e){}
 }
 // Arial gibi standart fontlar gercekte sadece 2 farkli kalinlik iceriyor
-// (normal/kalin); font-weight'i 100-900 arasinda degistirmek gozle
-// pek fark etmiyordu. Bunun yerine yaziya gercekten SUREKLI ve HER ZAMAN
-// gozle gorulur bir kalinlik veren bir "govde kalinligi" (text-stroke)
-// ekliyoruz - deger arttikca harfler fiziksel olarak kalinlasir.
-function boldStrokeCss(weight, sizeValue, unit){
-    let extra = Math.max(0, ((weight||900)-400))/500;
-    if(extra<=0) return '';
-    let strokeVal = sizeValue * 0.05 * extra;
+// (normal/kalin); font-weight'i 100'er 100'er degistirmek cogu zaman
+// gozle fark edilmiyordu. Bunun yerine 3 SABIT, birbirinden acikca
+// farkli seviye kullaniyoruz (ince/orta/kalin); her buton net bir
+// deger sicramasi yapar, "degismiyor" hissi kalmaz.
+const ANGEBOT_BOLD_LEVELS = { 1:{weight:400, strokeFactor:0}, 2:{weight:700, strokeFactor:0.028}, 3:{weight:900, strokeFactor:0.055} };
+function boldLevelInfo(level){ return ANGEBOT_BOLD_LEVELS[level] || ANGEBOT_BOLD_LEVELS[3]; }
+function boldStrokeCss(strokeFactor, sizeValue, unit){
+    if(!strokeFactor || strokeFactor<=0) return '';
+    let strokeVal = sizeValue * strokeFactor;
     strokeVal = unit==='mm' ? strokeVal.toFixed(3) : strokeVal.toFixed(2);
     return `-webkit-text-stroke:${strokeVal}${unit} currentColor;paint-order:stroke fill;`;
 }
@@ -2603,9 +2604,9 @@ function openAngebotCanvas(){
             x: 8 + (i%2)*46, y: 8 + Math.floor(i/2)*46,
             w: 40, h: 40, z: i+1
         }));
-        let priceItem = { id:'price', type:'price', value:vals.price, x:52, y:76, w:38, h:14, fontSize:18, fontWeight:900, color:(labelDesign.color||'#c60000'), z:imageItems.length+1 };
+        let priceItem = { id:'price', type:'price', value:vals.price, x:52, y:76, w:38, h:14, fontSize:18, boldLevel:3, color:(labelDesign.color||'#c60000'), z:imageItems.length+1 };
         let dateText = (vals.start && vals.end) ? `ANGEBOT · ${formatDateDMY(vals.start)} - ${formatDateDMY(vals.end)}` : 'ANGEBOT';
-        let dateItem = { id:'datebadge', type:'text', text:dateText, x:6, y:4, w:65, h:6, fontSize:4.5, fontWeight:800, color:(labelDesign.color||'#c60000'), z:imageItems.length+2 };
+        let dateItem = { id:'datebadge', type:'text', text:dateText, x:6, y:4, w:65, h:6, fontSize:4.5, boldLevel:3, color:(labelDesign.color||'#c60000'), z:imageItems.length+2 };
         angebotCanvasItems = [...imageItems, priceItem, dateItem];
         angebotCanvasInitialized = true;
     }
@@ -2623,7 +2624,7 @@ function selectAngebotCanvasItem(id){
 function addAngebotTextItem(){
     let newId = 'txt'+Date.now();
     let maxZ = angebotCanvasItems.length ? Math.max(...angebotCanvasItems.map(i=>i.z||0)) : 0;
-    angebotCanvasItems.push({ id:newId, type:'text', text:'Metin', x:22, y:42, w:45, h:14, fontSize:8, fontWeight:900, color:'#1a1a2e', z:maxZ+1 });
+    angebotCanvasItems.push({ id:newId, type:'text', text:'Metin', x:22, y:42, w:45, h:14, fontSize:8, boldLevel:3, color:'#1a1a2e', z:maxZ+1 });
     angebotCanvasSelectedId = newId;
     renderAngebotCanvas();
     renderAngebotTextToolbar();
@@ -2635,8 +2636,9 @@ function renderAngebotCanvas(){
         if(it.type==='text'){
             let fontPx = Math.max(6, Math.round((it.fontSize/210)*canvasWidthPx));
             let selectedStyle = angebotCanvasSelectedId===it.id ? 'outline:2px dashed #8b5cf6;outline-offset:2px;' : 'border:1px dashed rgba(139,92,246,0.35);';
-            let strokeCss = boldStrokeCss(it.fontWeight, fontPx, 'px');
-            return `<div class="angebot-canvas-item" data-id="${it.id}" style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;z-index:${it.z};box-sizing:border-box;padding:2px 4px;white-space:pre-wrap;word-break:break-word;overflow:hidden;font-size:${fontPx}px;font-weight:${it.fontWeight||900};color:${it.color};font-family:Arial,sans-serif;cursor:move;line-height:1.15;${strokeCss}${selectedStyle}">${escapeHtml(it.text||'')}<div class="angebot-resize-handle" data-id="${it.id}" style="position:absolute;right:-10px;bottom:-10px;width:24px;height:24px;background:#8b5cf6;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div></div>`;
+            let bi = boldLevelInfo(it.boldLevel);
+            let strokeCss = boldStrokeCss(bi.strokeFactor, fontPx, 'px');
+            return `<div class="angebot-canvas-item" data-id="${it.id}" style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;z-index:${it.z};box-sizing:border-box;padding:2px 4px;white-space:pre-wrap;word-break:break-word;overflow:hidden;font-size:${fontPx}px;font-weight:${bi.weight};color:${it.color};font-family:Arial,sans-serif;cursor:move;line-height:1.15;${strokeCss}${selectedStyle}">${escapeHtml(it.text||'')}<div class="angebot-resize-handle" data-id="${it.id}" style="position:absolute;right:-10px;bottom:-10px;width:24px;height:24px;background:#8b5cf6;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div></div>`;
         }
         if(it.type==='price'){
             let fontPx = Math.max(6, Math.round((it.fontSize/210)*canvasWidthPx));
@@ -2644,8 +2646,9 @@ function renderAngebotCanvas(){
             let ic = Math.round(((it.value||0)-ip)*100);
             let cents = ic<10?'0'+ic:''+ic;
             let selectedStyle = angebotCanvasSelectedId===it.id ? 'outline:2px dashed #8b5cf6;outline-offset:2px;' : 'border:1px dashed rgba(139,92,246,0.35);';
-            let strokeCss = boldStrokeCss(it.fontWeight, fontPx, 'px');
-            let base = `font-weight:${it.fontWeight||900};font-family:Arial,sans-serif;${strokeCss}`;
+            let bi = boldLevelInfo(it.boldLevel);
+            let strokeCss = boldStrokeCss(bi.strokeFactor, fontPx, 'px');
+            let base = `font-weight:${bi.weight};font-family:Arial,sans-serif;${strokeCss}`;
             return `<div class="angebot-canvas-item" data-id="${it.id}" style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;z-index:${it.z};box-sizing:border-box;padding:2px 4px;white-space:nowrap;overflow:hidden;color:${it.color};cursor:move;line-height:1;${selectedStyle}"><span style="font-size:${fontPx}px;${base}">${ip}</span><span style="font-size:${Math.round(fontPx*0.55)}px;${base}">,${cents}</span><span style="font-size:${Math.round(fontPx*0.6)}px;${base}margin-left:2px;">€</span><div class="angebot-resize-handle" data-id="${it.id}" style="position:absolute;right:-10px;bottom:-10px;width:24px;height:24px;background:#8b5cf6;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div></div>`;
         }
         let imgTag = it.image ? `<img src="${it.image}" style="width:100%;height:100%;object-fit:contain;pointer-events:none;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#999;font-size:0.65rem;font-weight:700;pointer-events:none;padding:2px;text-align:center;">${escapeHtml((it.name||'').slice(0,16))}</div>`;
@@ -2729,7 +2732,13 @@ function renderAngebotTextToolbar(){
     let ta = document.getElementById('angebotTextEditArea');
     if(document.activeElement !== ta) ta.value = item.type==='price' ? String(item.value).replace('.',',') : item.text;
     ta.rows = item.type==='price' ? 1 : 2;
-    document.getElementById('angebotWeightLabel').textContent = item.fontWeight||900;
+    let curLevel = item.boldLevel || 3;
+    [1,2,3].forEach(lvl=>{
+        let btn = document.getElementById('angebotBoldLvl'+lvl);
+        if(!btn) return;
+        btn.style.background = curLevel===lvl ? '#8b5cf6' : 'rgba(139,92,246,0.2)';
+        btn.style.color = curLevel===lvl ? 'white' : 'var(--text-primary)';
+    });
     let palette = document.getElementById('angebotColorPalette');
     palette.innerHTML = ANGEBOT_TEXT_COLORS.map(c=>`<button onclick="setAngebotTextColor('${c}')" style="width:32px;height:32px;border-radius:50%;background:${c};border:${item.color===c?'3px solid #8b5cf6':'2px solid rgba(0,0,0,0.15)'};cursor:pointer;padding:0;"></button>`).join('')
         + `<input type="color" value="${item.color}" oninput="setAngebotTextColor(this.value)" style="width:32px;height:32px;padding:0;border-radius:50%;border:2px solid rgba(0,0,0,0.15);cursor:pointer;">`;
@@ -2759,10 +2768,10 @@ function adjustAngebotTextSize(delta){
     item.fontSize = Math.max(3, Math.min(60, Math.round((item.fontSize||8) + delta)));
     renderAngebotCanvas();
 }
-function adjustAngebotTextWeight(delta){
+function setAngebotBoldLevel(level){
     let item = findSelectedTextItem();
     if(!item) return;
-    item.fontWeight = Math.max(100, Math.min(900, (item.fontWeight||900) + delta));
+    item.boldLevel = level;
     renderAngebotCanvas();
     renderAngebotTextToolbar();
 }
@@ -2871,15 +2880,17 @@ function buildFlyerHTML(templateId, items, priceVal, dateStart, dateEnd){
     } else if(templateId==='freeform'){
         let piecesHTML = items.map(it=>{
             if(it.type==='text'){
-                let strokeCss = boldStrokeCss(it.fontWeight, it.fontSize, 'mm');
-                return `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;box-sizing:border-box;font-family:Arial,sans-serif;font-size:${it.fontSize}mm;font-weight:${it.fontWeight||900};color:${it.color};white-space:pre-wrap;word-break:break-word;line-height:1.15;overflow:hidden;${strokeCss}">${escapeHtml(it.text||'')}</div>`;
+                let bi = boldLevelInfo(it.boldLevel);
+                let strokeCss = boldStrokeCss(bi.strokeFactor, it.fontSize, 'mm');
+                return `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;box-sizing:border-box;font-family:Arial,sans-serif;font-size:${it.fontSize}mm;font-weight:${bi.weight};color:${it.color};white-space:pre-wrap;word-break:break-word;line-height:1.15;overflow:hidden;${strokeCss}">${escapeHtml(it.text||'')}</div>`;
             }
             if(it.type==='price'){
                 let pip = Math.floor(it.value||0);
                 let pic = Math.round(((it.value||0)-pip)*100);
                 let pcents = pic<10?'0'+pic:''+pic;
-                let strokeCss = boldStrokeCss(it.fontWeight, it.fontSize, 'mm');
-                let base = `font-weight:${it.fontWeight||900};font-family:Arial,sans-serif;${strokeCss}`;
+                let bi = boldLevelInfo(it.boldLevel);
+                let strokeCss = boldStrokeCss(bi.strokeFactor, it.fontSize, 'mm');
+                let base = `font-weight:${bi.weight};font-family:Arial,sans-serif;${strokeCss}`;
                 return `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;box-sizing:border-box;color:${it.color};line-height:1;white-space:nowrap;overflow:hidden;"><span style="font-size:${it.fontSize}mm;${base}">${pip}</span><span style="font-size:${(it.fontSize*0.55).toFixed(2)}mm;${base}">,${pcents}</span><span style="font-size:${(it.fontSize*0.6).toFixed(2)}mm;${base}margin-left:1mm;">€</span></div>`;
             }
             let img = it.image ? `<img src="${it.image}" style="width:100%;height:100%;object-fit:contain;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-weight:800;font-size:4mm;text-align:center;padding:2mm;">${escapeHtml(it.name||'')}</div>`;
