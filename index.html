@@ -945,6 +945,18 @@ function fitBarcodeSvg(id){
         svg.style.display='block';
     }catch(e){}
 }
+// Arial gibi standart fontlar gercekte sadece 2 farkli kalinlik iceriyor
+// (normal/kalin); font-weight'i 100-900 arasinda degistirmek gozle
+// pek fark etmiyordu. Bunun yerine yaziya gercekten SUREKLI ve HER ZAMAN
+// gozle gorulur bir kalinlik veren bir "govde kalinligi" (text-stroke)
+// ekliyoruz - deger arttikca harfler fiziksel olarak kalinlasir.
+function boldStrokeCss(weight, sizeValue, unit){
+    let extra = Math.max(0, ((weight||900)-400))/500;
+    if(extra<=0) return '';
+    let strokeVal = sizeValue * 0.05 * extra;
+    strokeVal = unit==='mm' ? strokeVal.toFixed(3) : strokeVal.toFixed(2);
+    return `-webkit-text-stroke:${strokeVal}${unit} currentColor;paint-order:stroke fill;`;
+}
 function logPriceChange(product, newPrice){
     if(isNaN(newPrice) || product.price===newPrice) return;
     if(!Array.isArray(product.priceHistory)) product.priceHistory=[];
@@ -2492,6 +2504,7 @@ let currentAngebotTemplate = null;
 
 function openAngebotFlow(indexes){
     angebotFlowIndexes = indexes.slice(0,4);
+    angebotCanvasInitialized = false;
     let items = angebotFlowIndexes.map(i=>products[i]).filter(Boolean);
     if(!items.length) return;
     document.getElementById('angebotProductName').innerHTML = escapeHtml(items.map(p=>p.name).join(', '));
@@ -2554,7 +2567,16 @@ function printCurrentAngebot(){
     w.document.write(buildFlyerHTML(currentAngebotTemplate, items, vals.price, vals.start, vals.end));
     w.document.close();
 }
-function closeAngebotPreview(){ document.getElementById('angebotPreviewModal').style.display='none'; document.getElementById('angebotModal').style.display='flex'; }
+function closeAngebotPreview(){
+    document.getElementById('angebotPreviewModal').style.display='none';
+    if(currentAngebotTemplate==='freeform'){
+        document.getElementById('angebotCanvasModal').style.display='flex';
+        renderAngebotCanvas();
+        renderAngebotTextToolbar();
+    } else {
+        document.getElementById('angebotModal').style.display='flex';
+    }
+}
 
 // ==============================================================
 //  SERBEST YERLESIM: secilen urun resimlerini VE serbest metinleri
@@ -2568,24 +2590,25 @@ let angebotCanvasDragState = null;
 let angebotCanvasSelectedId = null;
 const ANGEBOT_TEXT_COLORS = ['#1a1a2e','#c60000','#0ea5e9','#10b981','#f59e0b','#8b5cf6','#ec4899','#ffffff'];
 
+let angebotCanvasInitialized = false;
 function openAngebotCanvas(){
     let vals = validateAngebotInputs();
     if(!vals) return;
     angebotCanvasVals = vals;
-    angebotCanvasSelectedId = null;
-    let items = angebotFlowIndexes.map(i=>products[i]).filter(Boolean);
-    let imageItems = items.map((p,i)=>({
-        id: 'img'+p.id, type:'image', name: p.name, image: p.image,
-        x: 8 + (i%2)*46, y: 8 + Math.floor(i/2)*46,
-        w: 40, h: 40, z: i+1
-    }));
-    let ip = Math.floor(vals.price);
-    let ic = Math.round((vals.price-ip)*100);
-    let cents = ic<10?'0'+ic:''+ic;
-    let priceItem = { id:'price', type:'text', text:`${ip},${cents} €`, x:52, y:76, w:38, h:12, fontSize:15, fontWeight:900, color:(labelDesign.color||'#c60000'), z:imageItems.length+1 };
-    let dateText = (vals.start && vals.end) ? `ANGEBOT · ${formatDateDMY(vals.start)} - ${formatDateDMY(vals.end)}` : 'ANGEBOT';
-    let dateItem = { id:'datebadge', type:'text', text:dateText, x:6, y:4, w:65, h:6, fontSize:4.5, fontWeight:800, color:(labelDesign.color||'#c60000'), z:imageItems.length+2 };
-    angebotCanvasItems = [...imageItems, priceItem, dateItem];
+    if(!angebotCanvasInitialized){
+        angebotCanvasSelectedId = null;
+        let items = angebotFlowIndexes.map(i=>products[i]).filter(Boolean);
+        let imageItems = items.map((p,i)=>({
+            id: 'img'+p.id, type:'image', name: p.name, image: p.image,
+            x: 8 + (i%2)*46, y: 8 + Math.floor(i/2)*46,
+            w: 40, h: 40, z: i+1
+        }));
+        let priceItem = { id:'price', type:'price', value:vals.price, x:52, y:76, w:38, h:14, fontSize:18, fontWeight:900, color:(labelDesign.color||'#c60000'), z:imageItems.length+1 };
+        let dateText = (vals.start && vals.end) ? `ANGEBOT · ${formatDateDMY(vals.start)} - ${formatDateDMY(vals.end)}` : 'ANGEBOT';
+        let dateItem = { id:'datebadge', type:'text', text:dateText, x:6, y:4, w:65, h:6, fontSize:4.5, fontWeight:800, color:(labelDesign.color||'#c60000'), z:imageItems.length+2 };
+        angebotCanvasItems = [...imageItems, priceItem, dateItem];
+        angebotCanvasInitialized = true;
+    }
     document.getElementById('angebotModal').style.display='none';
     document.getElementById('angebotCanvasModal').style.display='flex';
     renderAngebotCanvas();
@@ -2594,7 +2617,7 @@ function openAngebotCanvas(){
 function findCanvasItem(id){ return angebotCanvasItems.find(i=>String(i.id)===String(id)); }
 function selectAngebotCanvasItem(id){
     let item = findCanvasItem(id);
-    angebotCanvasSelectedId = (item && item.type==='text') ? id : null;
+    angebotCanvasSelectedId = (item && (item.type==='text' || item.type==='price')) ? id : null;
     renderAngebotTextToolbar();
 }
 function addAngebotTextItem(){
@@ -2612,7 +2635,18 @@ function renderAngebotCanvas(){
         if(it.type==='text'){
             let fontPx = Math.max(6, Math.round((it.fontSize/210)*canvasWidthPx));
             let selectedStyle = angebotCanvasSelectedId===it.id ? 'outline:2px dashed #8b5cf6;outline-offset:2px;' : 'border:1px dashed rgba(139,92,246,0.35);';
-            return `<div class="angebot-canvas-item" data-id="${it.id}" style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;z-index:${it.z};box-sizing:border-box;padding:2px 4px;white-space:pre-wrap;word-break:break-word;overflow:hidden;font-size:${fontPx}px;font-weight:${it.fontWeight||900};color:${it.color};font-family:Arial,sans-serif;cursor:move;line-height:1.15;${selectedStyle}">${escapeHtml(it.text||'')}<div class="angebot-resize-handle" data-id="${it.id}" style="position:absolute;right:-10px;bottom:-10px;width:24px;height:24px;background:#8b5cf6;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div></div>`;
+            let strokeCss = boldStrokeCss(it.fontWeight, fontPx, 'px');
+            return `<div class="angebot-canvas-item" data-id="${it.id}" style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;z-index:${it.z};box-sizing:border-box;padding:2px 4px;white-space:pre-wrap;word-break:break-word;overflow:hidden;font-size:${fontPx}px;font-weight:${it.fontWeight||900};color:${it.color};font-family:Arial,sans-serif;cursor:move;line-height:1.15;${strokeCss}${selectedStyle}">${escapeHtml(it.text||'')}<div class="angebot-resize-handle" data-id="${it.id}" style="position:absolute;right:-10px;bottom:-10px;width:24px;height:24px;background:#8b5cf6;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div></div>`;
+        }
+        if(it.type==='price'){
+            let fontPx = Math.max(6, Math.round((it.fontSize/210)*canvasWidthPx));
+            let ip = Math.floor(it.value||0);
+            let ic = Math.round(((it.value||0)-ip)*100);
+            let cents = ic<10?'0'+ic:''+ic;
+            let selectedStyle = angebotCanvasSelectedId===it.id ? 'outline:2px dashed #8b5cf6;outline-offset:2px;' : 'border:1px dashed rgba(139,92,246,0.35);';
+            let strokeCss = boldStrokeCss(it.fontWeight, fontPx, 'px');
+            let base = `font-weight:${it.fontWeight||900};font-family:Arial,sans-serif;${strokeCss}`;
+            return `<div class="angebot-canvas-item" data-id="${it.id}" style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;z-index:${it.z};box-sizing:border-box;padding:2px 4px;white-space:nowrap;overflow:hidden;color:${it.color};cursor:move;line-height:1;${selectedStyle}"><span style="font-size:${fontPx}px;${base}">${ip}</span><span style="font-size:${Math.round(fontPx*0.55)}px;${base}">,${cents}</span><span style="font-size:${Math.round(fontPx*0.6)}px;${base}margin-left:2px;">€</span><div class="angebot-resize-handle" data-id="${it.id}" style="position:absolute;right:-10px;bottom:-10px;width:24px;height:24px;background:#8b5cf6;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div></div>`;
         }
         let imgTag = it.image ? `<img src="${it.image}" style="width:100%;height:100%;object-fit:contain;pointer-events:none;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#999;font-size:0.65rem;font-weight:700;pointer-events:none;padding:2px;text-align:center;">${escapeHtml((it.name||'').slice(0,16))}</div>`;
         return `<div class="angebot-canvas-item" data-id="${it.id}" style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;z-index:${it.z};border:2px dashed rgba(139,92,246,0.75);background:white;box-sizing:border-box;">${imgTag}<div class="angebot-resize-handle" data-id="${it.id}" style="position:absolute;right:-10px;bottom:-10px;width:24px;height:24px;background:#8b5cf6;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div></div>`;
@@ -2668,10 +2702,18 @@ function attachAngebotCanvasHandlers(){
             item.h = Math.max(6, Math.min(100-item.y, angebotCanvasDragState.startH+dhPct));
             el.style.width = item.w+'%';
             el.style.height = item.h+'%';
-            if(item.type==='text' && angebotCanvasDragState.startH>0){
+            if((item.type==='text' || item.type==='price') && angebotCanvasDragState.startH>0){
                 let scale = item.h / angebotCanvasDragState.startH;
                 item.fontSize = Math.max(3, Math.min(60, angebotCanvasDragState.startFontSize*scale));
-                el.style.fontSize = Math.max(6, Math.round((item.fontSize/210)*canvasWidthPx))+'px';
+                let fontPx = Math.max(6, Math.round((item.fontSize/210)*canvasWidthPx));
+                if(item.type==='text'){
+                    el.style.fontSize = fontPx+'px';
+                } else {
+                    let spans = el.querySelectorAll(':scope > span');
+                    if(spans[0]) spans[0].style.fontSize = fontPx+'px';
+                    if(spans[1]) spans[1].style.fontSize = Math.round(fontPx*0.55)+'px';
+                    if(spans[2]) spans[2].style.fontSize = Math.round(fontPx*0.6)+'px';
+                }
             }
         });
         handle.addEventListener('pointerup', (e)=>{ e.stopPropagation(); if(angebotCanvasDragState && angebotCanvasDragState.id===id) angebotCanvasDragState=null; });
@@ -2682,10 +2724,11 @@ function findSelectedTextItem(){ return angebotCanvasSelectedId ? findCanvasItem
 function renderAngebotTextToolbar(){
     let toolbar = document.getElementById('angebotTextToolbar');
     let item = findSelectedTextItem();
-    if(!item || item.type!=='text'){ toolbar.style.display='none'; return; }
+    if(!item || (item.type!=='text' && item.type!=='price')){ toolbar.style.display='none'; return; }
     toolbar.style.display='block';
     let ta = document.getElementById('angebotTextEditArea');
-    if(document.activeElement !== ta) ta.value = item.text;
+    if(document.activeElement !== ta) ta.value = item.type==='price' ? String(item.value).replace('.',',') : item.text;
+    ta.rows = item.type==='price' ? 1 : 2;
     document.getElementById('angebotWeightLabel').textContent = item.fontWeight||900;
     let palette = document.getElementById('angebotColorPalette');
     palette.innerHTML = ANGEBOT_TEXT_COLORS.map(c=>`<button onclick="setAngebotTextColor('${c}')" style="width:32px;height:32px;border-radius:50%;background:${c};border:${item.color===c?'3px solid #8b5cf6':'2px solid rgba(0,0,0,0.15)'};cursor:pointer;padding:0;"></button>`).join('')
@@ -2694,7 +2737,12 @@ function renderAngebotTextToolbar(){
 function updateAngebotTextContent(val){
     let item = findSelectedTextItem();
     if(!item) return;
-    item.text = val;
+    if(item.type==='price'){
+        let num = parseFloat(val.replace(',','.').replace(/[^0-9.]/g,''));
+        item.value = isNaN(num) ? 0 : num;
+    } else {
+        item.text = val;
+    }
     renderAngebotCanvas();
 }
 function removeAngebotTextItem(){
@@ -2823,7 +2871,16 @@ function buildFlyerHTML(templateId, items, priceVal, dateStart, dateEnd){
     } else if(templateId==='freeform'){
         let piecesHTML = items.map(it=>{
             if(it.type==='text'){
-                return `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;box-sizing:border-box;font-family:Arial,sans-serif;font-size:${it.fontSize}mm;font-weight:${it.fontWeight||900};color:${it.color};white-space:pre-wrap;word-break:break-word;line-height:1.15;overflow:hidden;">${escapeHtml(it.text||'')}</div>`;
+                let strokeCss = boldStrokeCss(it.fontWeight, it.fontSize, 'mm');
+                return `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;box-sizing:border-box;font-family:Arial,sans-serif;font-size:${it.fontSize}mm;font-weight:${it.fontWeight||900};color:${it.color};white-space:pre-wrap;word-break:break-word;line-height:1.15;overflow:hidden;${strokeCss}">${escapeHtml(it.text||'')}</div>`;
+            }
+            if(it.type==='price'){
+                let pip = Math.floor(it.value||0);
+                let pic = Math.round(((it.value||0)-pip)*100);
+                let pcents = pic<10?'0'+pic:''+pic;
+                let strokeCss = boldStrokeCss(it.fontWeight, it.fontSize, 'mm');
+                let base = `font-weight:${it.fontWeight||900};font-family:Arial,sans-serif;${strokeCss}`;
+                return `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;box-sizing:border-box;color:${it.color};line-height:1;white-space:nowrap;overflow:hidden;"><span style="font-size:${it.fontSize}mm;${base}">${pip}</span><span style="font-size:${(it.fontSize*0.55).toFixed(2)}mm;${base}">,${pcents}</span><span style="font-size:${(it.fontSize*0.6).toFixed(2)}mm;${base}margin-left:1mm;">€</span></div>`;
             }
             let img = it.image ? `<img src="${it.image}" style="width:100%;height:100%;object-fit:contain;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-weight:800;font-size:4mm;text-align:center;padding:2mm;">${escapeHtml(it.name||'')}</div>`;
             return `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;">${img}</div>`;
