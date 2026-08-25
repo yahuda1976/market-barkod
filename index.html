@@ -924,7 +924,12 @@ function buildQrSvgString(text){
         let qr = qrcode(0, 'M');
         qr.addData(text || '');
         qr.make();
-        let svg = qr.createSvgTag({cellSize:4, margin:0});
+        // createSvgTag KONUMSAL parametre alir (cellSize, margin) - obje degil!
+        // Yanlislikla obje verilince kutuphane kendi genis varsayilan
+        // boslugunu kullaniyordu, bu da SVG'nin ICINE gomulu kalip
+        // disaridan kucultulemiyordu. Kucuk ama sifir olmayan bir
+        // boslukla (1 modul) hem sik gorunur hem tarama guvenligi kalir.
+        let svg = qr.createSvgTag(4, 1);
         svg = svg.replace(/width="\d+"/, 'width="100%"').replace(/height="\d+"/, 'height="100%"');
         return svg;
     }catch(e){ return ''; }
