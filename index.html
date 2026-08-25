@@ -434,8 +434,12 @@
             <span class="modal-title"><i class="fa-solid fa-tags" style="margin-right:8px"></i><span data-i18n="titleEtiketListesi">ETIKET LISTESI</span></span>
             <button class="close-modal-btn" onclick="closeQueueModal()"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div id="queueListContainer" style="max-height:50vh;overflow-y:auto"></div>
-        <div style="margin-top:18px">
+        <div id="queueListContainer" style="max-height:44vh;overflow-y:auto"></div>
+        <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <button onclick="showMultiLabelPreview()" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.85rem;cursor:pointer;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-eye" style="margin-right:6px"></i><span data-i18n="btnEtiketOnizle">ONIZLE</span></button>
+            <button onclick="printMultiLabelPoster()" style="background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:40px;padding:14px 6px;color:white;font-weight:800;font-size:0.85rem;cursor:pointer;border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-print" style="margin-right:6px"></i><span data-i18n="btnEtiketYazdir">YAZDIR</span></button>
+        </div>
+        <div style="margin-top:10px">
             <button class="btn btn-primary" style="width:100%;background:linear-gradient(135deg,#ef4444,#dc2626)!important" onclick="clearPrintQueue()"><i class="fa-solid fa-trash-can" style="margin-right:8px"></i><span data-i18n="btnListeyiTemizle">LISTEYI TEMIZLE</span></button>
         </div>
     </div>
@@ -745,7 +749,7 @@ const I18N = {
         drawerSayim: 'SAYIM', btnSayim: 'STOK SAYIMI YAP',
         drawerEtiket: 'ETIKETLER', btnEtiketYonet: 'ETIKET LISTESINI YONET', btnEtiketTasarim: 'ETIKET TASARIMI', lblEtiketRenk: 'FIYAT RENGI', lblEtiketLogo: 'LOGO (ISTEGE BAGLI)', btnLogoSec: 'LOGO SEC', btnLogoKaldir: 'KALDIR',
         drawerYedek: 'YEDEKLEME', btnYedekTelefon: 'TELEFONA YEDEK AL', btnYedekDrive: "GOOGLE DRIVE'A YEDEKLE", btnYedekGeri: 'YEDEKTEN GERI YUKLE',
-        drawerRapor: 'RAPORLAR', btnCsv: 'CSV RAPORU INDIR', btnYazdir: 'ENVANTERI YAZDIR',
+        drawerRapor: 'RAPORLAR', btnCsv: 'CSV RAPORU INDIR', btnYazdir: 'ENVANTERI YAZDIR', btnEtiketOnizle: 'ONIZLE', btnEtiketYazdir: 'YAZDIR',
         drawerDiger: 'DIGER', btnSikistir: 'RESIMLERI SIKISTIR', drawerDil: 'DIL / LANGUAGE',
         btnKapat: 'KAPAT', btnFener: 'FENER', btnElleGir: 'ELLE GIR', camBaslatiliyor: 'KAMERA BASLATILIYOR...',
         titleEnvanter: 'ENVANTER', phInventorySearch: 'Urun adi veya barkod ara...',
@@ -774,7 +778,7 @@ const I18N = {
         drawerSayim: 'INVENTUR', btnSayim: 'BESTAND ZAHLEN',
         drawerEtiket: 'ETIKETTEN', btnEtiketYonet: 'ETIKETTENLISTE VERWALTEN', btnEtiketTasarim: 'ETIKETTENDESIGN', lblEtiketRenk: 'PREISFARBE', lblEtiketLogo: 'LOGO (OPTIONAL)', btnLogoSec: 'LOGO WAHLEN', btnLogoKaldir: 'ENTFERNEN',
         drawerYedek: 'SICHERUNG', btnYedekTelefon: 'AUF TELEFON SICHERN', btnYedekDrive: 'IN GOOGLE DRIVE SICHERN', btnYedekGeri: 'AUS SICHERUNG WIEDERHERSTELLEN',
-        drawerRapor: 'BERICHTE', btnCsv: 'CSV-BERICHT HERUNTERLADEN', btnYazdir: 'BESTAND DRUCKEN',
+        drawerRapor: 'BERICHTE', btnCsv: 'CSV-BERICHT HERUNTERLADEN', btnYazdir: 'BESTAND DRUCKEN', btnEtiketOnizle: 'VORSCHAU', btnEtiketYazdir: 'DRUCKEN',
         drawerDiger: 'WEITERES', btnSikistir: 'BILDER KOMPRIMIEREN', drawerDil: 'SPRACHE / DIL',
         btnKapat: 'SCH', btnFener: 'LICHT', btnElleGir: 'MANUELL EINGEBEN', camBaslatiliyor: 'KAMERA WIRD GESTARTET...',
         titleEnvanter: 'BESTAND', phInventorySearch: 'Produktname oder Barcode suchen...',
@@ -803,7 +807,7 @@ const I18N = {
         drawerSayim: 'STOCKTAKE', btnSayim: 'DO STOCKTAKE',
         drawerEtiket: 'LABELS', btnEtiketYonet: 'MANAGE LABEL LIST', btnEtiketTasarim: 'LABEL DESIGN', lblEtiketRenk: 'PRICE COLOR', lblEtiketLogo: 'LOGO (OPTIONAL)', btnLogoSec: 'CHOOSE LOGO', btnLogoKaldir: 'REMOVE',
         drawerYedek: 'BACKUP', btnYedekTelefon: 'BACKUP TO PHONE', btnYedekDrive: 'BACKUP TO GOOGLE DRIVE', btnYedekGeri: 'RESTORE FROM BACKUP',
-        drawerRapor: 'REPORTS', btnCsv: 'DOWNLOAD CSV REPORT', btnYazdir: 'PRINT INVENTORY',
+        drawerRapor: 'REPORTS', btnCsv: 'DOWNLOAD CSV REPORT', btnYazdir: 'PRINT INVENTORY', btnEtiketOnizle: 'PREVIEW', btnEtiketYazdir: 'PRINT',
         drawerDiger: 'OTHER', btnSikistir: 'COMPRESS IMAGES', drawerDil: 'LANGUAGE / DIL',
         btnKapat: 'CLOSE', btnFener: 'FLASHLIGHT', btnElleGir: 'MANUAL ENTRY', camBaslatiliyor: 'STARTING CAMERA...',
         titleEnvanter: 'INVENTORY', phInventorySearch: 'Search product name or barcode...',
