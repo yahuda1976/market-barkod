@@ -919,18 +919,20 @@ function setLabelTypeChoice(prefix, type){
     if(bBtn){ let s=type==='barcode'?activeStyle:inactiveStyle; bBtn.style.background=s.background; bBtn.style.color=s.color; }
     if(qBtn){ let s=type==='qr'?activeStyle:inactiveStyle; qBtn.style.background=s.background; qBtn.style.color=s.color; }
 }
-function buildQrSvgString(text){
+function buildQrSvgString(text, sizePx){
     try{
         let qr = qrcode(0, 'M');
         qr.addData(text || '');
         qr.make();
-        // createSvgTag KONUMSAL parametre alir (cellSize, margin) - obje degil!
-        // Yanlislikla obje verilince kutuphane kendi genis varsayilan
-        // boslugunu kullaniyordu, bu da SVG'nin ICINE gomulu kalip
-        // disaridan kucultulemiyordu. Kucuk ama sifir olmayan bir
-        // boslukla (1 modul) hem sik gorunur hem tarama guvenligi kalir.
         let svg = qr.createSvgTag(4, 1);
-        svg = svg.replace(/width="\d+"/, 'width="100%"').replace(/height="\d+"/, 'height="100%"');
+        let sizeVal = sizePx ? `${sizePx}` : '100%';
+        // Bu kutuphanenin ciktisinda cogu zaman width/height oznitelikleri
+        // hic bulunmuyor (sadece viewBox var); "replace" bulamayinca
+        // sessizce hicbir sey yapmiyordu, tarayici da kendi varsayilan
+        // (kare olmayan) boyutunu kullanip asimetrik bosluk birakiyordu.
+        // Once varsa eskilerini temizleyip, ardindan DOGRUDAN EKLIYORUZ.
+        svg = svg.replace(/\swidth="[^"]*"/g, '').replace(/\sheight="[^"]*"/g, '').replace(/\spreserveAspectRatio="[^"]*"/g, '');
+        svg = svg.replace('<svg ', `<svg width="${sizeVal}" height="${sizeVal}" preserveAspectRatio="none" `);
         return svg;
     }catch(e){ return ''; }
 }
@@ -2134,7 +2136,7 @@ function openProductDetailModal(idx){
     let p=products[idx];currentEditingProductId=idx;let color=getProductColorClass(p);
     let modal=document.getElementById("productDetailModal"),content=document.getElementById("productDetailContent");
     let codeBlockHtml = p.labelType==='qr'
-        ? `<div style="margin:12px auto 2px;width:130px;height:130px;background:white;border-radius:10px;padding:4px;box-sizing:border-box;box-shadow:0 2px 8px rgba(0,0,0,0.08);">${buildQrSvgString(p.barcode)}</div>`
+        ? `<div style="margin:12px auto 2px;width:130px;height:130px;background:white;border-radius:10px;padding:4px;box-sizing:border-box;box-shadow:0 2px 8px rgba(0,0,0,0.08);">${buildQrSvgString(p.barcode, 122)}</div>`
         : `<div style="margin:12px auto 2px;max-width:210px;background:white;border-radius:14px;padding:8px 10px 4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);"><svg id="detailBarcodeSvg" style="width:100%;height:auto;display:block;"></svg></div>`;
     content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>${t('titleUrunDetayi')}</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark"></i></button></div><div class="product-detail-card ${color}">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}<div style="margin-top:8px;"><strong style="font-size:1.1rem;">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}${codeBlockHtml}<div style="text-align:center;font-weight:900;font-size:0.9rem;letter-spacing:1.5px;color:#1e293b;margin-bottom:8px;">${p.barcode}</div><div style="color:#475569;margin-top:6px;font-size:0.9rem;line-height:1.6;">${t('lblFiyat')}: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>${t('lblStok')}: <span style="font-weight:700">${p.quantity}</span><br><span style="color:#ef4444;font-weight:900;font-size:1.05rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)}</span>${expiredTag(p)}${getLastDeliverySummary(p)}</div>${p.company?`<button onclick="closeProductDetailModal();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin-top:10px;background:rgba(30,41,59,0.08);border:1px solid rgba(30,41,59,0.15);border-radius:30px;padding:8px 16px;color:#1e293b;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}</div></div><div class="detail-actions"><div class="button-row"><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button><button onclick="openEditProductModal(${idx},{type:'detail'})" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fa-solid fa-pen" style="margin-right:4px"></i>${t('btnDuzenle')}</button></div><div class="button-row"><button onclick="quickAdjustOrder(${idx},1)" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">Spr +</button><button onclick="quickAdjustOrder(${idx},-1)" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6);">Spr -</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div><button class="full-width-btn" onclick="addToPrintQueue(products[${idx}])"><i class="fa-solid fa-tag" style="margin-right:6px"></i>${t('btnEtiketEkle')}</button><button class="full-width-btn" onclick="openAngebotFlow([${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:0;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button><button class="full-width-btn" onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)!important;margin-top:0;"><i class="fa-solid fa-chart-line" style="margin-right:6px"></i>${t('btnFiyatGecmisi')}</button><button class="full-width-btn" onclick="openCompanyHistoryModal(${idx})" style="background:linear-gradient(135deg,#64748b,#475569)!important;margin-top:0;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>${t('btnFirmaGecmisi')}</button><button class="full-width-btn" onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669)!important;margin-top:0;"><i class="fa-solid fa-truck" style="margin-right:6px"></i>${t('btnTeslimatGecmisi')}</button><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
     modal.style.display="flex";
@@ -3523,7 +3525,7 @@ function showResult(p){
     let idx=products.findIndex(pr=>pr.id===p.id);
     document.getElementById("resultModal").style.display="flex";
     let resultCodeHtml = p.labelType==='qr'
-        ? `<div style="background:white;border-radius:8px;padding:4px;margin:6px auto 0;width:105px;height:105px;box-sizing:border-box;">${buildQrSvgString(p.barcode)}</div>`
+        ? `<div style="background:white;border-radius:8px;padding:4px;margin:6px auto 0;width:105px;height:105px;box-sizing:border-box;">${buildQrSvgString(p.barcode, 97)}</div>`
         : `<div style="background:white;border-radius:10px;padding:6px 10px;margin:6px auto 0;display:inline-block;"><svg id="resultBarcodeSvg"></svg></div>`;
     document.getElementById("resultArea").innerHTML=`
         <button class="close-result-btn" onclick="clearResult()"><i class="fa-solid fa-xmark"></i></button>
