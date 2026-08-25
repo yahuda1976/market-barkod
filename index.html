@@ -925,15 +925,14 @@ function buildQrSvgString(text, sizePx){
         qr.addData(text || '');
         qr.make();
         let svg = qr.createSvgTag(4, 1);
-        let sizeVal = sizePx ? `${sizePx}` : '100%';
-        // Bu kutuphanenin ciktisinda cogu zaman width/height oznitelikleri
-        // hic bulunmuyor (sadece viewBox var); "replace" bulamayinca
-        // sessizce hicbir sey yapmiyordu, tarayici da kendi varsayilan
-        // (kare olmayan) boyutunu kullanip asimetrik bosluk birakiyordu.
-        // Once varsa eskilerini temizleyip, ardindan DOGRUDAN EKLIYORUZ.
-        svg = svg.replace(/\swidth="[^"]*"/g, '').replace(/\sheight="[^"]*"/g, '').replace(/\spreserveAspectRatio="[^"]*"/g, '');
-        svg = svg.replace('<svg ', `<svg width="${sizeVal}" height="${sizeVal}" preserveAspectRatio="none" `);
-        return svg;
+        // Ham SVG'yi dogrudan gommek yerine (ic viewBox/preserveAspectRatio
+        // davranisi tarayicidan tarayiciya, hatta ayni tarayicida bile
+        // tutarsiz cikiyordu), onu bir RESIM (img) olarak kodluyoruz.
+        // Resimlerde boyutlandirma CSS ile HER ZAMAN guvenilir sekilde
+        // calisir, SVG'nin kendi ic ayarlarindan tamamen bagimsizdir.
+        let b64 = btoa(unescape(encodeURIComponent(svg)));
+        let sizeStyle = sizePx ? `width:${sizePx}px;height:${sizePx}px;` : `width:100%;height:100%;`;
+        return `<img src="data:image/svg+xml;base64,${b64}" style="${sizeStyle}display:block;object-fit:contain;">`;
     }catch(e){ return ''; }
 }
 // JsBarcode urettigi SVG'ye viewBox eklemiyor; bu yuzden CSS ile
