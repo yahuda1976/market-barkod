@@ -130,14 +130,14 @@
         .label-body{flex:1;display:flex;gap:2mm;padding:2mm 2.5mm 0.5mm;box-sizing:border-box;min-height:0;align-items:center}
         .label-img-box{width:22mm;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
         .label-img-box img{max-width:100%;max-height:100%;object-fit:contain}
-        .label-noimg{color:#ccc;font-size:5pt;font-family:Arial,sans-serif;font-weight:700}
+        .label-noimg{color:#999;font-size:5pt;font-family:Arial,sans-serif;font-weight:700;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f5f5f5;border-radius:1mm}
         .label-text{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:1mm}
         .label-product-name{font-family:Georgia,'Times New Roman',serif;font-size:8.6pt;font-weight:900;color:#1a1a1a;line-height:1.15;width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
         .label-price-row{display:flex;align-items:baseline;width:100%;justify-content:flex-end;padding-right:1.5mm;box-sizing:border-box}
         .label-price{font-family:Georgia,'Times New Roman',serif;font-size:24pt;font-weight:900;color:#c60000;line-height:1}
         .label-price .cents{font-size:14pt}
         .label-price .currency{font-family:Georgia,serif;font-size:16pt;font-weight:900;color:#c60000;margin-left:1mm}
-        .label-barcode{align-self:flex-start;width:34mm;margin:0 0 0.8mm 2.5mm;border-top:0.25mm dashed #999;padding:0.3mm 0 0;display:flex;align-items:center;justify-content:center;height:7mm;box-sizing:border-box}
+        .label-barcode{align-self:flex-start;width:34mm;margin:0 0 0.8mm 2.5mm;border-top:0.25mm dashed #999;padding:0.3mm 0 0;display:flex;align-items:center;justify-content:center;height:7mm;box-sizing:border-box;overflow:hidden}
         .barcode-svg{width:100%;height:auto;display:block}
         @media print{body *{visibility:hidden}.print-modal,.print-modal *{visibility:visible}.print-modal{position:absolute;top:0;left:0;width:100%}.label-grid-container{page-break-after:always}}
         .drawer-btn{background:rgba(147,197,253,0.32);border:none;border-radius:40px;padding:14px 18px;color:var(--text-primary);font-weight:700;font-size:0.9rem;cursor:pointer;text-align:left;width:100%;transition:all 0.2s;border:1px solid rgba(59,130,246,0.12);display:flex;align-items:center;gap:10px}
@@ -467,8 +467,8 @@
         <div style="background:rgba(255,255,255,0.04);border-radius:32px;padding:16px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.06)">
             <input type="number" id="angebotPrice" step="0.01" placeholder="Angebot fiyati (€)" style="margin:0 0 12px;" data-i18n-ph="phAngebotFiyat">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                <input type="date" id="angebotStartDate" style="margin:0;">
-                <input type="date" id="angebotEndDate" style="margin:0;">
+                <input type="date" id="angebotStartDate" style="margin:0;width:100%;min-width:0;box-sizing:border-box;">
+                <input type="date" id="angebotEndDate" style="margin:0;width:100%;min-width:0;box-sizing:border-box;">
             </div>
             <div id="angebotError" style="color:#f87171;font-size:0.8rem;margin-top:8px;font-weight:600;"></div>
         </div>
@@ -2414,11 +2414,11 @@ function buildLabelCellHtml(product, bId){
     let ic=Math.round((product.price-ip)*100);
     let cents=ic<10?'0'+ic:''+ic;
     let logoTag = labelDesign.logo?`<img src="${labelDesign.logo}" style="position:absolute;top:0.6mm;right:0.6mm;max-height:6mm;max-width:16mm;object-fit:contain;z-index:2;">`:'';
+    let imgTag=product.image?`<img src="${product.image}">`:'<div class="label-noimg">FOTO</div>';
     if(product.labelType === 'qr'){
         let qrSvg = buildQrSvgString(product.barcode || product.name);
-        return `<td class="label-cell"><div class="label-outer">${logoTag}<div style="display:flex;flex-direction:column;height:100%;padding:1.8mm 2.5mm 1mm;box-sizing:border-box;"><div style="font-family:Georgia,'Times New Roman',serif;font-size:7.4pt;font-weight:900;color:#1a1a1a;line-height:1.15;max-height:6.5mm;overflow:hidden;">${escapeHtml(product.name)}</div><div style="display:flex;align-items:center;flex:1;gap:2mm;min-height:0;"><div style="flex-shrink:0;width:24mm;height:24mm;">${qrSvg}</div><div style="flex:1;display:flex;justify-content:flex-end;"><span style="font-family:Georgia,serif;font-weight:900;color:${labelDesign.color};font-size:19pt;line-height:1;">${ip}<span style="font-size:11pt;">,${cents}</span><span style="font-size:12pt;margin-left:1mm;">€</span></span></div></div></div></div></td>`;
+        return `<td class="label-cell"><div class="label-outer">${logoTag}<div style="display:flex;height:100%;padding:1.8mm 2.5mm 1.5mm;box-sizing:border-box;gap:2mm;"><div style="width:19mm;flex-shrink:0;display:flex;flex-direction:column;gap:1.3mm;"><div class="label-img-box" style="width:19mm;flex:1;min-height:0;">${imgTag}</div><div style="width:19mm;height:19mm;flex-shrink:0;">${qrSvg}</div></div><div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;"><div style="font-family:Georgia,'Times New Roman',serif;font-size:7.4pt;font-weight:900;color:#1a1a1a;line-height:1.15;max-height:11mm;overflow:hidden;">${escapeHtml(product.name)}</div><div style="text-align:right;"><span style="font-family:Georgia,serif;font-weight:900;color:${labelDesign.color};font-size:19pt;line-height:1;">${ip}<span style="font-size:11pt;">,${cents}</span><span style="font-size:12pt;margin-left:1mm;">€</span></span></div></div></div></div></td>`;
     }
-    let imgTag=product.image?`<img src="${product.image}">`:'<div class="label-noimg">FOTO</div>';
     return `<td class="label-cell"><div class="label-outer">${logoTag}<div class="label-body"><div class="label-img-box">${imgTag}</div><div class="label-text"><div class="label-product-name">${escapeHtml(product.name)}</div><div class="label-price-row"><span class="label-price" style="color:${labelDesign.color}">${ip}<span class="cents">,${cents}</span></span><span class="currency" style="color:${labelDesign.color}">€</span></div></div></div><div class="label-barcode"><svg class="barcode-svg" id="${bId}"></svg></div></div></td>`;
 }
 function showMultiLabelPreview(){
@@ -2456,6 +2456,7 @@ function showMultiLabelPreview(){
             try{ JsBarcode(`#${id}`,barcode,{format:"CODE128",width:1.7,height:32,displayValue:true,fontSize:12,margin:2}); fitBarcodeSvg(id); }catch(e){}
         });
     },80);
+    angebotPreviewSource = 'labelsheet';
     document.getElementById('angebotModal').style.display='none';
     modal.style.display='flex';
     let printBtn=document.getElementById('angebotPreviewPrintBtn');
@@ -2502,14 +2503,14 @@ body{margin:0;padding:0;background:white;}
 .label-body{flex:1;display:flex;gap:2mm;padding:2mm 2.5mm 0.5mm;box-sizing:border-box;min-height:0;align-items:center;}
 .label-img-box{width:22mm;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
 .label-img-box img{max-width:100%;max-height:100%;object-fit:contain;}
-.label-noimg{color:#ccc;font-size:5pt;font-family:Arial,sans-serif;font-weight:700;}
+.label-noimg{color:#999;font-size:5pt;font-family:Arial,sans-serif;font-weight:700;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f5f5f5;border-radius:1mm;}
 .label-text{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:1mm;}
 .label-product-name{font-family:Georgia,'Times New Roman',serif;font-size:8.6pt;font-weight:900;color:#1a1a1a;line-height:1.15;width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}
 .label-price-row{display:flex;align-items:baseline;width:100%;justify-content:flex-end;padding-right:1.5mm;box-sizing:border-box;}
 .label-price{font-family:Georgia,'Times New Roman',serif;font-size:24pt;font-weight:900;color:#c60000;line-height:1;}
 .label-price .cents{font-size:14pt;}
 .label-price .currency{font-family:Georgia,serif;font-size:16pt;font-weight:900;color:#c60000;margin-left:1mm;}
-.label-barcode{align-self:flex-start;width:34mm;margin:0 0 0.8mm 2.5mm;border-top:0.25mm dashed #999;padding:0.3mm 0 0;display:flex;align-items:center;justify-content:center;height:7mm;box-sizing:border-box;}
+.label-barcode{align-self:flex-start;width:34mm;margin:0 0 0.8mm 2.5mm;border-top:0.25mm dashed #999;padding:0.3mm 0 0;display:flex;align-items:center;justify-content:center;height:7mm;box-sizing:border-box;overflow:hidden;}
 .barcode-svg{width:100%;height:auto;display:block;}
 @media print{.toolbar{display:none!important;}.sheets{margin-top:0!important;}}
 </style>`;
@@ -2530,6 +2531,7 @@ body{margin:0;padding:0;background:white;}
 //  secilerek A4 poster olarak onizlenir/yazdirilir.
 // ==============================================================
 let angebotFlowIndexes = [];
+let angebotPreviewSource = null; // 'angebot' | 'freeform' | 'labelsheet' — onizlemeyi kapatinca hangi ekrana donulecegini belirler
 let currentAngebotTemplate = null;
 
 function openAngebotFlow(indexes){
@@ -2584,6 +2586,7 @@ function generateAngebotFromTemplate(templateId){
     let scale = Math.min((window.innerWidth*0.85-48)/pxW,(window.innerHeight*0.70)/pxH,1);
     let scaledW = Math.round(pxW*scale), scaledH = Math.round(pxH*scale);
     content.innerHTML = `<div style="width:${scaledW}px;height:${scaledH}px;margin:0 auto;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.45);background:white;"><iframe srcdoc="${escaped}" style="width:${pxW}px;height:${pxH}px;border:none;transform:scale(${scale});transform-origin:top left;" scrolling="no"></iframe></div>`;
+    angebotPreviewSource = 'angebot';
     document.getElementById('angebotModal').style.display='none';
     modal.style.display='flex';
     document.getElementById('angebotPreviewPrintBtn').onclick=()=>{ printCurrentAngebot(); };
@@ -2599,10 +2602,12 @@ function printCurrentAngebot(){
 }
 function closeAngebotPreview(){
     document.getElementById('angebotPreviewModal').style.display='none';
-    if(currentAngebotTemplate==='freeform'){
+    if(angebotPreviewSource==='freeform'){
         document.getElementById('angebotCanvasModal').style.display='flex';
         renderAngebotCanvas();
         renderAngebotTextToolbar();
+    } else if(angebotPreviewSource==='labelsheet'){
+        managePrintQueue();
     } else {
         document.getElementById('angebotModal').style.display='flex';
     }
@@ -2825,6 +2830,7 @@ function confirmAngebotCanvas(){
     let scale = Math.min((window.innerWidth*0.85-48)/pxW,(window.innerHeight*0.70)/pxH,1);
     let scaledW = Math.round(pxW*scale), scaledH = Math.round(pxH*scale);
     content.innerHTML = `<div style="width:${scaledW}px;height:${scaledH}px;margin:0 auto;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.45);background:white;"><iframe srcdoc="${escaped}" style="width:${pxW}px;height:${pxH}px;border:none;transform:scale(${scale});transform-origin:top left;" scrolling="no"></iframe></div>`;
+    angebotPreviewSource = 'freeform';
     document.getElementById('angebotCanvasModal').style.display='none';
     modal.style.display='flex';
     document.getElementById('angebotPreviewPrintBtn').onclick=()=>{ printCurrentAngebotFreeform(); };
