@@ -493,7 +493,10 @@
             <button class="close-modal-btn" onclick="document.getElementById('angebotCanvasModal').style.display='none';document.getElementById('angebotModal').style.display='flex';"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:10px;font-weight:500;" data-i18n="canvasHint">Resimlere ve yazilara surukleyerek tasi, resimlerde sag-alt kosedeki mor tutamactan boyutlandir. Bir yaziya dokunursan altta boyut/kalinlik/renk secenekleri cikar.</div>
-        <button onclick="addAngebotTextItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:12px;"><i class="fa-solid fa-font" style="margin-right:6px"></i><span data-i18n="btnMetinEkle">+ METIN EKLE</span></button>
+        <button onclick="addAngebotTextItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:8px;"><i class="fa-solid fa-font" style="margin-right:6px"></i><span data-i18n="btnMetinEkle">+ METIN EKLE</span></button>
+        <button onclick="addAngebotArcTextItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:8px;"><i class="fa-solid fa-align-center" style="margin-right:6px"></i><span data-i18n="btnKavisliYazi">+ KAVISLI YAZI</span></button>
+        <button onclick="addAngebotRibbonTextItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:8px;"><i class="fa-solid fa-tag" style="margin-right:6px"></i><span data-i18n="btnSeritYazi">+ SERIT YAZI</span></button>
+        <button onclick="addAngebotShadowTextItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:12px;"><i class="fa-solid fa-cube" style="margin-right:6px"></i><span data-i18n="btnGolgeliYazi">+ GOLGELI YAZI</span></button>
         <div id="angebotCanvasWrap" style="width:100%;display:flex;justify-content:center;margin-bottom:12px;">
             <div id="angebotCanvasArea" style="position:relative;width:100%;max-width:380px;aspect-ratio:210/297;background:#fafafa;border:2px solid #cbd5e1;border-radius:8px;overflow:hidden;touch-action:none;"></div>
         </div>
@@ -699,6 +702,7 @@ const PHRASE_DICT = [
     ["secili", "ausgewahlt", "selected"],
     ["En fazla 4 urun secebilirsin", "Du kannst maximal 4 Produkte auswahlen", "You can select up to 4 products"],
     ["En az 1 urun sec", "Wahle mindestens 1 Produkt", "Select at least 1 product"],
+    ["gun kaldi", "Tage ubrig", "days left"],
 ];
 function translateText(str){
     if(currentLang==='tr' || !str) return str;
@@ -759,7 +763,7 @@ const I18N = {
         btnTarihiUygula: 'TARIHI UYGULA', titleManuelEkle: 'MANUEL URUN EKLE',
         titleRapor: 'ENVANTER RAPORU', btnYaziciAc: 'YAZICIYI AC', titleEtiketListesi: 'ETIKET LISTESI',
         btnListeyiTemizle: 'LISTEYI TEMIZLE', phYeniFirma: 'Yeni firma adi...',
-        titleAngebot: 'ANGEBOT HAZIRLA', phIndirimliFiyat: 'Indirimli fiyat (€)', phAngebotFiyat: 'Angebot fiyati (€)', lblTasarimSec: 'TASARIM SEC', btnCokluAngebotSec: 'COKLU ANGEBOT SEC', titleOnizleme: 'ONIZLEME', titleSerbestYerlesim: 'SERBEST YERLESIM', canvasHint: 'Resimlere ve yazilara surukleyerek tasi, sag-alt kosedeki mor tutamactan boyutlandir (yazida yazi boyutunu da degistirir). Bir yaziya dokunursan altta metin/boyut/kalinlik/renk secenekleri cikar.', btnTamamOnizle: 'TAMAM, ONIZLE', btnMetinEkle: '+ METIN EKLE', phMetinYaz: 'Metni yaz... (Enter ile alt satira gec)', lblBoyut: 'BOYUT', btnInce: 'INCE', btnOrta: 'ORTA', btnKalin: 'KALIN',
+        titleAngebot: 'ANGEBOT HAZIRLA', phIndirimliFiyat: 'Indirimli fiyat (€)', phAngebotFiyat: 'Angebot fiyati (€)', lblTasarimSec: 'TASARIM SEC', btnCokluAngebotSec: 'COKLU ANGEBOT SEC', titleOnizleme: 'ONIZLEME', titleSerbestYerlesim: 'SERBEST YERLESIM', canvasHint: 'Resimlere ve yazilara surukleyerek tasi, sag-alt kosedeki mor tutamactan boyutlandir (yazida yazi boyutunu da degistirir). Bir yaziya dokunursan altta metin/boyut/kalinlik/renk secenekleri cikar.', btnTamamOnizle: 'TAMAM, ONIZLE', btnMetinEkle: '+ METIN EKLE', btnKavisliYazi: '+ KAVISLI YAZI', btnSeritYazi: '+ SERIT YAZI', btnGolgeliYazi: '+ GOLGELI YAZI', phMetinYaz: 'Metni yaz... (Enter ile alt satira gec)', lblBoyut: 'BOYUT', btnInce: 'INCE', btnOrta: 'ORTA', btnKalin: 'KALIN',
         titleUrunDetayi: 'URUN DETAYI', lblBarkod: 'Barkod', lblFirma: 'Firma', lblFiyat: 'Fiyat', lblStok: 'Stok',
         lblSkt: 'SKT', lblBelirtilmedi: 'BELIRTILMEDI', lblSistem: 'Sistem', lblMevcut: 'Mevcut', lblEnYakinSkt: 'En yakin SKT',
         btnUzat: '+1 GUN UZAT', btnDuzenle: 'DUZENLE', btnSil: 'SIL', btnSatildi: 'SATILDI',
@@ -788,7 +792,7 @@ const I18N = {
         btnTarihiUygula: 'DATUM ANWENDEN', titleManuelEkle: 'PRODUKT MANUELL HINZUFUGEN',
         titleRapor: 'BESTANDSBERICHT', btnYaziciAc: 'DRUCKER OFFNEN', titleEtiketListesi: 'ETIKETTENLISTE',
         btnListeyiTemizle: 'LISTE LEEREN', phYeniFirma: 'Neue Firma...',
-        titleAngebot: 'ANGEBOT ERSTELLEN', phIndirimliFiyat: 'Rabattpreis (€)', phAngebotFiyat: 'Angebotspreis (€)', lblTasarimSec: 'DESIGN WAHLEN', btnCokluAngebotSec: 'MEHRFACH-ANGEBOT', titleOnizleme: 'VORSCHAU', titleSerbestYerlesim: 'FREIE ANORDNUNG', canvasHint: 'Bilder und Texte durch Ziehen verschieben, mit dem lila Griff unten rechts vergroßern/verkleinern (bei Text auch die Schriftgroße). Bei Textauswahl erscheinen unten Text/Große/Fett/Farbe.', btnTamamOnizle: 'FERTIG, VORSCHAU', btnMetinEkle: '+ TEXT HINZUFUGEN', phMetinYaz: 'Text eingeben... (Enter fur neue Zeile)', lblBoyut: 'GROSSE', btnInce: 'DUNN', btnOrta: 'MITTEL', btnKalin: 'FETT',
+        titleAngebot: 'ANGEBOT ERSTELLEN', phIndirimliFiyat: 'Rabattpreis (€)', phAngebotFiyat: 'Angebotspreis (€)', lblTasarimSec: 'DESIGN WAHLEN', btnCokluAngebotSec: 'MEHRFACH-ANGEBOT', titleOnizleme: 'VORSCHAU', titleSerbestYerlesim: 'FREIE ANORDNUNG', canvasHint: 'Bilder und Texte durch Ziehen verschieben, mit dem lila Griff unten rechts vergroßern/verkleinern (bei Text auch die Schriftgroße). Bei Textauswahl erscheinen unten Text/Große/Fett/Farbe.', btnTamamOnizle: 'FERTIG, VORSCHAU', btnMetinEkle: '+ TEXT HINZUFUGEN', btnKavisliYazi: '+ BOGENTEXT', btnSeritYazi: '+ BANDTEXT', btnGolgeliYazi: '+ SCHATTENTEXT', phMetinYaz: 'Text eingeben... (Enter fur neue Zeile)', lblBoyut: 'GROSSE', btnInce: 'DUNN', btnOrta: 'MITTEL', btnKalin: 'FETT',
         titleUrunDetayi: 'PRODUKTDETAILS', lblBarkod: 'Barcode', lblFirma: 'Firma', lblFiyat: 'Preis', lblStok: 'Bestand',
         lblSkt: 'MHD', lblBelirtilmedi: 'NICHT ANGEGEBEN', lblSistem: 'System', lblMevcut: 'Vorhanden', lblEnYakinSkt: 'Nächstes MHD',
         btnUzat: '+1 TAG VERLANGERN', btnDuzenle: 'BEARBEITEN', btnSil: 'LOSCHEN', btnSatildi: 'VERKAUFT',
@@ -817,7 +821,7 @@ const I18N = {
         btnTarihiUygula: 'APPLY DATE', titleManuelEkle: 'MANUALLY ADD PRODUCT',
         titleRapor: 'INVENTORY REPORT', btnYaziciAc: 'OPEN PRINTER', titleEtiketListesi: 'LABEL LIST',
         btnListeyiTemizle: 'CLEAR LIST', phYeniFirma: 'New company...',
-        titleAngebot: 'CREATE OFFER', phIndirimliFiyat: 'Discounted price (€)', phAngebotFiyat: 'Offer price (€)', lblTasarimSec: 'CHOOSE DESIGN', btnCokluAngebotSec: 'MULTI-PRODUCT OFFER', titleOnizleme: 'PREVIEW', titleSerbestYerlesim: 'FREE LAYOUT', canvasHint: 'Drag images and text to move them, use the purple handle at the bottom-right to resize (for text this also changes font size). Tap a text item to reveal text/size/weight/color options below.', btnTamamOnizle: 'DONE, PREVIEW', btnMetinEkle: '+ ADD TEXT', phMetinYaz: 'Type text... (Enter for new line)', lblBoyut: 'SIZE', btnInce: 'THIN', btnOrta: 'MEDIUM', btnKalin: 'BOLD',
+        titleAngebot: 'CREATE OFFER', phIndirimliFiyat: 'Discounted price (€)', phAngebotFiyat: 'Offer price (€)', lblTasarimSec: 'CHOOSE DESIGN', btnCokluAngebotSec: 'MULTI-PRODUCT OFFER', titleOnizleme: 'PREVIEW', titleSerbestYerlesim: 'FREE LAYOUT', canvasHint: 'Drag images and text to move them, use the purple handle at the bottom-right to resize (for text this also changes font size). Tap a text item to reveal text/size/weight/color options below.', btnTamamOnizle: 'DONE, PREVIEW', btnMetinEkle: '+ ADD TEXT', btnKavisliYazi: '+ CURVED TEXT', btnSeritYazi: '+ RIBBON TEXT', btnGolgeliYazi: '+ SHADOW TEXT', phMetinYaz: 'Type text... (Enter for new line)', lblBoyut: 'SIZE', btnInce: 'THIN', btnOrta: 'MEDIUM', btnKalin: 'BOLD',
         titleUrunDetayi: 'PRODUCT DETAILS', lblBarkod: 'Barcode', lblFirma: 'Company', lblFiyat: 'Price', lblStok: 'Stock',
         lblSkt: 'Expiry', lblBelirtilmedi: 'NOT SPECIFIED', lblSistem: 'System', lblMevcut: 'Current', lblEnYakinSkt: 'Nearest expiry',
         btnUzat: '+1 DAY EXTEND', btnDuzenle: 'EDIT', btnSil: 'DELETE', btnSatildi: 'SOLD',
@@ -939,6 +943,42 @@ function buildQrSvgString(text, sizePx){
         return `<img src="data:image/svg+xml;base64,${b64}" style="${sizeStyle}display:block;object-fit:contain;">`;
     }catch(e){ return ''; }
 }
+// "EREN MOTOR" tarzi kavisli/kemer yazi: metni yukari dogru hafif bir
+// yay uzerinde diziyor. Vektor (SVG) oldugu icin kutuyu ne kadar
+// buyutup kucultursen kucult, hep keskin kalir - tekrar cizmeye
+// gerek yok.
+function buildArcTextDataUrl(text, color, boldLevel){
+    let bi = boldLevelInfo(boldLevel);
+    let w=400, h=150, fontSize=76;
+    let strokeAttr = bi.strokeFactor>0 ? ` stroke="${color}" stroke-width="${(bi.strokeFactor*fontSize*1.3).toFixed(1)}" paint-order="stroke fill"` : '';
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><defs><path id="arcpath" d="M 12,132 Q ${w/2},8 ${w-12},132" fill="none"/></defs><text font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="${bi.weight}" fill="${color}"${strokeAttr} letter-spacing="1"><textPath href="#arcpath" startOffset="50%" text-anchor="middle">${escapeHtml(text||'')}</textPath></text></svg>`;
+    let b64 = btoa(unescape(encodeURIComponent(svg)));
+    return `data:image/svg+xml;base64,${b64}`;
+}
+// Serit/kurdele rozeti: metin, uclari sivri kesilmis klasik bir kurdele
+// seklinin uzerinde duruyor. "color" alani kurdelenin kendi rengini
+// belirler, yazi her zaman beyaz kalir (klasik indirim etiketi gorunumu).
+function buildRibbonTextDataUrl(text, ribbonColor, boldLevel){
+    let bi = boldLevelInfo(boldLevel);
+    let w=400, h=90, fontSize=34;
+    let strokeAttr = bi.strokeFactor>0 ? ` stroke="#ffffff" stroke-width="${(bi.strokeFactor*fontSize*1.3).toFixed(1)}" paint-order="stroke fill"` : '';
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><path d="M0,20 L50,20 L50,15 L350,15 L350,20 L400,20 L375,45 L400,70 L350,70 L350,75 L50,75 L50,70 L0,70 L25,45 Z" fill="${ribbonColor}"/><text x="${w/2}" y="${h/2+12}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="${bi.weight}" fill="#ffffff"${strokeAttr} text-anchor="middle" letter-spacing="1">${escapeHtml(text||'')}</text></svg>`;
+    let b64 = btoa(unescape(encodeURIComponent(svg)));
+    return `data:image/svg+xml;base64,${b64}`;
+}
+// 3D golgeli yazi: ayni metnin koyu bir kopyasi hafifce kaydirilarak
+// arkaya cizilir, harfler kagittan kabarmis gibi durur. "boldLevel"
+// burada kalinlik degil GOLGE DERINLIGINI kontrol eder (Ince=az
+// kaymis/hafif golge, Kalin=cok kaymis/derin golge).
+const ANGEBOT_SHADOW_OFFSETS = {1:2, 2:5, 3:9};
+function buildShadowTextDataUrl(text, color, boldLevel){
+    let offset = ANGEBOT_SHADOW_OFFSETS[boldLevel] || ANGEBOT_SHADOW_OFFSETS[3];
+    let w=400, h=110, fontSize=58;
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><text x="${w/2+offset}" y="${h/2+20+offset}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="900" fill="rgba(0,0,0,0.38)" text-anchor="middle" letter-spacing="1">${escapeHtml(text||'')}</text><text x="${w/2}" y="${h/2+20}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="900" fill="${color}" text-anchor="middle" letter-spacing="1">${escapeHtml(text||'')}</text></svg>`;
+    let b64 = btoa(unescape(encodeURIComponent(svg)));
+    return `data:image/svg+xml;base64,${b64}`;
+}
+
 // JsBarcode urettigi SVG'ye viewBox eklemiyor; bu yuzden CSS ile
 // "genislige sigdir" denince barkod olcekenmeden tasip kirpiliyordu.
 // Bu fonksiyon SVG'yi cagrildiktan hemen sonra dogru sekilde
@@ -1824,6 +1864,7 @@ function expiredTag(p){
     if(d<0) return ' <span style="background:#b91c1c;color:white;font-weight:900;font-size:0.7rem;padding:3px 9px;border-radius:10px;margin-left:6px;vertical-align:middle;">'+translateText('SURESI GECTI')+'</span>';
     if(p.quantity>0 && d===0) return ' <span class="blink-badge" style="background:#dc2626;"><i class="fa-solid fa-bolt"></i> '+translateText('BUGUN BITIYOR')+'</span>';
     if(p.quantity>0 && d===1) return ' <span class="blink-badge" style="background:#ea580c;"><i class="fa-solid fa-bolt"></i> '+translateText('YARIN BITIYOR')+'</span>';
+    if(p.quantity>0 && d>=2 && d<=7) return ' <span style="background:#dc2626;color:white;font-weight:800;font-size:0.68rem;padding:3px 9px;border-radius:10px;margin-left:6px;vertical-align:middle;white-space:nowrap;">'+d+' '+translateText('gun kaldi')+'</span>';
     return '';
 }
 function normBarcode(b){ return (b===null||b===undefined)?'':String(b).replace(/\s/g,'').trim(); }
@@ -2642,6 +2683,9 @@ function openAngebotCanvas(){
         let dateText = (vals.start && vals.end) ? `ANGEBOT · ${formatDateDMY(vals.start)} - ${formatDateDMY(vals.end)}` : 'ANGEBOT';
         let dateItem = { id:'datebadge', type:'text', text:dateText, x:6, y:4, w:65, h:6, fontSize:4.5, boldLevel:3, color:(labelDesign.color||'#c60000'), z:imageItems.length+2 };
         angebotCanvasItems = [...imageItems, priceItem, dateItem];
+        if(labelDesign.logo){
+            angebotCanvasItems.push({ id:'logo', type:'image', name:'LOGO', image:labelDesign.logo, x:4, y:82, w:20, h:14, z:angebotCanvasItems.length+1 });
+        }
         angebotCanvasInitialized = true;
     }
     document.getElementById('angebotModal').style.display='none';
@@ -2652,13 +2696,37 @@ function openAngebotCanvas(){
 function findCanvasItem(id){ return angebotCanvasItems.find(i=>String(i.id)===String(id)); }
 function selectAngebotCanvasItem(id){
     let item = findCanvasItem(id);
-    angebotCanvasSelectedId = (item && (item.type==='text' || item.type==='price')) ? id : null;
+    angebotCanvasSelectedId = (item && (item.type==='text' || item.type==='price' || item.type==='arctext' || item.type==='ribbontext' || item.type==='shadowtext')) ? id : null;
     renderAngebotTextToolbar();
 }
 function addAngebotTextItem(){
     let newId = 'txt'+Date.now();
     let maxZ = angebotCanvasItems.length ? Math.max(...angebotCanvasItems.map(i=>i.z||0)) : 0;
     angebotCanvasItems.push({ id:newId, type:'text', text:'Metin', x:22, y:42, w:45, h:14, fontSize:8, boldLevel:3, color:'#1a1a2e', z:maxZ+1 });
+    angebotCanvasSelectedId = newId;
+    renderAngebotCanvas();
+    renderAngebotTextToolbar();
+}
+function addAngebotArcTextItem(){
+    let newId = 'arc'+Date.now();
+    let maxZ = angebotCanvasItems.length ? Math.max(...angebotCanvasItems.map(i=>i.z||0)) : 0;
+    angebotCanvasItems.push({ id:newId, type:'arctext', text:'ANGEBOT', x:15, y:8, w:70, h:24, boldLevel:3, color:'#16a34a', z:maxZ+1 });
+    angebotCanvasSelectedId = newId;
+    renderAngebotCanvas();
+    renderAngebotTextToolbar();
+}
+function addAngebotRibbonTextItem(){
+    let newId = 'ribbon'+Date.now();
+    let maxZ = angebotCanvasItems.length ? Math.max(...angebotCanvasItems.map(i=>i.z||0)) : 0;
+    angebotCanvasItems.push({ id:newId, type:'ribbontext', text:'INDIRIM', x:12, y:8, w:76, h:16, boldLevel:3, color:'#dc2626', z:maxZ+1 });
+    angebotCanvasSelectedId = newId;
+    renderAngebotCanvas();
+    renderAngebotTextToolbar();
+}
+function addAngebotShadowTextItem(){
+    let newId = 'shadow'+Date.now();
+    let maxZ = angebotCanvasItems.length ? Math.max(...angebotCanvasItems.map(i=>i.z||0)) : 0;
+    angebotCanvasItems.push({ id:newId, type:'shadowtext', text:'ANGEBOT', x:12, y:8, w:76, h:18, boldLevel:3, color:'#f59e0b', z:maxZ+1 });
     angebotCanvasSelectedId = newId;
     renderAngebotCanvas();
     renderAngebotTextToolbar();
@@ -2685,6 +2753,13 @@ function renderAngebotCanvas(){
             let base = `font-weight:${bi.weight};font-family:Arial,sans-serif;${strokeCss}`;
             return `<div class="angebot-canvas-item" data-id="${it.id}" style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;z-index:${it.z};box-sizing:border-box;padding:2px 4px;white-space:nowrap;overflow:hidden;color:${it.color};cursor:move;line-height:1;${selectedStyle}"><span style="font-size:${fontPx}px;${base}">${ip}</span><span style="font-size:${Math.round(fontPx*0.55)}px;${base}">,${cents}</span><span style="font-size:${Math.round(fontPx*0.6)}px;${base}margin-left:2px;">€</span><div class="angebot-resize-handle" data-id="${it.id}" style="position:absolute;right:-10px;bottom:-10px;width:24px;height:24px;background:#8b5cf6;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div></div>`;
         }
+        if(it.type==='arctext' || it.type==='ribbontext' || it.type==='shadowtext'){
+            let selectedStyle = angebotCanvasSelectedId===it.id ? 'outline:2px dashed #8b5cf6;outline-offset:2px;' : 'border:1px dashed rgba(139,92,246,0.35);';
+            let dataUrl = it.type==='arctext' ? buildArcTextDataUrl(it.text, it.color, it.boldLevel)
+                        : it.type==='ribbontext' ? buildRibbonTextDataUrl(it.text, it.color, it.boldLevel)
+                        : buildShadowTextDataUrl(it.text, it.color, it.boldLevel);
+            return `<div class="angebot-canvas-item" data-id="${it.id}" style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;z-index:${it.z};box-sizing:border-box;${selectedStyle}"><img src="${dataUrl}" style="width:100%;height:100%;object-fit:contain;pointer-events:none;"><div class="angebot-resize-handle" data-id="${it.id}" style="position:absolute;right:-10px;bottom:-10px;width:24px;height:24px;background:#8b5cf6;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div></div>`;
+        }
         let imgTag = it.image ? `<img src="${it.image}" style="width:100%;height:100%;object-fit:contain;pointer-events:none;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#999;font-size:0.65rem;font-weight:700;pointer-events:none;padding:2px;text-align:center;">${escapeHtml((it.name||'').slice(0,16))}</div>`;
         return `<div class="angebot-canvas-item" data-id="${it.id}" style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;z-index:${it.z};border:2px dashed rgba(139,92,246,0.75);background:white;box-sizing:border-box;">${imgTag}<div class="angebot-resize-handle" data-id="${it.id}" style="position:absolute;right:-10px;bottom:-10px;width:24px;height:24px;background:#8b5cf6;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div></div>`;
     }).join('');
@@ -2703,7 +2778,7 @@ function attachAngebotCanvasHandlers(){
             let maxZ = Math.max(...angebotCanvasItems.map(i=>i.z||0));
             item.z = maxZ+1;
             el.style.zIndex = item.z;
-            if(item.type==='text' || item.type==='price') selectAngebotCanvasItem(id);
+            if(item.type==='text' || item.type==='price' || item.type==='arctext' || item.type==='ribbontext' || item.type==='shadowtext') selectAngebotCanvasItem(id);
             let rect = canvas.getBoundingClientRect();
             angebotCanvasDragState = {id, mode:'move', startClientX:e.clientX, startClientY:e.clientY, startX:item.x, startY:item.y, canvasW:rect.width, canvasH:rect.height};
             try{ el.setPointerCapture(e.pointerId); }catch(err){}
@@ -2761,11 +2836,11 @@ function findSelectedTextItem(){ return angebotCanvasSelectedId ? findCanvasItem
 function renderAngebotTextToolbar(){
     let toolbar = document.getElementById('angebotTextToolbar');
     let item = findSelectedTextItem();
-    if(!item || (item.type!=='text' && item.type!=='price')){ toolbar.style.display='none'; return; }
+    if(!item || (item.type!=='text' && item.type!=='price' && item.type!=='arctext' && item.type!=='ribbontext' && item.type!=='shadowtext')){ toolbar.style.display='none'; return; }
     toolbar.style.display='block';
     let ta = document.getElementById('angebotTextEditArea');
     if(document.activeElement !== ta) ta.value = item.type==='price' ? String(item.value).replace('.',',') : item.text;
-    ta.rows = item.type==='price' ? 1 : 2;
+    ta.rows = item.type==='text' ? 2 : 1;
     let curLevel = item.boldLevel || 3;
     [1,2,3].forEach(lvl=>{
         let btn = document.getElementById('angebotBoldLvl'+lvl);
@@ -2798,7 +2873,7 @@ function removeAngebotTextItem(){
 }
 function adjustAngebotTextSize(delta){
     let item = findSelectedTextItem();
-    if(!item) return;
+    if(!item || item.type==='arctext' || item.type==='ribbontext' || item.type==='shadowtext') return;
     item.fontSize = Math.max(3, Math.min(60, Math.round((item.fontSize||8) + delta)));
     renderAngebotCanvas();
 }
@@ -2928,12 +3003,16 @@ function buildFlyerHTML(templateId, items, priceVal, dateStart, dateEnd){
                 let base = `font-weight:${bi.weight};font-family:Arial,sans-serif;${strokeCss}`;
                 return `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;box-sizing:border-box;color:${it.color};line-height:1;white-space:nowrap;overflow:hidden;"><span style="font-size:${it.fontSize}mm;${base}">${pip}</span><span style="font-size:${(it.fontSize*0.55).toFixed(2)}mm;${base}">,${pcents}</span><span style="font-size:${(it.fontSize*0.6).toFixed(2)}mm;${base}margin-left:1mm;">€</span></div>`;
             }
+            if(it.type==='arctext' || it.type==='ribbontext' || it.type==='shadowtext'){
+                let dataUrl = it.type==='arctext' ? buildArcTextDataUrl(it.text, it.color, it.boldLevel)
+                            : it.type==='ribbontext' ? buildRibbonTextDataUrl(it.text, it.color, it.boldLevel)
+                            : buildShadowTextDataUrl(it.text, it.color, it.boldLevel);
+                return `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;"><img src="${dataUrl}" style="width:100%;height:100%;object-fit:contain;"></div>`;
+            }
             let img = it.image ? `<img src="${it.image}" style="width:100%;height:100%;object-fit:contain;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-weight:800;font-size:4mm;text-align:center;padding:2mm;">${escapeHtml(it.name||'')}</div>`;
             return `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;">${img}</div>`;
         }).join('');
-        let inner = `
-            <div style="position:absolute;inset:0;">${piecesHTML}</div>
-            ${logoTag?`<div style="position:absolute;bottom:6mm;left:6mm;background:rgba(255,255,255,0.94);border-radius:6mm;padding:2mm 4mm;">${logoTag}</div>`:''}`;
+        let inner = `<div style="position:absolute;inset:0;">${piecesHTML}</div>`;
         bodyHTML = `<div style="width:210mm;height:297mm;box-sizing:border-box;padding:9mm;background:linear-gradient(160deg,${accent}18,${accent}05);"><div style="position:relative;width:100%;height:100%;box-sizing:border-box;background:white;border-radius:12mm;border:0.6mm solid ${accent}33;box-shadow:0 8mm 20mm rgba(0,0,0,0.10);overflow:hidden;">${inner}</div></div>`;
     }
 
