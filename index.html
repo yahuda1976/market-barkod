@@ -1000,16 +1000,30 @@ function buildBubbleTextDataUrl(text, bubbleColor, boldLevel){
 // Dairesel muhur/rozet: ana kelime cemberin ustunde, alt kelime
 // cemberin altinda (ters yonde, dogru okunacak sekilde) kavis
 // ciziyor - "ERDEN MARKET" tarzi logo rozetleri gibi.
+function getContrastTextColor(hexColor){
+    try{
+        let hex = String(hexColor).replace('#','');
+        if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+        let r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b = parseInt(hex.substr(4,2),16);
+        let luminance = (0.299*r + 0.587*g + 0.114*b)/255;
+        return luminance > 0.62 ? '#1a1a2e' : '#ffffff';
+    }catch(e){ return '#ffffff'; }
+}
 function buildCircleBadgeDataUrl(text, color, boldLevel){
     let lines = (text||'').split('\n').map(l=>l.trim()).filter(l=>l.length);
     let mainText = lines[0] || '';
     let subText = lines[1] || '';
     let bi = boldLevelInfo(boldLevel);
     let w=300, h=300, cx=150, cy=150, r=132;
-    let fontSize=38, subFontSize=20;
-    let strokeAttr = bi.strokeFactor>0 ? ` stroke="#ffffff" stroke-width="${(bi.strokeFactor*fontSize*1.1).toFixed(1)}" paint-order="stroke fill"` : '';
-    let topR=r-22, botR=r-38;
-    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}"/><circle cx="${cx}" cy="${cy}" r="${r-6}" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="3"/><defs><path id="topArc" d="M ${cx-topR},${cy} A ${topR},${topR} 0 0 1 ${cx+topR},${cy}" fill="none"/><path id="botArc" d="M ${cx+botR},${cy} A ${botR},${botR} 0 0 1 ${cx-botR},${cy}" fill="none"/></defs><text font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="${bi.weight}" fill="#ffffff"${strokeAttr} letter-spacing="1"><textPath href="#topArc" startOffset="50%" text-anchor="middle">${escapeHtml(mainText)}</textPath></text>${subText?`<text font-family="Arial, sans-serif" font-size="${subFontSize}" font-weight="700" fill="#ffffff" letter-spacing="2"><textPath href="#botArc" startOffset="50%" text-anchor="middle">${escapeHtml(subText)}</textPath></text>`:''}</svg>`;
+    let fontSize=34, subFontSize=18;
+    let textColor = getContrastTextColor(color);
+    let strokeAttr = bi.strokeFactor>0 ? ` stroke="${textColor}" stroke-width="${(bi.strokeFactor*fontSize*1.1).toFixed(1)}" paint-order="stroke fill"` : '';
+    // Metnin govdesi yol (path) UZERINDE degil, yolun biraz USTUNDE/
+    // ALTINDA duruyor (harflerin boyu kadar). Bu yuzden yayi cemberin
+    // tam kenarina degil, harf yuksekligi kadar ICERIYE aliyoruz -
+    // yoksa harflerin ustu/alti cemberin disina tasip kayboluyordu.
+    let topR=r-fontSize-14, botR=r-subFontSize-16;
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}"/><circle cx="${cx}" cy="${cy}" r="${r-6}" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="3"/><defs><path id="topArc" d="M ${cx-topR},${cy} A ${topR},${topR} 0 0 1 ${cx+topR},${cy}" fill="none"/><path id="botArc" d="M ${cx+botR},${cy} A ${botR},${botR} 0 0 1 ${cx-botR},${cy}" fill="none"/></defs><text font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="${bi.weight}" fill="${textColor}"${strokeAttr} letter-spacing="1"><textPath href="#topArc" startOffset="50%" text-anchor="middle">${escapeHtml(mainText)}</textPath></text>${subText?`<text font-family="Arial, sans-serif" font-size="${subFontSize}" font-weight="700" fill="${textColor}" letter-spacing="2"><textPath href="#botArc" startOffset="50%" text-anchor="middle">${escapeHtml(subText)}</textPath></text>`:''}</svg>`;
     let b64 = btoa(unescape(encodeURIComponent(svg)));
     return `data:image/svg+xml;base64,${b64}`;
 }
