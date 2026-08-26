@@ -497,7 +497,8 @@
         <button onclick="addAngebotArcTextItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:8px;"><i class="fa-solid fa-align-center" style="margin-right:6px"></i><span data-i18n="btnKavisliYazi">+ KAVISLI YAZI</span></button>
         <button onclick="addAngebotRibbonTextItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:8px;"><i class="fa-solid fa-tag" style="margin-right:6px"></i><span data-i18n="btnSeritYazi">+ SERIT YAZI</span></button>
         <button onclick="addAngebotShadowTextItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:8px;"><i class="fa-solid fa-cube" style="margin-right:6px"></i><span data-i18n="btnGolgeliYazi">+ GOLGELI YAZI</span></button>
-        <button onclick="addAngebotBubbleTextItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:12px;"><i class="fa-solid fa-comment" style="margin-right:6px"></i><span data-i18n="btnBalonYazi">+ ETIKET ROZETI</span></button>
+        <button onclick="addAngebotBubbleTextItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:8px;"><i class="fa-solid fa-comment" style="margin-right:6px"></i><span data-i18n="btnBalonYazi">+ ETIKET ROZETI</span></button>
+        <button onclick="addAngebotCircleBadgeItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:12px;"><i class="fa-solid fa-certificate" style="margin-right:6px"></i><span data-i18n="btnDaireRozet">+ DAIRE ROZET</span></button>
         <div id="angebotCanvasWrap" style="width:100%;display:flex;justify-content:center;margin-bottom:12px;">
             <div id="angebotCanvasArea" style="position:relative;width:100%;max-width:380px;aspect-ratio:210/297;background:#fafafa;border:2px solid #cbd5e1;border-radius:8px;overflow:hidden;touch-action:none;"></div>
         </div>
@@ -764,7 +765,7 @@ const I18N = {
         btnTarihiUygula: 'TARIHI UYGULA', titleManuelEkle: 'MANUEL URUN EKLE',
         titleRapor: 'ENVANTER RAPORU', btnYaziciAc: 'YAZICIYI AC', titleEtiketListesi: 'ETIKET LISTESI',
         btnListeyiTemizle: 'LISTEYI TEMIZLE', phYeniFirma: 'Yeni firma adi...',
-        titleAngebot: 'ANGEBOT HAZIRLA', phIndirimliFiyat: 'Indirimli fiyat (€)', phAngebotFiyat: 'Angebot fiyati (€)', lblTasarimSec: 'TASARIM SEC', btnCokluAngebotSec: 'COKLU ANGEBOT SEC', titleOnizleme: 'ONIZLEME', titleSerbestYerlesim: 'SERBEST YERLESIM', canvasHint: 'Resimlere ve yazilara surukleyerek tasi, sag-alt kosedeki mor tutamactan boyutlandir (yazida yazi boyutunu da degistirir). Bir yaziya dokunursan altta metin/boyut/kalinlik/renk secenekleri cikar.', btnTamamOnizle: 'TAMAM, ONIZLE', btnMetinEkle: '+ METIN EKLE', btnKavisliYazi: '+ KAVISLI YAZI', btnSeritYazi: '+ SERIT YAZI', btnGolgeliYazi: '+ GOLGELI YAZI', btnBalonYazi: '+ ETIKET ROZETI', phMetinYaz: 'Metni yaz... (Enter ile alt satira gec)', lblBoyut: 'BOYUT', btnInce: 'INCE', btnOrta: 'ORTA', btnKalin: 'KALIN',
+        titleAngebot: 'ANGEBOT HAZIRLA', phIndirimliFiyat: 'Indirimli fiyat (€)', phAngebotFiyat: 'Angebot fiyati (€)', lblTasarimSec: 'TASARIM SEC', btnCokluAngebotSec: 'COKLU ANGEBOT SEC', titleOnizleme: 'ONIZLEME', titleSerbestYerlesim: 'SERBEST YERLESIM', canvasHint: 'Resimlere ve yazilara surukleyerek tasi, sag-alt kosedeki mor tutamactan boyutlandir (yazida yazi boyutunu da degistirir). Bir yaziya dokunursan altta metin/boyut/kalinlik/renk secenekleri cikar.', btnTamamOnizle: 'TAMAM, ONIZLE', btnMetinEkle: '+ METIN EKLE', btnKavisliYazi: '+ KAVISLI YAZI', btnSeritYazi: '+ SERIT YAZI', btnGolgeliYazi: '+ GOLGELI YAZI', btnBalonYazi: '+ ETIKET ROZETI', btnDaireRozet: '+ DAIRE ROZET', phMetinYaz: 'Metni yaz... (Enter ile alt satira gec)', lblBoyut: 'BOYUT', btnInce: 'INCE', btnOrta: 'ORTA', btnKalin: 'KALIN',
         titleUrunDetayi: 'URUN DETAYI', lblBarkod: 'Barkod', lblFirma: 'Firma', lblFiyat: 'Fiyat', lblStok: 'Stok',
         lblSkt: 'SKT', lblBelirtilmedi: 'BELIRTILMEDI', lblSistem: 'Sistem', lblMevcut: 'Mevcut', lblEnYakinSkt: 'En yakin SKT',
         btnUzat: '+1 GUN UZAT', btnDuzenle: 'DUZENLE', btnSil: 'SIL', btnSatildi: 'SATILDI',
@@ -793,7 +794,7 @@ const I18N = {
         btnTarihiUygula: 'DATUM ANWENDEN', titleManuelEkle: 'PRODUKT MANUELL HINZUFUGEN',
         titleRapor: 'BESTANDSBERICHT', btnYaziciAc: 'DRUCKER OFFNEN', titleEtiketListesi: 'ETIKETTENLISTE',
         btnListeyiTemizle: 'LISTE LEEREN', phYeniFirma: 'Neue Firma...',
-        titleAngebot: 'ANGEBOT ERSTELLEN', phIndirimliFiyat: 'Rabattpreis (€)', phAngebotFiyat: 'Angebotspreis (€)', lblTasarimSec: 'DESIGN WAHLEN', btnCokluAngebotSec: 'MEHRFACH-ANGEBOT', titleOnizleme: 'VORSCHAU', titleSerbestYerlesim: 'FREIE ANORDNUNG', canvasHint: 'Bilder und Texte durch Ziehen verschieben, mit dem lila Griff unten rechts vergroßern/verkleinern (bei Text auch die Schriftgroße). Bei Textauswahl erscheinen unten Text/Große/Fett/Farbe.', btnTamamOnizle: 'FERTIG, VORSCHAU', btnMetinEkle: '+ TEXT HINZUFUGEN', btnKavisliYazi: '+ BOGENTEXT', btnSeritYazi: '+ BANDTEXT', btnGolgeliYazi: '+ SCHATTENTEXT', btnBalonYazi: '+ SPRECHBLASE', phMetinYaz: 'Text eingeben... (Enter fur neue Zeile)', lblBoyut: 'GROSSE', btnInce: 'DUNN', btnOrta: 'MITTEL', btnKalin: 'FETT',
+        titleAngebot: 'ANGEBOT ERSTELLEN', phIndirimliFiyat: 'Rabattpreis (€)', phAngebotFiyat: 'Angebotspreis (€)', lblTasarimSec: 'DESIGN WAHLEN', btnCokluAngebotSec: 'MEHRFACH-ANGEBOT', titleOnizleme: 'VORSCHAU', titleSerbestYerlesim: 'FREIE ANORDNUNG', canvasHint: 'Bilder und Texte durch Ziehen verschieben, mit dem lila Griff unten rechts vergroßern/verkleinern (bei Text auch die Schriftgroße). Bei Textauswahl erscheinen unten Text/Große/Fett/Farbe.', btnTamamOnizle: 'FERTIG, VORSCHAU', btnMetinEkle: '+ TEXT HINZUFUGEN', btnKavisliYazi: '+ BOGENTEXT', btnSeritYazi: '+ BANDTEXT', btnGolgeliYazi: '+ SCHATTENTEXT', btnBalonYazi: '+ SPRECHBLASE', btnDaireRozet: '+ RUNDES ABZEICHEN', phMetinYaz: 'Text eingeben... (Enter fur neue Zeile)', lblBoyut: 'GROSSE', btnInce: 'DUNN', btnOrta: 'MITTEL', btnKalin: 'FETT',
         titleUrunDetayi: 'PRODUKTDETAILS', lblBarkod: 'Barcode', lblFirma: 'Firma', lblFiyat: 'Preis', lblStok: 'Bestand',
         lblSkt: 'MHD', lblBelirtilmedi: 'NICHT ANGEGEBEN', lblSistem: 'System', lblMevcut: 'Vorhanden', lblEnYakinSkt: 'Nächstes MHD',
         btnUzat: '+1 TAG VERLANGERN', btnDuzenle: 'BEARBEITEN', btnSil: 'LOSCHEN', btnSatildi: 'VERKAUFT',
@@ -822,7 +823,7 @@ const I18N = {
         btnTarihiUygula: 'APPLY DATE', titleManuelEkle: 'MANUALLY ADD PRODUCT',
         titleRapor: 'INVENTORY REPORT', btnYaziciAc: 'OPEN PRINTER', titleEtiketListesi: 'LABEL LIST',
         btnListeyiTemizle: 'CLEAR LIST', phYeniFirma: 'New company...',
-        titleAngebot: 'CREATE OFFER', phIndirimliFiyat: 'Discounted price (€)', phAngebotFiyat: 'Offer price (€)', lblTasarimSec: 'CHOOSE DESIGN', btnCokluAngebotSec: 'MULTI-PRODUCT OFFER', titleOnizleme: 'PREVIEW', titleSerbestYerlesim: 'FREE LAYOUT', canvasHint: 'Drag images and text to move them, use the purple handle at the bottom-right to resize (for text this also changes font size). Tap a text item to reveal text/size/weight/color options below.', btnTamamOnizle: 'DONE, PREVIEW', btnMetinEkle: '+ ADD TEXT', btnKavisliYazi: '+ CURVED TEXT', btnSeritYazi: '+ RIBBON TEXT', btnGolgeliYazi: '+ SHADOW TEXT', btnBalonYazi: '+ SPEECH BUBBLE', phMetinYaz: 'Type text... (Enter for new line)', lblBoyut: 'SIZE', btnInce: 'THIN', btnOrta: 'MEDIUM', btnKalin: 'BOLD',
+        titleAngebot: 'CREATE OFFER', phIndirimliFiyat: 'Discounted price (€)', phAngebotFiyat: 'Offer price (€)', lblTasarimSec: 'CHOOSE DESIGN', btnCokluAngebotSec: 'MULTI-PRODUCT OFFER', titleOnizleme: 'PREVIEW', titleSerbestYerlesim: 'FREE LAYOUT', canvasHint: 'Drag images and text to move them, use the purple handle at the bottom-right to resize (for text this also changes font size). Tap a text item to reveal text/size/weight/color options below.', btnTamamOnizle: 'DONE, PREVIEW', btnMetinEkle: '+ ADD TEXT', btnKavisliYazi: '+ CURVED TEXT', btnSeritYazi: '+ RIBBON TEXT', btnGolgeliYazi: '+ SHADOW TEXT', btnBalonYazi: '+ SPEECH BUBBLE', btnDaireRozet: '+ CIRCLE BADGE', phMetinYaz: 'Type text... (Enter for new line)', lblBoyut: 'SIZE', btnInce: 'THIN', btnOrta: 'MEDIUM', btnKalin: 'BOLD',
         titleUrunDetayi: 'PRODUCT DETAILS', lblBarkod: 'Barcode', lblFirma: 'Company', lblFiyat: 'Price', lblStok: 'Stock',
         lblSkt: 'Expiry', lblBelirtilmedi: 'NOT SPECIFIED', lblSistem: 'System', lblMevcut: 'Current', lblEnYakinSkt: 'Nearest expiry',
         btnUzat: '+1 DAY EXTEND', btnDuzenle: 'EDIT', btnSil: 'DELETE', btnSatildi: 'SOLD',
@@ -993,6 +994,22 @@ function buildBubbleTextDataUrl(text, bubbleColor, boldLevel){
     let strokeAttr = bi.strokeFactor>0 ? ` stroke="#ffffff" stroke-width="${(bi.strokeFactor*fontSize*1.3).toFixed(1)}" paint-order="stroke fill"` : '';
     let tspans = lines.map((line,i)=>`<tspan x="${w/2}" y="${startY+i*lineHeight}">${escapeHtml(line)}</tspan>`).join('');
     let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><rect x="10" y="10" width="${w-20}" height="${bodyH}" rx="26" fill="${bubbleColor}"/><polygon points="${w/2-30},${10+bodyH-5} ${w/2+30},${10+bodyH-5} ${w/2},${10+bodyH+45}" fill="${bubbleColor}"/><text font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="${bi.weight}" fill="#ffffff"${strokeAttr} text-anchor="middle">${tspans}</text></svg>`;
+    let b64 = btoa(unescape(encodeURIComponent(svg)));
+    return `data:image/svg+xml;base64,${b64}`;
+}
+// Dairesel muhur/rozet: ana kelime cemberin ustunde, alt kelime
+// cemberin altinda (ters yonde, dogru okunacak sekilde) kavis
+// ciziyor - "ERDEN MARKET" tarzi logo rozetleri gibi.
+function buildCircleBadgeDataUrl(text, color, boldLevel){
+    let lines = (text||'').split('\n').map(l=>l.trim()).filter(l=>l.length);
+    let mainText = lines[0] || '';
+    let subText = lines[1] || '';
+    let bi = boldLevelInfo(boldLevel);
+    let w=300, h=300, cx=150, cy=150, r=132;
+    let fontSize=38, subFontSize=20;
+    let strokeAttr = bi.strokeFactor>0 ? ` stroke="#ffffff" stroke-width="${(bi.strokeFactor*fontSize*1.1).toFixed(1)}" paint-order="stroke fill"` : '';
+    let topR=r-22, botR=r-38;
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}"/><circle cx="${cx}" cy="${cy}" r="${r-6}" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="3"/><defs><path id="topArc" d="M ${cx-topR},${cy} A ${topR},${topR} 0 0 1 ${cx+topR},${cy}" fill="none"/><path id="botArc" d="M ${cx+botR},${cy} A ${botR},${botR} 0 0 1 ${cx-botR},${cy}" fill="none"/></defs><text font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="${bi.weight}" fill="#ffffff"${strokeAttr} letter-spacing="1"><textPath href="#topArc" startOffset="50%" text-anchor="middle">${escapeHtml(mainText)}</textPath></text>${subText?`<text font-family="Arial, sans-serif" font-size="${subFontSize}" font-weight="700" fill="#ffffff" letter-spacing="2"><textPath href="#botArc" startOffset="50%" text-anchor="middle">${escapeHtml(subText)}</textPath></text>`:''}</svg>`;
     let b64 = btoa(unescape(encodeURIComponent(svg)));
     return `data:image/svg+xml;base64,${b64}`;
 }
@@ -2683,12 +2700,13 @@ let angebotCanvasVals = null;
 let angebotCanvasDragState = null;
 let angebotCanvasSelectedId = null;
 const ANGEBOT_TEXT_COLORS = ['#1a1a2e','#c60000','#0ea5e9','#10b981','#f59e0b','#8b5cf6','#ec4899','#ffffff'];
-const ANGEBOT_SVG_TEXT_TYPES = ['arctext','ribbontext','shadowtext','bubbletext'];
+const ANGEBOT_SVG_TEXT_TYPES = ['arctext','ribbontext','shadowtext','bubbletext','circlebadge'];
 function buildSvgTextDataUrl(it){
     if(it.type==='arctext') return buildArcTextDataUrl(it.text, it.color, it.boldLevel);
     if(it.type==='ribbontext') return buildRibbonTextDataUrl(it.text, it.color, it.boldLevel);
     if(it.type==='shadowtext') return buildShadowTextDataUrl(it.text, it.color, it.boldLevel);
     if(it.type==='bubbletext') return buildBubbleTextDataUrl(it.text, it.color, it.boldLevel);
+    if(it.type==='circlebadge') return buildCircleBadgeDataUrl(it.text, it.color, it.boldLevel);
     return '';
 }
 
@@ -2761,6 +2779,14 @@ function addAngebotBubbleTextItem(){
     let newId = 'bubble'+Date.now();
     let maxZ = angebotCanvasItems.length ? Math.max(...angebotCanvasItems.map(i=>i.z||0)) : 0;
     angebotCanvasItems.push({ id:newId, type:'bubbletext', text:'MARKET ADI\nTAZE URUNLER', x:10, y:60, w:45, h:26, boldLevel:3, color:'#dc2626', z:maxZ+1 });
+    angebotCanvasSelectedId = newId;
+    renderAngebotCanvas();
+    renderAngebotTextToolbar();
+}
+function addAngebotCircleBadgeItem(){
+    let newId = 'circle'+Date.now();
+    let maxZ = angebotCanvasItems.length ? Math.max(...angebotCanvasItems.map(i=>i.z||0)) : 0;
+    angebotCanvasItems.push({ id:newId, type:'circlebadge', text:'MARKET\nADI', x:8, y:8, w:24, h:17, boldLevel:3, color:'#f59e0b', z:maxZ+1 });
     angebotCanvasSelectedId = newId;
     renderAngebotCanvas();
     renderAngebotTextToolbar();
@@ -2872,7 +2898,7 @@ function renderAngebotTextToolbar(){
     toolbar.style.display='block';
     let ta = document.getElementById('angebotTextEditArea');
     if(document.activeElement !== ta) ta.value = item.type==='price' ? String(item.value).replace('.',',') : item.text;
-    ta.rows = (item.type==='text' || item.type==='bubbletext') ? 3 : 1;
+    ta.rows = (item.type==='text' || item.type==='bubbletext' || item.type==='circlebadge') ? 3 : 1;
     let curLevel = item.boldLevel || 3;
     [1,2,3].forEach(lvl=>{
         let btn = document.getElementById('angebotBoldLvl'+lvl);
