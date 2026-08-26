@@ -496,7 +496,8 @@
         <button onclick="addAngebotTextItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:8px;"><i class="fa-solid fa-font" style="margin-right:6px"></i><span data-i18n="btnMetinEkle">+ METIN EKLE</span></button>
         <button onclick="addAngebotArcTextItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:8px;"><i class="fa-solid fa-align-center" style="margin-right:6px"></i><span data-i18n="btnKavisliYazi">+ KAVISLI YAZI</span></button>
         <button onclick="addAngebotRibbonTextItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:8px;"><i class="fa-solid fa-tag" style="margin-right:6px"></i><span data-i18n="btnSeritYazi">+ SERIT YAZI</span></button>
-        <button onclick="addAngebotShadowTextItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:12px;"><i class="fa-solid fa-cube" style="margin-right:6px"></i><span data-i18n="btnGolgeliYazi">+ GOLGELI YAZI</span></button>
+        <button onclick="addAngebotShadowTextItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:8px;"><i class="fa-solid fa-cube" style="margin-right:6px"></i><span data-i18n="btnGolgeliYazi">+ GOLGELI YAZI</span></button>
+        <button onclick="addAngebotBubbleTextItem()" style="width:100%;background:rgba(139,92,246,0.12);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:12px;"><i class="fa-solid fa-comment" style="margin-right:6px"></i><span data-i18n="btnBalonYazi">+ ETIKET ROZETI</span></button>
         <div id="angebotCanvasWrap" style="width:100%;display:flex;justify-content:center;margin-bottom:12px;">
             <div id="angebotCanvasArea" style="position:relative;width:100%;max-width:380px;aspect-ratio:210/297;background:#fafafa;border:2px solid #cbd5e1;border-radius:8px;overflow:hidden;touch-action:none;"></div>
         </div>
@@ -763,7 +764,7 @@ const I18N = {
         btnTarihiUygula: 'TARIHI UYGULA', titleManuelEkle: 'MANUEL URUN EKLE',
         titleRapor: 'ENVANTER RAPORU', btnYaziciAc: 'YAZICIYI AC', titleEtiketListesi: 'ETIKET LISTESI',
         btnListeyiTemizle: 'LISTEYI TEMIZLE', phYeniFirma: 'Yeni firma adi...',
-        titleAngebot: 'ANGEBOT HAZIRLA', phIndirimliFiyat: 'Indirimli fiyat (€)', phAngebotFiyat: 'Angebot fiyati (€)', lblTasarimSec: 'TASARIM SEC', btnCokluAngebotSec: 'COKLU ANGEBOT SEC', titleOnizleme: 'ONIZLEME', titleSerbestYerlesim: 'SERBEST YERLESIM', canvasHint: 'Resimlere ve yazilara surukleyerek tasi, sag-alt kosedeki mor tutamactan boyutlandir (yazida yazi boyutunu da degistirir). Bir yaziya dokunursan altta metin/boyut/kalinlik/renk secenekleri cikar.', btnTamamOnizle: 'TAMAM, ONIZLE', btnMetinEkle: '+ METIN EKLE', btnKavisliYazi: '+ KAVISLI YAZI', btnSeritYazi: '+ SERIT YAZI', btnGolgeliYazi: '+ GOLGELI YAZI', phMetinYaz: 'Metni yaz... (Enter ile alt satira gec)', lblBoyut: 'BOYUT', btnInce: 'INCE', btnOrta: 'ORTA', btnKalin: 'KALIN',
+        titleAngebot: 'ANGEBOT HAZIRLA', phIndirimliFiyat: 'Indirimli fiyat (€)', phAngebotFiyat: 'Angebot fiyati (€)', lblTasarimSec: 'TASARIM SEC', btnCokluAngebotSec: 'COKLU ANGEBOT SEC', titleOnizleme: 'ONIZLEME', titleSerbestYerlesim: 'SERBEST YERLESIM', canvasHint: 'Resimlere ve yazilara surukleyerek tasi, sag-alt kosedeki mor tutamactan boyutlandir (yazida yazi boyutunu da degistirir). Bir yaziya dokunursan altta metin/boyut/kalinlik/renk secenekleri cikar.', btnTamamOnizle: 'TAMAM, ONIZLE', btnMetinEkle: '+ METIN EKLE', btnKavisliYazi: '+ KAVISLI YAZI', btnSeritYazi: '+ SERIT YAZI', btnGolgeliYazi: '+ GOLGELI YAZI', btnBalonYazi: '+ ETIKET ROZETI', phMetinYaz: 'Metni yaz... (Enter ile alt satira gec)', lblBoyut: 'BOYUT', btnInce: 'INCE', btnOrta: 'ORTA', btnKalin: 'KALIN',
         titleUrunDetayi: 'URUN DETAYI', lblBarkod: 'Barkod', lblFirma: 'Firma', lblFiyat: 'Fiyat', lblStok: 'Stok',
         lblSkt: 'SKT', lblBelirtilmedi: 'BELIRTILMEDI', lblSistem: 'Sistem', lblMevcut: 'Mevcut', lblEnYakinSkt: 'En yakin SKT',
         btnUzat: '+1 GUN UZAT', btnDuzenle: 'DUZENLE', btnSil: 'SIL', btnSatildi: 'SATILDI',
@@ -792,7 +793,7 @@ const I18N = {
         btnTarihiUygula: 'DATUM ANWENDEN', titleManuelEkle: 'PRODUKT MANUELL HINZUFUGEN',
         titleRapor: 'BESTANDSBERICHT', btnYaziciAc: 'DRUCKER OFFNEN', titleEtiketListesi: 'ETIKETTENLISTE',
         btnListeyiTemizle: 'LISTE LEEREN', phYeniFirma: 'Neue Firma...',
-        titleAngebot: 'ANGEBOT ERSTELLEN', phIndirimliFiyat: 'Rabattpreis (€)', phAngebotFiyat: 'Angebotspreis (€)', lblTasarimSec: 'DESIGN WAHLEN', btnCokluAngebotSec: 'MEHRFACH-ANGEBOT', titleOnizleme: 'VORSCHAU', titleSerbestYerlesim: 'FREIE ANORDNUNG', canvasHint: 'Bilder und Texte durch Ziehen verschieben, mit dem lila Griff unten rechts vergroßern/verkleinern (bei Text auch die Schriftgroße). Bei Textauswahl erscheinen unten Text/Große/Fett/Farbe.', btnTamamOnizle: 'FERTIG, VORSCHAU', btnMetinEkle: '+ TEXT HINZUFUGEN', btnKavisliYazi: '+ BOGENTEXT', btnSeritYazi: '+ BANDTEXT', btnGolgeliYazi: '+ SCHATTENTEXT', phMetinYaz: 'Text eingeben... (Enter fur neue Zeile)', lblBoyut: 'GROSSE', btnInce: 'DUNN', btnOrta: 'MITTEL', btnKalin: 'FETT',
+        titleAngebot: 'ANGEBOT ERSTELLEN', phIndirimliFiyat: 'Rabattpreis (€)', phAngebotFiyat: 'Angebotspreis (€)', lblTasarimSec: 'DESIGN WAHLEN', btnCokluAngebotSec: 'MEHRFACH-ANGEBOT', titleOnizleme: 'VORSCHAU', titleSerbestYerlesim: 'FREIE ANORDNUNG', canvasHint: 'Bilder und Texte durch Ziehen verschieben, mit dem lila Griff unten rechts vergroßern/verkleinern (bei Text auch die Schriftgroße). Bei Textauswahl erscheinen unten Text/Große/Fett/Farbe.', btnTamamOnizle: 'FERTIG, VORSCHAU', btnMetinEkle: '+ TEXT HINZUFUGEN', btnKavisliYazi: '+ BOGENTEXT', btnSeritYazi: '+ BANDTEXT', btnGolgeliYazi: '+ SCHATTENTEXT', btnBalonYazi: '+ SPRECHBLASE', phMetinYaz: 'Text eingeben... (Enter fur neue Zeile)', lblBoyut: 'GROSSE', btnInce: 'DUNN', btnOrta: 'MITTEL', btnKalin: 'FETT',
         titleUrunDetayi: 'PRODUKTDETAILS', lblBarkod: 'Barcode', lblFirma: 'Firma', lblFiyat: 'Preis', lblStok: 'Bestand',
         lblSkt: 'MHD', lblBelirtilmedi: 'NICHT ANGEGEBEN', lblSistem: 'System', lblMevcut: 'Vorhanden', lblEnYakinSkt: 'Nächstes MHD',
         btnUzat: '+1 TAG VERLANGERN', btnDuzenle: 'BEARBEITEN', btnSil: 'LOSCHEN', btnSatildi: 'VERKAUFT',
@@ -821,7 +822,7 @@ const I18N = {
         btnTarihiUygula: 'APPLY DATE', titleManuelEkle: 'MANUALLY ADD PRODUCT',
         titleRapor: 'INVENTORY REPORT', btnYaziciAc: 'OPEN PRINTER', titleEtiketListesi: 'LABEL LIST',
         btnListeyiTemizle: 'CLEAR LIST', phYeniFirma: 'New company...',
-        titleAngebot: 'CREATE OFFER', phIndirimliFiyat: 'Discounted price (€)', phAngebotFiyat: 'Offer price (€)', lblTasarimSec: 'CHOOSE DESIGN', btnCokluAngebotSec: 'MULTI-PRODUCT OFFER', titleOnizleme: 'PREVIEW', titleSerbestYerlesim: 'FREE LAYOUT', canvasHint: 'Drag images and text to move them, use the purple handle at the bottom-right to resize (for text this also changes font size). Tap a text item to reveal text/size/weight/color options below.', btnTamamOnizle: 'DONE, PREVIEW', btnMetinEkle: '+ ADD TEXT', btnKavisliYazi: '+ CURVED TEXT', btnSeritYazi: '+ RIBBON TEXT', btnGolgeliYazi: '+ SHADOW TEXT', phMetinYaz: 'Type text... (Enter for new line)', lblBoyut: 'SIZE', btnInce: 'THIN', btnOrta: 'MEDIUM', btnKalin: 'BOLD',
+        titleAngebot: 'CREATE OFFER', phIndirimliFiyat: 'Discounted price (€)', phAngebotFiyat: 'Offer price (€)', lblTasarimSec: 'CHOOSE DESIGN', btnCokluAngebotSec: 'MULTI-PRODUCT OFFER', titleOnizleme: 'PREVIEW', titleSerbestYerlesim: 'FREE LAYOUT', canvasHint: 'Drag images and text to move them, use the purple handle at the bottom-right to resize (for text this also changes font size). Tap a text item to reveal text/size/weight/color options below.', btnTamamOnizle: 'DONE, PREVIEW', btnMetinEkle: '+ ADD TEXT', btnKavisliYazi: '+ CURVED TEXT', btnSeritYazi: '+ RIBBON TEXT', btnGolgeliYazi: '+ SHADOW TEXT', btnBalonYazi: '+ SPEECH BUBBLE', phMetinYaz: 'Type text... (Enter for new line)', lblBoyut: 'SIZE', btnInce: 'THIN', btnOrta: 'MEDIUM', btnKalin: 'BOLD',
         titleUrunDetayi: 'PRODUCT DETAILS', lblBarkod: 'Barcode', lblFirma: 'Company', lblFiyat: 'Price', lblStok: 'Stock',
         lblSkt: 'Expiry', lblBelirtilmedi: 'NOT SPECIFIED', lblSistem: 'System', lblMevcut: 'Current', lblEnYakinSkt: 'Nearest expiry',
         btnUzat: '+1 DAY EXTEND', btnDuzenle: 'EDIT', btnSil: 'DELETE', btnSatildi: 'SOLD',
@@ -975,6 +976,23 @@ function buildShadowTextDataUrl(text, color, boldLevel){
     let offset = ANGEBOT_SHADOW_OFFSETS[boldLevel] || ANGEBOT_SHADOW_OFFSETS[3];
     let w=400, h=110, fontSize=58;
     let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><text x="${w/2+offset}" y="${h/2+20+offset}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="900" fill="rgba(0,0,0,0.38)" text-anchor="middle" letter-spacing="1">${escapeHtml(text||'')}</text><text x="${w/2}" y="${h/2+20}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="900" fill="${color}" text-anchor="middle" letter-spacing="1">${escapeHtml(text||'')}</text></svg>`;
+    let b64 = btoa(unescape(encodeURIComponent(svg)));
+    return `data:image/svg+xml;base64,${b64}`;
+}
+// Konusma balonu / etiket rozeti: yuvarlak kose bir kutu, alt tarafinda
+// bir "kuyruk" (isaret ucu) var - market broşürlerindeki "sadece bu
+// subede!" tarzi kirmizi etiketler gibi. Coklu satir (Enter ile alt
+// satir) destekler, orta hizali.
+function buildBubbleTextDataUrl(text, bubbleColor, boldLevel){
+    let bi = boldLevelInfo(boldLevel);
+    let w=400, h=220, fontSize=32, bodyH=150;
+    let lines = (text||'').split('\n').filter(l=>l.trim().length);
+    if(!lines.length) lines=[''];
+    let lineHeight = fontSize*1.22;
+    let startY = 10 + bodyH/2 - ((lines.length-1)*lineHeight)/2 + fontSize*0.35;
+    let strokeAttr = bi.strokeFactor>0 ? ` stroke="#ffffff" stroke-width="${(bi.strokeFactor*fontSize*1.3).toFixed(1)}" paint-order="stroke fill"` : '';
+    let tspans = lines.map((line,i)=>`<tspan x="${w/2}" y="${startY+i*lineHeight}">${escapeHtml(line)}</tspan>`).join('');
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><rect x="10" y="10" width="${w-20}" height="${bodyH}" rx="26" fill="${bubbleColor}"/><polygon points="${w/2-30},${10+bodyH-5} ${w/2+30},${10+bodyH-5} ${w/2},${10+bodyH+45}" fill="${bubbleColor}"/><text font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="${bi.weight}" fill="#ffffff"${strokeAttr} text-anchor="middle">${tspans}</text></svg>`;
     let b64 = btoa(unescape(encodeURIComponent(svg)));
     return `data:image/svg+xml;base64,${b64}`;
 }
@@ -2665,6 +2683,14 @@ let angebotCanvasVals = null;
 let angebotCanvasDragState = null;
 let angebotCanvasSelectedId = null;
 const ANGEBOT_TEXT_COLORS = ['#1a1a2e','#c60000','#0ea5e9','#10b981','#f59e0b','#8b5cf6','#ec4899','#ffffff'];
+const ANGEBOT_SVG_TEXT_TYPES = ['arctext','ribbontext','shadowtext','bubbletext'];
+function buildSvgTextDataUrl(it){
+    if(it.type==='arctext') return buildArcTextDataUrl(it.text, it.color, it.boldLevel);
+    if(it.type==='ribbontext') return buildRibbonTextDataUrl(it.text, it.color, it.boldLevel);
+    if(it.type==='shadowtext') return buildShadowTextDataUrl(it.text, it.color, it.boldLevel);
+    if(it.type==='bubbletext') return buildBubbleTextDataUrl(it.text, it.color, it.boldLevel);
+    return '';
+}
 
 let angebotCanvasInitialized = false;
 function openAngebotCanvas(){
@@ -2696,7 +2722,7 @@ function openAngebotCanvas(){
 function findCanvasItem(id){ return angebotCanvasItems.find(i=>String(i.id)===String(id)); }
 function selectAngebotCanvasItem(id){
     let item = findCanvasItem(id);
-    angebotCanvasSelectedId = (item && (item.type==='text' || item.type==='price' || item.type==='arctext' || item.type==='ribbontext' || item.type==='shadowtext')) ? id : null;
+    angebotCanvasSelectedId = (item && (item.type==='text' || item.type==='price' || ANGEBOT_SVG_TEXT_TYPES.includes(item.type))) ? id : null;
     renderAngebotTextToolbar();
 }
 function addAngebotTextItem(){
@@ -2731,6 +2757,14 @@ function addAngebotShadowTextItem(){
     renderAngebotCanvas();
     renderAngebotTextToolbar();
 }
+function addAngebotBubbleTextItem(){
+    let newId = 'bubble'+Date.now();
+    let maxZ = angebotCanvasItems.length ? Math.max(...angebotCanvasItems.map(i=>i.z||0)) : 0;
+    angebotCanvasItems.push({ id:newId, type:'bubbletext', text:'MARKET ADI\nTAZE URUNLER', x:10, y:60, w:45, h:26, boldLevel:3, color:'#dc2626', z:maxZ+1 });
+    angebotCanvasSelectedId = newId;
+    renderAngebotCanvas();
+    renderAngebotTextToolbar();
+}
 function renderAngebotCanvas(){
     let canvas = document.getElementById('angebotCanvasArea');
     let canvasWidthPx = canvas.clientWidth || 380;
@@ -2753,11 +2787,9 @@ function renderAngebotCanvas(){
             let base = `font-weight:${bi.weight};font-family:Arial,sans-serif;${strokeCss}`;
             return `<div class="angebot-canvas-item" data-id="${it.id}" style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;z-index:${it.z};box-sizing:border-box;padding:2px 4px;white-space:nowrap;overflow:hidden;color:${it.color};cursor:move;line-height:1;${selectedStyle}"><span style="font-size:${fontPx}px;${base}">${ip}</span><span style="font-size:${Math.round(fontPx*0.55)}px;${base}">,${cents}</span><span style="font-size:${Math.round(fontPx*0.6)}px;${base}margin-left:2px;">€</span><div class="angebot-resize-handle" data-id="${it.id}" style="position:absolute;right:-10px;bottom:-10px;width:24px;height:24px;background:#8b5cf6;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div></div>`;
         }
-        if(it.type==='arctext' || it.type==='ribbontext' || it.type==='shadowtext'){
+        if(ANGEBOT_SVG_TEXT_TYPES.includes(it.type)){
             let selectedStyle = angebotCanvasSelectedId===it.id ? 'outline:2px dashed #8b5cf6;outline-offset:2px;' : 'border:1px dashed rgba(139,92,246,0.35);';
-            let dataUrl = it.type==='arctext' ? buildArcTextDataUrl(it.text, it.color, it.boldLevel)
-                        : it.type==='ribbontext' ? buildRibbonTextDataUrl(it.text, it.color, it.boldLevel)
-                        : buildShadowTextDataUrl(it.text, it.color, it.boldLevel);
+            let dataUrl = buildSvgTextDataUrl(it);
             return `<div class="angebot-canvas-item" data-id="${it.id}" style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;z-index:${it.z};box-sizing:border-box;${selectedStyle}"><img src="${dataUrl}" style="width:100%;height:100%;object-fit:contain;pointer-events:none;"><div class="angebot-resize-handle" data-id="${it.id}" style="position:absolute;right:-10px;bottom:-10px;width:24px;height:24px;background:#8b5cf6;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div></div>`;
         }
         let imgTag = it.image ? `<img src="${it.image}" style="width:100%;height:100%;object-fit:contain;pointer-events:none;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#999;font-size:0.65rem;font-weight:700;pointer-events:none;padding:2px;text-align:center;">${escapeHtml((it.name||'').slice(0,16))}</div>`;
@@ -2778,7 +2810,7 @@ function attachAngebotCanvasHandlers(){
             let maxZ = Math.max(...angebotCanvasItems.map(i=>i.z||0));
             item.z = maxZ+1;
             el.style.zIndex = item.z;
-            if(item.type==='text' || item.type==='price' || item.type==='arctext' || item.type==='ribbontext' || item.type==='shadowtext') selectAngebotCanvasItem(id);
+            if(item.type==='text' || item.type==='price' || ANGEBOT_SVG_TEXT_TYPES.includes(item.type)) selectAngebotCanvasItem(id);
             let rect = canvas.getBoundingClientRect();
             angebotCanvasDragState = {id, mode:'move', startClientX:e.clientX, startClientY:e.clientY, startX:item.x, startY:item.y, canvasW:rect.width, canvasH:rect.height};
             try{ el.setPointerCapture(e.pointerId); }catch(err){}
@@ -2836,11 +2868,11 @@ function findSelectedTextItem(){ return angebotCanvasSelectedId ? findCanvasItem
 function renderAngebotTextToolbar(){
     let toolbar = document.getElementById('angebotTextToolbar');
     let item = findSelectedTextItem();
-    if(!item || (item.type!=='text' && item.type!=='price' && item.type!=='arctext' && item.type!=='ribbontext' && item.type!=='shadowtext')){ toolbar.style.display='none'; return; }
+    if(!item || (item.type!=='text' && item.type!=='price' && !ANGEBOT_SVG_TEXT_TYPES.includes(item.type))){ toolbar.style.display='none'; return; }
     toolbar.style.display='block';
     let ta = document.getElementById('angebotTextEditArea');
     if(document.activeElement !== ta) ta.value = item.type==='price' ? String(item.value).replace('.',',') : item.text;
-    ta.rows = item.type==='text' ? 2 : 1;
+    ta.rows = (item.type==='text' || item.type==='bubbletext') ? 3 : 1;
     let curLevel = item.boldLevel || 3;
     [1,2,3].forEach(lvl=>{
         let btn = document.getElementById('angebotBoldLvl'+lvl);
@@ -2873,7 +2905,7 @@ function removeAngebotTextItem(){
 }
 function adjustAngebotTextSize(delta){
     let item = findSelectedTextItem();
-    if(!item || item.type==='arctext' || item.type==='ribbontext' || item.type==='shadowtext') return;
+    if(!item || ANGEBOT_SVG_TEXT_TYPES.includes(item.type)) return;
     item.fontSize = Math.max(3, Math.min(60, Math.round((item.fontSize||8) + delta)));
     renderAngebotCanvas();
 }
@@ -3003,10 +3035,8 @@ function buildFlyerHTML(templateId, items, priceVal, dateStart, dateEnd){
                 let base = `font-weight:${bi.weight};font-family:Arial,sans-serif;${strokeCss}`;
                 return `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;box-sizing:border-box;color:${it.color};line-height:1;white-space:nowrap;overflow:hidden;"><span style="font-size:${it.fontSize}mm;${base}">${pip}</span><span style="font-size:${(it.fontSize*0.55).toFixed(2)}mm;${base}">,${pcents}</span><span style="font-size:${(it.fontSize*0.6).toFixed(2)}mm;${base}margin-left:1mm;">€</span></div>`;
             }
-            if(it.type==='arctext' || it.type==='ribbontext' || it.type==='shadowtext'){
-                let dataUrl = it.type==='arctext' ? buildArcTextDataUrl(it.text, it.color, it.boldLevel)
-                            : it.type==='ribbontext' ? buildRibbonTextDataUrl(it.text, it.color, it.boldLevel)
-                            : buildShadowTextDataUrl(it.text, it.color, it.boldLevel);
+            if(ANGEBOT_SVG_TEXT_TYPES.includes(it.type)){
+                let dataUrl = buildSvgTextDataUrl(it);
                 return `<div style="position:absolute;left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%;"><img src="${dataUrl}" style="width:100%;height:100%;object-fit:contain;"></div>`;
             }
             let img = it.image ? `<img src="${it.image}" style="width:100%;height:100%;object-fit:contain;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#ccc;font-weight:800;font-size:4mm;text-align:center;padding:2mm;">${escapeHtml(it.name||'')}</div>`;
