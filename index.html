@@ -222,6 +222,9 @@
         <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-tags" style="margin-right:6px"></i><span data-i18n="drawerEtiket">ETIKETLER</span></div>
         <button class="drawer-btn" onclick="closeDrawer();managePrintQueue();"><i class="fa-solid fa-list-check" style="width:20px;text-align:center"></i> <span data-i18n="btnEtiketYonet">ETIKET LISTESINI YONET</span></button>
         <button class="drawer-btn" onclick="closeDrawer();openLabelDesignModal();"><i class="fa-solid fa-palette" style="width:20px;text-align:center"></i> <span data-i18n="btnEtiketTasarim">ETIKET TASARIMI</span></button>
+        <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-box-archive" style="margin-right:6px"></i><span data-i18n="drawerArsiv">ARSIV</span></div>
+        <button class="drawer-btn" onclick="closeDrawer();confirmArchiveAll();"><i class="fa-solid fa-box-archive" style="width:20px;text-align:center"></i> <span data-i18n="btnTumunuArsivle">TUM URUNLERI ARSIVLE</span></button>
+        <button class="drawer-btn" onclick="closeDrawer();openArchiveModal();"><i class="fa-solid fa-eye" style="width:20px;text-align:center"></i> <span data-i18n="btnArsiviGoruntule">ARSIVI GORUNTULE</span></button>
         <div class="drawer-sep"></div><div class="drawer-group-title"><i class="fa-solid fa-cloud-arrow-down" style="margin-right:6px"></i><span data-i18n="drawerYedek">YEDEKLEME</span></div>
         <button class="drawer-btn" onclick="closeDrawer();backupData();"><i class="fa-solid fa-download" style="width:20px;text-align:center"></i> <span data-i18n="btnYedekTelefon">TELEFONA YEDEK AL</span></button>
         <button class="drawer-btn" onclick="closeDrawer();backupToGoogleDrive();"><i class="fa-brands fa-google-drive" style="width:20px;text-align:center"></i> <span data-i18n="btnYedekDrive">GOOGLE DRIVE'A YEDEKLE</span></button>
@@ -522,6 +525,17 @@
         <button onclick="confirmAngebotCanvas()" style="width:100%;background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,0.25);"><i class="fa-solid fa-check" style="margin-right:8px"></i><span data-i18n="btnTamamOnizle">TAMAM, ONIZLE</span></button>
     </div>
 </div>
+<div id="archiveModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa-solid fa-box-archive" style="margin-right:8px"></i><span data-i18n="titleArsiv">ARSIV</span></span>
+            <button class="close-modal-btn" onclick="closeArchiveModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:12px;font-weight:500;" data-i18n="arsivHint">Buradaki urunler envanterde, aramada ve uyarilarda gorunmez. Istedigin zaman geri getirebilirsin.</div>
+        <button onclick="restoreAllArchived()" style="width:100%;background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.78rem;cursor:pointer;margin-bottom:12px;"><i class="fa-solid fa-rotate-left" style="margin-right:6px"></i><span data-i18n="btnTumunuGeriGetir">TUMUNU GERI GETIR</span></button>
+        <div id="archiveListContainer" style="max-height:52vh;overflow-y:auto"></div>
+    </div>
+</div>
 <div id="labelDesignModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -705,6 +719,13 @@ const PHRASE_DICT = [
     ["En fazla 4 urun secebilirsin", "Du kannst maximal 4 Produkte auswahlen", "You can select up to 4 products"],
     ["En az 1 urun sec", "Wahle mindestens 1 Produkt", "Select at least 1 product"],
     ["gun kaldi", "Tage ubrig", "days left"],
+    ["Arsivlenecek urun yok", "Keine Produkte zum Archivieren", "No products to archive"],
+    ["urun arsivlenecek. Urunler silinmeyecek, istersen daha sonra geri getirebilirsin. Devam edilsin mi?", "Produkte werden archiviert. Sie werden nicht geloscht, du kannst sie spater wiederherstellen. Fortfahren?", "products will be archived. They won't be deleted, you can restore them later. Continue?"],
+    ["Tum urunler arsivlendi", "Alle Produkte archiviert", "All products archived"],
+    ["Arsivde urun yok", "Keine Produkte im Archiv", "No products in archive"],
+    ["Urun geri getirildi", "Produkt wiederhergestellt", "Product restored"],
+    ["urun geri getirilsin mi?", "Produkte wiederherstellen?", "products be restored?"],
+    ["Tum urunler geri getirildi", "Alle Produkte wiederhergestellt", "All products restored"],
 ];
 function translateText(str){
     if(currentLang==='tr' || !str) return str;
@@ -753,7 +774,7 @@ const I18N = {
         btnCompanies: 'FIRMALAR', btnManualAdd: 'MANUEL EKLE', navInventory: 'ENVANTERI GORUNTULE', countSuffix: 'cesit',
         drawerView: 'GORUNUM', darkOn: 'KARANLIK MODA GEC', darkOff: 'AYDINLIK MODA GEC',
         drawerSayim: 'SAYIM', btnSayim: 'STOK SAYIMI YAP',
-        drawerEtiket: 'ETIKETLER', btnEtiketYonet: 'ETIKET LISTESINI YONET', btnEtiketTasarim: 'ETIKET TASARIMI', lblEtiketRenk: 'FIYAT RENGI', lblEtiketLogo: 'LOGO (ISTEGE BAGLI)', btnLogoSec: 'LOGO SEC', btnLogoKaldir: 'KALDIR',
+        drawerEtiket: 'ETIKETLER', btnEtiketYonet: 'ETIKET LISTESINI YONET', btnEtiketTasarim: 'ETIKET TASARIMI', lblEtiketRenk: 'FIYAT RENGI', lblEtiketLogo: 'LOGO (ISTEGE BAGLI)', btnLogoSec: 'LOGO SEC', btnLogoKaldir: 'KALDIR', drawerArsiv: 'ARSIV', btnTumunuArsivle: 'TUM URUNLERI ARSIVLE', btnArsiviGoruntule: 'ARSIVI GORUNTULE', titleArsiv: 'ARSIV', arsivHint: 'Buradaki urunler envanterde, aramada ve uyarilarda gorunmez. Istedigin zaman geri getirebilirsin.', btnTumunuGeriGetir: 'TUMUNU GERI GETIR', btnGeriGetir: 'GERI GETIR',
         drawerYedek: 'YEDEKLEME', btnYedekTelefon: 'TELEFONA YEDEK AL', btnYedekDrive: "GOOGLE DRIVE'A YEDEKLE", btnYedekGeri: 'YEDEKTEN GERI YUKLE',
         drawerRapor: 'RAPORLAR', btnCsv: 'CSV RAPORU INDIR', btnYazdir: 'ENVANTERI YAZDIR', btnEtiketOnizle: 'ONIZLE', btnEtiketYazdir: 'YAZDIR',
         drawerDiger: 'DIGER', btnSikistir: 'RESIMLERI SIKISTIR', drawerDil: 'DIL / LANGUAGE',
@@ -782,7 +803,7 @@ const I18N = {
         btnCompanies: 'FIRMEN', btnManualAdd: 'MANUELL HINZUFUGEN', navInventory: 'BESTAND ANZEIGEN', countSuffix: 'Artikel',
         drawerView: 'ANSICHT', darkOn: 'DUNKLER MODUS', darkOff: 'HELLER MODUS',
         drawerSayim: 'INVENTUR', btnSayim: 'BESTAND ZAHLEN',
-        drawerEtiket: 'ETIKETTEN', btnEtiketYonet: 'ETIKETTENLISTE VERWALTEN', btnEtiketTasarim: 'ETIKETTENDESIGN', lblEtiketRenk: 'PREISFARBE', lblEtiketLogo: 'LOGO (OPTIONAL)', btnLogoSec: 'LOGO WAHLEN', btnLogoKaldir: 'ENTFERNEN',
+        drawerEtiket: 'ETIKETTEN', btnEtiketYonet: 'ETIKETTENLISTE VERWALTEN', btnEtiketTasarim: 'ETIKETTENDESIGN', lblEtiketRenk: 'PREISFARBE', lblEtiketLogo: 'LOGO (OPTIONAL)', btnLogoSec: 'LOGO WAHLEN', btnLogoKaldir: 'ENTFERNEN', drawerArsiv: 'ARCHIV', btnTumunuArsivle: 'ALLE PRODUKTE ARCHIVIEREN', btnArsiviGoruntule: 'ARCHIV ANZEIGEN', titleArsiv: 'ARCHIV', arsivHint: 'Diese Produkte erscheinen nicht im Bestand, in der Suche oder in Warnungen. Du kannst sie jederzeit wiederherstellen.', btnTumunuGeriGetir: 'ALLE WIEDERHERSTELLEN', btnGeriGetir: 'WIEDERHERSTELLEN',
         drawerYedek: 'SICHERUNG', btnYedekTelefon: 'AUF TELEFON SICHERN', btnYedekDrive: 'IN GOOGLE DRIVE SICHERN', btnYedekGeri: 'AUS SICHERUNG WIEDERHERSTELLEN',
         drawerRapor: 'BERICHTE', btnCsv: 'CSV-BERICHT HERUNTERLADEN', btnYazdir: 'BESTAND DRUCKEN', btnEtiketOnizle: 'VORSCHAU', btnEtiketYazdir: 'DRUCKEN',
         drawerDiger: 'WEITERES', btnSikistir: 'BILDER KOMPRIMIEREN', drawerDil: 'SPRACHE / DIL',
@@ -811,7 +832,7 @@ const I18N = {
         btnCompanies: 'COMPANIES', btnManualAdd: 'MANUAL ADD', navInventory: 'VIEW INVENTORY', countSuffix: 'items',
         drawerView: 'APPEARANCE', darkOn: 'SWITCH TO DARK MODE', darkOff: 'SWITCH TO LIGHT MODE',
         drawerSayim: 'STOCKTAKE', btnSayim: 'DO STOCKTAKE',
-        drawerEtiket: 'LABELS', btnEtiketYonet: 'MANAGE LABEL LIST', btnEtiketTasarim: 'LABEL DESIGN', lblEtiketRenk: 'PRICE COLOR', lblEtiketLogo: 'LOGO (OPTIONAL)', btnLogoSec: 'CHOOSE LOGO', btnLogoKaldir: 'REMOVE',
+        drawerEtiket: 'LABELS', btnEtiketYonet: 'MANAGE LABEL LIST', btnEtiketTasarim: 'LABEL DESIGN', lblEtiketRenk: 'PRICE COLOR', lblEtiketLogo: 'LOGO (OPTIONAL)', btnLogoSec: 'CHOOSE LOGO', btnLogoKaldir: 'REMOVE', drawerArsiv: 'ARCHIVE', btnTumunuArsivle: 'ARCHIVE ALL PRODUCTS', btnArsiviGoruntule: 'VIEW ARCHIVE', titleArsiv: 'ARCHIVE', arsivHint: 'These products are hidden from inventory, search, and alerts. You can restore them anytime.', btnTumunuGeriGetir: 'RESTORE ALL', btnGeriGetir: 'RESTORE',
         drawerYedek: 'BACKUP', btnYedekTelefon: 'BACKUP TO PHONE', btnYedekDrive: 'BACKUP TO GOOGLE DRIVE', btnYedekGeri: 'RESTORE FROM BACKUP',
         drawerRapor: 'REPORTS', btnCsv: 'DOWNLOAD CSV REPORT', btnYazdir: 'PRINT INVENTORY', btnEtiketOnizle: 'PREVIEW', btnEtiketYazdir: 'PRINT',
         drawerDiger: 'OTHER', btnSikistir: 'COMPRESS IMAGES', drawerDil: 'LANGUAGE / DIL',
@@ -1793,6 +1814,59 @@ async function saveLabelDesign(){
     showToast(translateText('Etiket tasarimi kaydedildi'));
 }
 
+// ==============================================================
+//  ARSIV: is yeri degisikliginde eski urunleri SILMEDEN, envanterden,
+//  aramadan ve tum uyarilardan gizler. Istenirse tek tek ya da
+//  toplu olarak geri getirilebilir.
+// ==============================================================
+async function confirmArchiveAll(){
+    let activeCount = products.filter(p=>!p.archived).length;
+    if(!activeCount){ showToast(translateText('Arsivlenecek urun yok')); return; }
+    if(!confirm(`${activeCount} ${translateText('urun arsivlenecek. Urunler silinmeyecek, istersen daha sonra geri getirebilirsin. Devam edilsin mi?')}`)) return;
+    let now = new Date().toISOString();
+    products.forEach(p=>{ if(!p.archived){ p.archived = true; p.archivedDate = now; } });
+    await saveProducts();
+    await updateUI();
+    showToast(translateText('Tum urunler arsivlendi'));
+}
+function openArchiveModal(){
+    renderArchiveList();
+    document.getElementById('archiveModal').style.display='flex';
+}
+function closeArchiveModal(){ document.getElementById('archiveModal').style.display='none'; }
+function renderArchiveList(){
+    let c = document.getElementById('archiveListContainer');
+    let archived = products.filter(p=>p.archived);
+    if(!archived.length){
+        c.innerHTML = "<div style='text-align:center;padding:24px;color:var(--text-secondary);'><i class='fa-solid fa-box-open' style='font-size:2rem;margin-bottom:8px;display:block;opacity:0.5'></i>"+translateText('Arsivde urun yok')+"</div>";
+        return;
+    }
+    c.innerHTML = archived.map(p=>{
+        let idx = products.findIndex(pr=>pr.id===p.id);
+        return `<div class="envanter-item" style="opacity:0.85;"><div class="product-name-item" style="cursor:default;">${escapeHtml(p.name)} <span style="color:var(--text-secondary);font-weight:600">(${p.price?.toFixed ? p.price.toFixed(2) : p.price} €)</span></div><div class="envanter-item-actions"><button onclick="restoreArchivedProduct(${idx})" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fa-solid fa-rotate-left" style="margin-right:4px"></i>${t('btnGeriGetir')}</button></div></div>`;
+    }).join('');
+}
+async function restoreArchivedProduct(idx){
+    let p = products[idx];
+    if(!p) return;
+    p.archived = false;
+    delete p.archivedDate;
+    await saveProducts();
+    await updateUI();
+    renderArchiveList();
+    showToast(translateText('Urun geri getirildi'));
+}
+async function restoreAllArchived(){
+    let archivedCount = products.filter(p=>p.archived).length;
+    if(!archivedCount){ showToast(translateText('Arsivde urun yok')); return; }
+    if(!confirm(`${archivedCount} ${translateText('urun geri getirilsin mi?')}`)) return;
+    products.forEach(p=>{ if(p.archived){ p.archived=false; delete p.archivedDate; } });
+    await saveProducts();
+    await updateUI();
+    renderArchiveList();
+    showToast(translateText('Tum urunler geri getirildi'));
+}
+
 function showToast(msg){ 
     msg = translateText(msg);
     let c=document.getElementById("toast-container"),t=document.createElement("div");
@@ -2107,17 +2181,18 @@ function findByBarcode(code){
 function findIdxByBarcode(code){ 
     let c=normBarcode(code); 
     if(!c || c.length < 3) return -1; 
-    let i=products.findIndex(p=>normBarcode(p.barcode)===c); 
+    let i=products.findIndex(p=>!p.archived && normBarcode(p.barcode)===c); 
     if(i!==-1) return i; 
     let cNoZero=c.replace(/^0+/,''); 
-    return products.findIndex(p=>normBarcode(p.barcode).replace(/^0+/,'')===cNoZero); 
+    return products.findIndex(p=>!p.archived && normBarcode(p.barcode).replace(/^0+/,'')===cNoZero); 
 }
 async function updateUI(){ 
     let today=new Date(); 
-    let withDays = products.filter(p=>p.expiry&&p.quantity>0).map(p=>daysUntilExpiry(p.expiry));
+    let activeProducts = products.filter(p=>!p.archived);
+    let withDays = activeProducts.filter(p=>p.expiry&&p.quantity>0).map(p=>daysUntilExpiry(p.expiry));
     let expiredCount = withDays.filter(d=>d<0).length;
     let soonCount = withDays.filter(d=>d>=0&&d<=7).length;
-    document.getElementById('productCountBadge').innerText=products.length+' '+((I18N[currentLang]||I18N.tr).countSuffix); 
+    document.getElementById('productCountBadge').innerText=activeProducts.length+' '+((I18N[currentLang]||I18N.tr).countSuffix); 
 
     let banner=document.getElementById('urgentBanner');
     let bannerText=document.getElementById('urgentBannerText');
@@ -2159,7 +2234,7 @@ function viewCompanyProducts(name){
 function closeInventoryModal(){ document.getElementById("inventoryModal").style.display="none"; companyFilter=null; }
 
 function renderInventoryList(){ 
-    let baseList = companyFilter ? products.filter(p=>p.company===companyFilter) : products;
+    let baseList = (companyFilter ? products.filter(p=>p.company===companyFilter) : products).filter(p=>!p.archived);
     let statsEl=document.getElementById("inventoryStats"); 
     if(statsEl){ 
         let total=baseList.length,active=baseList.filter(p=>p.quantity>0).length,zero=baseList.filter(p=>p.quantity===0).length,urgent=baseList.filter(p=>p.expiry&&p.quantity>0&&daysUntilExpiry(p.expiry)<=7).length,noimg=baseList.filter(p=>!p.image).length; 
@@ -3911,6 +3986,7 @@ loadLanguagePreference();
         angebotModal: ()=>{ document.getElementById('angebotModal').style.display='none'; },
         angebotPreviewModal: ()=>closeAngebotPreview(),
         labelDesignModal: ()=>closeLabelDesignModal(),
+        archiveModal: ()=>closeArchiveModal(),
         angebotCanvasModal: ()=>{ document.getElementById('angebotCanvasModal').style.display='none'; document.getElementById('angebotModal').style.display='flex'; },
     };
 
