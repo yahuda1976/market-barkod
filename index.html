@@ -18,15 +18,14 @@
 // ==============================================================
 //  AY NUMARASI HATIRATICISI + OZEL TARIH SECICI
 //
-//  Telefonun kendi takvim penceresi acildiginda ayin numarasini
-//  gostermedigi icin, tarih kutularina basilinca sayfa ici kucuk
-//  bir takvim acilir. Baslikta secili ayin yaninda "9. AY" gibi
-//  bir rozet, altta da 1 · Ocak ... 12 · Aralik seklide numarali
-//  ay listesi gorunur. Boylece hangi ayin kacinci oldugu goz ucuyla
-//  okunur. Kutularin altina da kucuk bir serit hatirlaticisi konur.
-//  Dinamik olusan tarih kutulari MutationObserver ile yakalanir;
-//  kaydetme mantigi (input.value okumalari) hic degismedigi icin
-//  baska hicbir yere dokunulmaz.
+//  Telefonun kendi takvim penceresi ay numarasini gostermedigi icin
+//  tarih kutularinin uzerine seffaf bir kapak koyuyoruz. Parma kutuya
+//  degdiginde telefonun penceresi acilmaz, yerine sayfa ici kucuk
+//  takvimimiz acilir: baslikta secili ayin yaninda "9. AY" rozeti,
+//  altta 1 . Ocak ... 12 . Aralik seklinde numarali ay listesi vardir.
+//  NOT: Chrome/Android `readonly` ozelligini tarih kutularinda yok
+//  saydigi icin kapak yontemi kullanilir; kutunun degeri, kaydetme
+//  mantigi ve diger her sey aynen calismaya devam eder.
 // ==============================================================
 const CDP_MONTHS = ['Ocak','\u015eubat','Mart','Nisan','May\u0131s','Haziran','Temmuz','A\u011fustos','Eyl\u00fcl','Ekim','Kas\u0131m','Aral\u0131k'];
 const CDP_DOW = ['Pzt','Sal','\u00c7ar','Per','Cum','Cmt','Paz'];
@@ -87,9 +86,18 @@ function cdpRender(){
 function attachMonthLegend(dateInput){
     if(!dateInput || dateInput.dataset.monthLegend === '1') return;
     dateInput.dataset.monthLegend = '1';
-    // Yerel takvim yerine kendi numarali takvimimizi acmasi icin kutuyu salt-okunur yapip tiklamayi yakala
-    dateInput.setAttribute('readonly', 'readonly');
-    dateInput.addEventListener('click', function(e){ e.preventDefault(); openCustomDatePicker(dateInput); });
+    // Kutu tepeden tirnaga dokunulmaz; sadece uzerine seffaf kapak koyulur.
+    // Boylece parma kutuya HIC degmez, telefonun takvimi acilamaz,
+    // her dokunus bizim numarali takvimizi acar.
+    let wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;';
+    dateInput.parentNode.insertBefore(wrap, dateInput);
+    wrap.appendChild(dateInput);
+    dateInput.style.pointerEvents = 'none';
+    let cover = document.createElement('div');
+    cover.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:14px;cursor:pointer;z-index:5;';
+    cover.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); openCustomDatePicker(dateInput); });
+    wrap.appendChild(cover);
     dateInput.insertAdjacentHTML('afterend', '<div class="month-legend">1:Oca 2:\u015eub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:A\u011fu 9:Eyl 10:Eki 11:Kas 12:Ara</div>');
 }
 function refreshMonthLegends(){
