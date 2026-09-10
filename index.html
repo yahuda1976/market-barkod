@@ -14,7 +14,28 @@
     <meta name="apple-mobile-web-app-title" content="Market Pro">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js">
+// ==============================================================
+//  AY NUMARASI HATIRATICISI: her tarih kutusunun hemen altina kucuk
+//  bir "1:Oca 2:Sub ..." aciklamasi ekler. Boylece takvim acildiginda
+//  hangi ayin kacinci oldugu goz ucuyla gorulur. Dinamik olusturulan
+//  tarih kutularini da yakalayabilmek icin MutationObserver kullanir;
+//  baska hicbir yere dokunmaz.
+// ==============================================================
+function monthLegendHtml(){
+    return '<div class="month-legend">1:Oca 2:\u015eub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:A\u011fu 9:Eyl 10:Eki 11:Kas 12:Ara</div>';
+}
+function attachMonthLegend(dateInput){
+    if(!dateInput || dateInput.dataset.monthLegend==='1') return;
+    dateInput.dataset.monthLegend='1';
+    dateInput.insertAdjacentHTML('afterend', monthLegendHtml());
+}
+function refreshMonthLegends(){
+    document.querySelectorAll('input[type="date"]').forEach(attachMonthLegend);
+}
+refreshMonthLegends();
+new MutationObserver(()=>refreshMonthLegends()).observe(document.body,{childList:true,subtree:true});
+</script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <style>
         :root {
@@ -206,6 +227,8 @@
         .sayim-diff-pos{color:#059669;font-weight:800;font-size:0.78rem;min-width:30px;text-align:center}
         .sayim-diff-neg{color:#dc2626;font-weight:800;font-size:0.78rem;min-width:30px;text-align:center}
         .sayim-diff-zero{color:var(--text-secondary);font-size:0.78rem;min-width:30px;text-align:center}
+    
+.month-legend{font-size:0.6rem;font-weight:700;color:var(--text-secondary);opacity:0.85;margin:-2px 0 6px 14px;letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     </style>
 </head>
 <body>
