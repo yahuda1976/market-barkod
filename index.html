@@ -14,98 +14,7 @@
     <meta name="apple-mobile-web-app-title" content="Market Pro">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js">
-// ==============================================================
-//  AY NUMARASI HATIRATICISI + OZEL TARIH SECICI
-//
-//  Telefonun kendi takvim penceresi ay numarasini gostermedigi icin
-//  tarih kutularinin uzerine seffaf bir kapak koyuyoruz. Parma kutuya
-//  degdiginde telefonun penceresi acilmaz, yerine sayfa ici kucuk
-//  takvimimiz acilir: baslikta secili ayin yaninda "9. AY" rozeti,
-//  altta 1 . Ocak ... 12 . Aralik seklinde numarali ay listesi vardir.
-//  NOT: Chrome/Android `readonly` ozelligini tarih kutularinda yok
-//  saydigi icin kapak yontemi kullanilir; kutunun degeri, kaydetme
-//  mantigi ve diger her sey aynen calismaya devam eder.
-// ==============================================================
-const CDP_MONTHS = ['Ocak','\u015eubat','Mart','Nisan','May\u0131s','Haziran','Temmuz','A\u011fustos','Eyl\u00fcl','Ekim','Kas\u0131m','Aral\u0131k'];
-const CDP_DOW = ['Pzt','Sal','\u00c7ar','Per','Cum','Cmt','Paz'];
-let cdpState = null;
-
-function openCustomDatePicker(input){
-    let cur = input.value ? new Date(input.value + 'T12:00:00') : new Date();
-    if(isNaN(cur)) cur = new Date();
-    cdpState = { y: cur.getFullYear(), m: cur.getMonth(), d: cur.getDate(), target: input };
-    cdpRender();
-}
-function cdpClose(){
-    let ov = document.getElementById('cdpOverlay');
-    if(ov) ov.remove();
-    cdpState = null;
-}
-function cdpSetMonth(i){ if(cdpState){ cdpState.m = i; cdpRender(); } }
-function cdpShiftYear(delta){ if(cdpState){ cdpState.y += delta; cdpRender(); } }
-function cdpSelectDay(day){ if(cdpState){ cdpState.d = day; cdpRender(); } }
-function cdpConfirm(){
-    if(!cdpState) return;
-    let iso = cdpState.y + '-' + String(cdpState.m + 1).padStart(2,'0') + '-' + String(cdpState.d).padStart(2,'0');
-    cdpState.target.value = iso;
-    cdpState.target.dispatchEvent(new Event('input', {bubbles:true}));
-    cdpState.target.dispatchEvent(new Event('change', {bubbles:true}));
-    cdpClose();
-}
-function cdpRender(){
-    cdpClose();
-    if(!cdpState) return;
-    let y = cdpState.y, m = cdpState.m, d = cdpState.d;
-    let offset = (new Date(y, m, 1).getDay() + 6) % 7; // Pazartesi baslangicli
-    let dim = new Date(y, m + 1, 0).getDate();
-    let today = new Date();
-    let daysHtml = CDP_DOW.map(w => '<div class="cdp-dow">' + w + '</div>').join('');
-    for(let i = 0; i < offset; i++) daysHtml += '<div></div>';
-    for(let day = 1; day <= dim; day++){
-        let isSel = day === d;
-        let isToday = y === today.getFullYear() && m === today.getMonth() && day === today.getDate();
-        daysHtml += '<button class="cdp-day' + (isSel ? ' sel' : '') + (isToday ? ' today' : '') + '" onclick="cdpSelectDay(' + day + ')">' + day + '</button>';
-    }
-    let monthsHtml = CDP_MONTHS.map((name, i) =>
-        '<button class="cdp-month' + (i === m ? ' active' : '') + '" onclick="cdpSetMonth(' + i + ')">' + (i + 1) + ' \u00b7 ' + name + '</button>'
-    ).join('');
-    let ov = document.createElement('div');
-    ov.id = 'cdpOverlay';
-    ov.className = 'cdp-overlay';
-    ov.onclick = function(e){ if(e.target === ov) cdpClose(); };
-    ov.innerHTML = '<div class="cdp-dialog">'
-        + '<div class="cdp-title">' + CDP_MONTHS[m] + ' <span class="cdp-monthnum">' + (m + 1) + '. AY</span></div>'
-        + '<div class="cdp-months">' + monthsHtml + '</div>'
-        + '<div class="cdp-nav"><button onclick="cdpShiftYear(-1)">\u2039</button><span class="cdp-year">' + y + '</span><button onclick="cdpShiftYear(1)">\u203a</button></div>'
-        + '<div class="cdp-grid">' + daysHtml + '</div>'
-        + '<div class="cdp-foot"><button class="cdp-cancel" onclick="cdpClose()">\u0130ptal</button><button class="cdp-ok" onclick="cdpConfirm()">Tamam</button></div>'
-        + '</div>';
-    document.body.appendChild(ov);
-}
-function attachMonthLegend(dateInput){
-    if(!dateInput || dateInput.dataset.monthLegend === '1') return;
-    dateInput.dataset.monthLegend = '1';
-    // Kutu tepeden tirnaga dokunulmaz; sadece uzerine seffaf kapak koyulur.
-    // Boylece parma kutuya HIC degmez, telefonun takvimi acilamaz,
-    // her dokunus bizim numarali takvimizi acar.
-    let wrap = document.createElement('div');
-    wrap.style.cssText = 'position:relative;';
-    dateInput.parentNode.insertBefore(wrap, dateInput);
-    wrap.appendChild(dateInput);
-    dateInput.style.pointerEvents = 'none';
-    let cover = document.createElement('div');
-    cover.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:14px;cursor:pointer;z-index:5;';
-    cover.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); openCustomDatePicker(dateInput); });
-    wrap.appendChild(cover);
-    dateInput.insertAdjacentHTML('afterend', '<div class="month-legend">1:Oca 2:\u015eub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:A\u011fu 9:Eyl 10:Eki 11:Kas 12:Ara</div>');
-}
-function refreshMonthLegends(){
-    document.querySelectorAll('input[type="date"]').forEach(attachMonthLegend);
-}
-refreshMonthLegends();
-new MutationObserver(() => refreshMonthLegends()).observe(document.body, {childList: true, subtree: true});
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <style>
         :root {
@@ -4465,6 +4374,95 @@ if(document.readyState === 'loading'){
     initApp();
 }
 
+
+// ==============================================================
+//  AY NUMARASI HATIRATICISI + OZEL TARIH SECICI
+//
+//  Telefonun kendi takvim penceresi ay numarasini gostermedigi icin
+//  tarih kutularinin uzerine seffaf bir kapak koyuyoruz. Parma kutuya
+//  degdiginde telefonun penceresi acilmaz, yerine sayfa ici kucuk
+//  takvimimiz acilir: baslikta secili ayin yaninda "9. AY" rozeti,
+//  altta 1 . Ocak ... 12 . Aralik seklinde numarali ay listesi vardir.
+//  Kutunun degeri, kaydetme mantigi ve diger her sey aynen calisir.
+// ==============================================================
+const CDP_MONTHS = ['Ocak','\u015eubat','Mart','Nisan','May\u0131s','Haziran','Temmuz','A\u011fustos','Eyl\u00fcl','Ekim','Kas\u0131m','Aral\u0131k'];
+const CDP_DOW = ['Pzt','Sal','\u00c7ar','Per','Cum','Cmt','Paz'];
+let cdpState = null;
+
+function openCustomDatePicker(input){
+    let cur = input.value ? new Date(input.value + 'T12:00:00') : new Date();
+    if(isNaN(cur)) cur = new Date();
+    cdpState = { y: cur.getFullYear(), m: cur.getMonth(), d: cur.getDate(), target: input };
+    cdpRender();
+}
+function cdpClose(){
+    let ov = document.getElementById('cdpOverlay');
+    if(ov) ov.remove();
+    cdpState = null;
+}
+function cdpSetMonth(i){ if(cdpState){ cdpState.m = i; cdpRender(); } }
+function cdpShiftYear(delta){ if(cdpState){ cdpState.y += delta; cdpRender(); } }
+function cdpSelectDay(day){ if(cdpState){ cdpState.d = day; cdpRender(); } }
+function cdpConfirm(){
+    if(!cdpState) return;
+    let iso = cdpState.y + '-' + String(cdpState.m + 1).padStart(2,'0') + '-' + String(cdpState.d).padStart(2,'0');
+    cdpState.target.value = iso;
+    cdpState.target.dispatchEvent(new Event('input', {bubbles:true}));
+    cdpState.target.dispatchEvent(new Event('change', {bubbles:true}));
+    cdpClose();
+}
+function cdpRender(){
+    cdpClose();
+    if(!cdpState) return;
+    let y = cdpState.y, m = cdpState.m, d = cdpState.d;
+    let offset = (new Date(y, m, 1).getDay() + 6) % 7; // Pazartesi baslangicli
+    let dim = new Date(y, m + 1, 0).getDate();
+    let today = new Date();
+    let daysHtml = CDP_DOW.map(w => '<div class="cdp-dow">' + w + '</div>').join('');
+    for(let i = 0; i < offset; i++) daysHtml += '<div></div>';
+    for(let day = 1; day <= dim; day++){
+        let isSel = day === d;
+        let isToday = y === today.getFullYear() && m === today.getMonth() && day === today.getDate();
+        daysHtml += '<button class="cdp-day' + (isSel ? ' sel' : '') + (isToday ? ' today' : '') + '" onclick="cdpSelectDay(' + day + ')">' + day + '</button>';
+    }
+    let monthsHtml = CDP_MONTHS.map((name, i) =>
+        '<button class="cdp-month' + (i === m ? ' active' : '') + '" onclick="cdpSetMonth(' + i + ')">' + (i + 1) + ' \u00b7 ' + name + '</button>'
+    ).join('');
+    let ov = document.createElement('div');
+    ov.id = 'cdpOverlay';
+    ov.className = 'cdp-overlay';
+    ov.onclick = function(e){ if(e.target === ov) cdpClose(); };
+    ov.innerHTML = '<div class="cdp-dialog">'
+        + '<div class="cdp-title">' + CDP_MONTHS[m] + ' <span class="cdp-monthnum">' + (m + 1) + '. AY</span></div>'
+        + '<div class="cdp-months">' + monthsHtml + '</div>'
+        + '<div class="cdp-nav"><button onclick="cdpShiftYear(-1)">\u2039</button><span class="cdp-year">' + y + '</span><button onclick="cdpShiftYear(1)">\u203a</button></div>'
+        + '<div class="cdp-grid">' + daysHtml + '</div>'
+        + '<div class="cdp-foot"><button class="cdp-cancel" onclick="cdpClose()">\u0130ptal</button><button class="cdp-ok" onclick="cdpConfirm()">Tamam</button></div>'
+        + '</div>';
+    document.body.appendChild(ov);
+}
+function attachMonthLegend(dateInput){
+    if(!dateInput || dateInput.dataset.monthLegend === '1') return;
+    dateInput.dataset.monthLegend = '1';
+    // Kutu tepeden tirnaga dokunulmaz; sadece uzerine seffaf kapak koyulur.
+    // Boylece parma kutuya HIC degmez, telefonun takvimi acilamaz,
+    // her dokunus bizim numarali takvimizi acar.
+    let wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;';
+    dateInput.parentNode.insertBefore(wrap, dateInput);
+    wrap.appendChild(dateInput);
+    dateInput.style.pointerEvents = 'none';
+    let cover = document.createElement('div');
+    cover.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:14px;cursor:pointer;z-index:5;';
+    cover.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); openCustomDatePicker(dateInput); });
+    wrap.appendChild(cover);
+    dateInput.insertAdjacentHTML('afterend', '<div class="month-legend">1:Oca 2:\u015eub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:A\u011fu 9:Eyl 10:Eki 11:Kas 12:Ara</div>');
+}
+function refreshMonthLegends(){
+    document.querySelectorAll('input[type="date"]').forEach(attachMonthLegend);
+}
+refreshMonthLegends();
+new MutationObserver(() => refreshMonthLegends()).observe(document.body, {childList: true, subtree: true});
 </script>
 </body>
 </html>
