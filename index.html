@@ -16,25 +16,87 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js">
 // ==============================================================
-//  AY NUMARASI HATIRATICISI: her tarih kutusunun hemen altina kucuk
-//  bir "1:Oca 2:Sub ..." aciklamasi ekler. Boylece takvim acildiginda
-//  hangi ayin kacinci oldugu goz ucuyla gorulur. Dinamik olusturulan
-//  tarih kutularini da yakalayabilmek icin MutationObserver kullanir;
-//  baska hicbir yere dokunmaz.
+//  AY NUMARASI HATIRATICISI + OZEL TARIH SECICI
+//
+//  Telefonun kendi takvim penceresi acildiginda ayin numarasini
+//  gostermedigi icin, tarih kutularina basilinca sayfa ici kucuk
+//  bir takvim acilir. Baslikta secili ayin yaninda "9. AY" gibi
+//  bir rozet, altta da 1 · Ocak ... 12 · Aralik seklide numarali
+//  ay listesi gorunur. Boylece hangi ayin kacinci oldugu goz ucuyla
+//  okunur. Kutularin altina da kucuk bir serit hatirlaticisi konur.
+//  Dinamik olusan tarih kutulari MutationObserver ile yakalanir;
+//  kaydetme mantigi (input.value okumalari) hic degismedigi icin
+//  baska hicbir yere dokunulmaz.
 // ==============================================================
-function monthLegendHtml(){
-    return '<div class="month-legend">1:Oca 2:\u015eub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:A\u011fu 9:Eyl 10:Eki 11:Kas 12:Ara</div>';
+const CDP_MONTHS = ['Ocak','\u015eubat','Mart','Nisan','May\u0131s','Haziran','Temmuz','A\u011fustos','Eyl\u00fcl','Ekim','Kas\u0131m','Aral\u0131k'];
+const CDP_DOW = ['Pzt','Sal','\u00c7ar','Per','Cum','Cmt','Paz'];
+let cdpState = null;
+
+function openCustomDatePicker(input){
+    let cur = input.value ? new Date(input.value + 'T12:00:00') : new Date();
+    if(isNaN(cur)) cur = new Date();
+    cdpState = { y: cur.getFullYear(), m: cur.getMonth(), d: cur.getDate(), target: input };
+    cdpRender();
+}
+function cdpClose(){
+    let ov = document.getElementById('cdpOverlay');
+    if(ov) ov.remove();
+    cdpState = null;
+}
+function cdpSetMonth(i){ if(cdpState){ cdpState.m = i; cdpRender(); } }
+function cdpShiftYear(delta){ if(cdpState){ cdpState.y += delta; cdpRender(); } }
+function cdpSelectDay(day){ if(cdpState){ cdpState.d = day; cdpRender(); } }
+function cdpConfirm(){
+    if(!cdpState) return;
+    let iso = cdpState.y + '-' + String(cdpState.m + 1).padStart(2,'0') + '-' + String(cdpState.d).padStart(2,'0');
+    cdpState.target.value = iso;
+    cdpState.target.dispatchEvent(new Event('input', {bubbles:true}));
+    cdpState.target.dispatchEvent(new Event('change', {bubbles:true}));
+    cdpClose();
+}
+function cdpRender(){
+    cdpClose();
+    if(!cdpState) return;
+    let y = cdpState.y, m = cdpState.m, d = cdpState.d;
+    let offset = (new Date(y, m, 1).getDay() + 6) % 7; // Pazartesi baslangicli
+    let dim = new Date(y, m + 1, 0).getDate();
+    let today = new Date();
+    let daysHtml = CDP_DOW.map(w => '<div class="cdp-dow">' + w + '</div>').join('');
+    for(let i = 0; i < offset; i++) daysHtml += '<div></div>';
+    for(let day = 1; day <= dim; day++){
+        let isSel = day === d;
+        let isToday = y === today.getFullYear() && m === today.getMonth() && day === today.getDate();
+        daysHtml += '<button class="cdp-day' + (isSel ? ' sel' : '') + (isToday ? ' today' : '') + '" onclick="cdpSelectDay(' + day + ')">' + day + '</button>';
+    }
+    let monthsHtml = CDP_MONTHS.map((name, i) =>
+        '<button class="cdp-month' + (i === m ? ' active' : '') + '" onclick="cdpSetMonth(' + i + ')">' + (i + 1) + ' \u00b7 ' + name + '</button>'
+    ).join('');
+    let ov = document.createElement('div');
+    ov.id = 'cdpOverlay';
+    ov.className = 'cdp-overlay';
+    ov.onclick = function(e){ if(e.target === ov) cdpClose(); };
+    ov.innerHTML = '<div class="cdp-dialog">'
+        + '<div class="cdp-title">' + CDP_MONTHS[m] + ' <span class="cdp-monthnum">' + (m + 1) + '. AY</span></div>'
+        + '<div class="cdp-months">' + monthsHtml + '</div>'
+        + '<div class="cdp-nav"><button onclick="cdpShiftYear(-1)">\u2039</button><span class="cdp-year">' + y + '</span><button onclick="cdpShiftYear(1)">\u203a</button></div>'
+        + '<div class="cdp-grid">' + daysHtml + '</div>'
+        + '<div class="cdp-foot"><button class="cdp-cancel" onclick="cdpClose()">\u0130ptal</button><button class="cdp-ok" onclick="cdpConfirm()">Tamam</button></div>'
+        + '</div>';
+    document.body.appendChild(ov);
 }
 function attachMonthLegend(dateInput){
-    if(!dateInput || dateInput.dataset.monthLegend==='1') return;
-    dateInput.dataset.monthLegend='1';
-    dateInput.insertAdjacentHTML('afterend', monthLegendHtml());
+    if(!dateInput || dateInput.dataset.monthLegend === '1') return;
+    dateInput.dataset.monthLegend = '1';
+    // Yerel takvim yerine kendi numarali takvimimizi acmasi icin kutuyu salt-okunur yapip tiklamayi yakala
+    dateInput.setAttribute('readonly', 'readonly');
+    dateInput.addEventListener('click', function(e){ e.preventDefault(); openCustomDatePicker(dateInput); });
+    dateInput.insertAdjacentHTML('afterend', '<div class="month-legend">1:Oca 2:\u015eub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:A\u011fu 9:Eyl 10:Eki 11:Kas 12:Ara</div>');
 }
 function refreshMonthLegends(){
     document.querySelectorAll('input[type="date"]').forEach(attachMonthLegend);
 }
 refreshMonthLegends();
-new MutationObserver(()=>refreshMonthLegends()).observe(document.body,{childList:true,subtree:true});
+new MutationObserver(() => refreshMonthLegends()).observe(document.body, {childList: true, subtree: true});
 </script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <style>
@@ -229,6 +291,28 @@ new MutationObserver(()=>refreshMonthLegends()).observe(document.body,{childList
         .sayim-diff-zero{color:var(--text-secondary);font-size:0.78rem;min-width:30px;text-align:center}
     
 .month-legend{font-size:0.6rem;font-weight:700;color:var(--text-secondary);opacity:0.85;margin:-2px 0 6px 14px;letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        /* ===== OZEL TARIH SECICI (ay numaralari ile) ===== */
+        .cdp-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.55);backdrop-filter:blur(4px);z-index:1500;display:flex;align-items:center;justify-content:center}
+        .cdp-dialog{background:linear-gradient(145deg,rgba(224,242,254,0.98),rgba(191,219,254,0.96));border-radius:28px;padding:18px;width:92%;max-width:380px;color:var(--text-primary);border:1px solid var(--glass-border);box-shadow:0 25px 50px rgba(0,0,0,0.3)}
+        body.dark-mode .cdp-dialog{background:linear-gradient(145deg,rgba(15,23,42,0.98),rgba(30,41,59,0.96));color:#f1f5f9}
+        .cdp-title{font-size:1.15rem;font-weight:900;text-align:center;font-family:'Outfit',sans-serif}
+        .cdp-monthnum{display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;font-size:0.75rem;font-weight:800;padding:3px 10px;border-radius:12px;margin-left:8px;vertical-align:middle}
+        .cdp-months{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0}
+        .cdp-month{border:none;border-radius:14px;padding:8px 4px;font-weight:800;font-size:0.72rem;cursor:pointer;background:rgba(148,163,184,0.25);color:var(--text-primary)}
+        .cdp-month.active{background:linear-gradient(135deg,#3b82f6,#2563eb);color:white}
+        .cdp-nav{display:flex;justify-content:space-between;align-items:center;margin:6px 0}
+        .cdp-nav button{background:rgba(59,130,246,0.15);border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;color:var(--text-primary);font-weight:900;font-size:1rem}
+        .cdp-year{font-weight:900;font-size:1.05rem}
+        .cdp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+        .cdp-dow{font-size:0.62rem;font-weight:800;color:var(--text-secondary);padding:4px 0}
+        .cdp-day{border:none;background:transparent;border-radius:50%;aspect-ratio:1;font-weight:700;font-size:0.85rem;cursor:pointer;color:var(--text-primary)}
+        .cdp-day:hover{background:rgba(59,130,246,0.15)}
+        .cdp-day.sel{background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;font-weight:900}
+        .cdp-day.today{outline:2px solid #10b981}
+        .cdp-foot{display:flex;gap:10px;margin-top:14px}
+        .cdp-foot button{flex:1;border:none;border-radius:30px;padding:12px;font-weight:800;cursor:pointer;font-size:0.85rem}
+        .cdp-cancel{background:linear-gradient(135deg,#64748b,#475569);color:white}
+        .cdp-ok{background:linear-gradient(135deg,#10b981,#059669);color:white}
     </style>
 </head>
 <body>
