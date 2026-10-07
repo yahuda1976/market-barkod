@@ -354,9 +354,9 @@
         </div>
         <div style="font-size:0.72rem;color:var(--text-secondary);margin-bottom:10px;font-weight:500;" data-i18n="deliveryExpiryHint">Bu tarih sadece bu teslimatin kaydidir, urunun genel SKT'sini degistirmez.</div>
         <label style="font-size:0.7rem;font-weight:800;color:var(--text-secondary);letter-spacing:0.5px;margin-bottom:4px;display:block;" data-i18n="lblTeslimatTarihi">TESLIMAT TARIHI (NE ZAMAN GELDI)</label>
-        <input type="date" id="deliveryArrivalDateInput" style="margin-bottom:12px;"><div style="font-size:0.62rem;color:var(--text-secondary);margin:-6px 0 10px 4px;font-weight:600;letter-spacing:0.2px;line-height:1.4;">1:Oca 2:Şub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:Ağu 9:Eyl 10:Eki 11:Kas 12:Ara</div>
+        <div id="deliveryArrivalDatePickerSlot"></div>
         <label style="font-size:0.7rem;font-weight:800;color:var(--text-secondary);letter-spacing:0.5px;margin-bottom:4px;display:block;" data-i18n="lblSktTarihi">SKT</label>
-        <input type="date" id="deliveryExpiryInput" style="margin-bottom:12px;"><div style="font-size:0.62rem;color:var(--text-secondary);margin:-6px 0 10px 4px;font-weight:600;letter-spacing:0.2px;line-height:1.4;">1:Oca 2:Şub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:Ağu 9:Eyl 10:Eki 11:Kas 12:Ara</div>
+        <div id="deliveryExpiryDatePickerSlot"></div>
         <select id="deliveryCompanySelect" style="margin-bottom:12px;"></select>
         <input type="number" id="deliveryBoxCountInput" placeholder="Koli adedi" min="0" style="margin-bottom:12px;" data-i18n-ph="phKoliAdedi">
         <button onclick="logDeliveryToday()" style="width:100%;background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:40px;padding:16px;color:white;font-weight:800;font-size:1rem;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 12px rgba(16,185,129,0.25);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-circle-plus" style="margin-right:8px"></i><span data-i18n="btnBugunGeldi">BUGUN GELDI</span></button>
@@ -471,10 +471,10 @@
         <div id="angebotProductName" style="font-size:1.02rem;font-weight:800;color:#fdba74;margin-bottom:14px;text-align:center;font-family:'Outfit',sans-serif;line-height:1.5;"></div>
         <div style="background:rgba(255,255,255,0.04);border-radius:32px;padding:16px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.06)">
             <input type="number" id="angebotPrice" step="0.01" placeholder="Angebot fiyati (€)" style="margin:0 0 12px;" data-i18n-ph="phAngebotFiyat">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                <input type="date" id="angebotStartDate" style="margin:0;width:100%;min-width:0;box-sizing:border-box;"><div style="font-size:0.62rem;color:var(--text-secondary);margin:-6px 0 10px 4px;font-weight:600;letter-spacing:0.2px;line-height:1.4;">1:Oca 2:Şub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:Ağu 9:Eyl 10:Eki 11:Kas 12:Ara</div>
-                <input type="date" id="angebotEndDate" style="margin:0;width:100%;min-width:0;box-sizing:border-box;"><div style="font-size:0.62rem;color:var(--text-secondary);margin:-6px 0 10px 4px;font-weight:600;letter-spacing:0.2px;line-height:1.4;">1:Oca 2:Şub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:Ağu 9:Eyl 10:Eki 11:Kas 12:Ara</div>
-            </div>
+            <div style="font-size:0.7rem;font-weight:800;color:var(--text-secondary);letter-spacing:0.5px;margin-bottom:4px;" data-i18n="lblBaslangic">BASLANGIC</div>
+            <div id="angebotStartDateSlot"></div>
+            <div style="font-size:0.7rem;font-weight:800;color:var(--text-secondary);letter-spacing:0.5px;margin-bottom:4px;" data-i18n="lblBitis">BITIS</div>
+            <div id="angebotEndDateSlot"></div>
             <div id="angebotError" style="color:#f87171;font-size:0.8rem;margin-top:8px;font-weight:600;"></div>
         </div>
         <div style="color:var(--text-secondary);font-size:0.75rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;" data-i18n="lblTasarimSec">TASARIM SEC</div>
@@ -545,8 +545,7 @@
             <button class="close-modal-btn" onclick="closeQuickExpiryModal()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div id="quickExpiryProductName" style="font-weight:800;font-size:1rem;margin-bottom:16px;text-align:center;color:#fdba74;"></div>
-        <input type="date" id="quickExpiryInput" style="margin-bottom:4px;">
-        <div style="font-size:0.62rem;color:var(--text-secondary);margin:-2px 0 16px 4px;font-weight:600;letter-spacing:0.2px;">1:Oca 2:\u015eub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:A\u011fu 9:Eyl 10:Eki 11:Kas 12:Ara</div>
+        <div id="quickExpiryDatePickerSlot" style="margin-bottom:12px;"></div>
         <div style="color:var(--text-secondary);font-size:0.72rem;font-weight:800;letter-spacing:0.5px;margin-bottom:8px;" data-i18n="lblHizliEkle">HIZLI EKLE</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
             <button onclick="shiftQuickExpiry(1,'month')" style="background:rgba(139,92,246,0.15);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);border-radius:24px;padding:12px;font-weight:800;font-size:0.82rem;cursor:pointer;">+1 AY</button>
@@ -823,7 +822,7 @@ const I18N = {
         lblSkt: 'SKT', lblBelirtilmedi: 'BELIRTILMEDI', lblSistem: 'Sistem', lblMevcut: 'Mevcut', lblEnYakinSkt: 'En yakin SKT',
         btnUzat: '+1 GUN UZAT', btnDuzenle: 'DUZENLE', btnSil: 'SIL', btnSatildi: 'SATILDI',
         btnGaleri: 'GALERI', btnKamera: 'KAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ETIKET LISTESINE EKLE',
-        btnAngebotHazirla: 'ANGEBOT HAZIRLA', lblEtiket: 'ETIKET', titleFiyatGecmisi: 'FIYAT GECMISI', btnFiyatGecmisi: 'FIYAT GECMISI', noPriceHistory: 'Henuz fiyat degisikligi yok', titleFirmaGecmisi: 'FIRMA GECMISI', btnFirmaGecmisi: 'FIRMA GECMISI', noCompanyHistory: 'Henuz firma degisikligi yok', titleTeslimatGecmisi: 'TESLIMAT GECMISI', btnTeslimatGecmisi: 'TESLIMAT GECMISI', btnBugunGeldi: 'TESLIMATI KAYDET', btnSktDegistir: 'SKT DEGISTIR', titleSktDegistir: 'SKT DEGISTIR', lblHizliEkle: 'HIZLI EKLE', lblTeslimatTarihi: 'TESLIMAT TARIHI (NE ZAMAN GELDI)', lblSktTarihi: 'SKT', noDeliveryHistory: 'Henuz teslimat kaydi yok', phKoliAdedi: 'Koli adedi', deliveryExpiryHint: "Bu tarih sadece bu teslimatin kaydidir, urunun genel SKT'sini degistirmez.", btnSiparisModu: 'SIPARIS MODU', orderModeInstruction: 'Urunleri okutun, otomatik olarak firmasina gore listelenir. Firmasi tanimsizsa firma secmeniz istenir.', titleFirmaSec: 'FIRMA SEC', btnSecOnayla: 'SEC VE ONAYLA', btnPaylas: 'PAYLAS', btnTumunuPaylas: 'TUMUNU PAYLAS', titleSiparisGecmisi: 'SIPARIS GECMISI', btnSipariseEkle: 'SIPARISE EKLE',
+        btnAngebotHazirla: 'ANGEBOT HAZIRLA', lblEtiket: 'ETIKET', titleFiyatGecmisi: 'FIYAT GECMISI', btnFiyatGecmisi: 'FIYAT GECMISI', noPriceHistory: 'Henuz fiyat degisikligi yok', titleFirmaGecmisi: 'FIRMA GECMISI', btnFirmaGecmisi: 'FIRMA GECMISI', noCompanyHistory: 'Henuz firma degisikligi yok', titleTeslimatGecmisi: 'TESLIMAT GECMISI', btnTeslimatGecmisi: 'TESLIMAT GECMISI', btnBugunGeldi: 'TESLIMATI KAYDET', btnSktDegistir: 'SKT DEGISTIR', titleSktDegistir: 'SKT DEGISTIR', lblHizliEkle: 'HIZLI EKLE', lblBaslangic: 'BASLANGIC', lblBitis: 'BITIS', lblTeslimatTarihi: 'TESLIMAT TARIHI (NE ZAMAN GELDI)', lblSktTarihi: 'SKT', noDeliveryHistory: 'Henuz teslimat kaydi yok', phKoliAdedi: 'Koli adedi', deliveryExpiryHint: "Bu tarih sadece bu teslimatin kaydidir, urunun genel SKT'sini degistirmez.", btnSiparisModu: 'SIPARIS MODU', orderModeInstruction: 'Urunleri okutun, otomatik olarak firmasina gore listelenir. Firmasi tanimsizsa firma secmeniz istenir.', titleFirmaSec: 'FIRMA SEC', btnSecOnayla: 'SEC VE ONAYLA', btnPaylas: 'PAYLAS', btnTumunuPaylas: 'TUMUNU PAYLAS', titleSiparisGecmisi: 'SIPARIS GECMISI', btnSipariseEkle: 'SIPARISE EKLE',
         phBarkod: 'Barkod', phUrunAdi: 'Urun adi', phUrunAdiMax: 'Urun adi (max 35)', phFiyat: 'Fiyat (€)',
         phFiyatAuto: 'Fiyat (€) — 549 → 5.49 otomatik', phMaliyet: 'Maliyet (€)', phMaliyetAuto: 'Maliyet (€) — 349 → 3.49 otomatik',
         phStok: 'Stok', phFirmaSec: '-- Firma sec --', catDolap: 'Dolap Urunleri', catKuru: 'Kuru Gida', catIcecek: 'Icecekler', catAtistirmalik: 'Atistirmalik', catTemizlik: 'Temizlik', catKisiselBakim: 'Kisisel Bakim', catKagit: 'Kagit Urunleri', catDondurulmus: 'Dondurulmus Gida',
@@ -852,7 +851,7 @@ const I18N = {
         lblSkt: 'MHD', lblBelirtilmedi: 'NICHT ANGEGEBEN', lblSistem: 'System', lblMevcut: 'Vorhanden', lblEnYakinSkt: 'Nächstes MHD',
         btnUzat: '+1 TAG VERLANGERN', btnDuzenle: 'BEARBEITEN', btnSil: 'LOSCHEN', btnSatildi: 'VERKAUFT',
         btnGaleri: 'GALERIE', btnKamera: 'KAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ZUR ETIKETTENLISTE HINZUFUGEN',
-        btnAngebotHazirla: 'ANGEBOT ERSTELLEN', lblEtiket: 'ETIKETT', titleFiyatGecmisi: 'PREISVERLAUF', btnFiyatGecmisi: 'PREISVERLAUF', noPriceHistory: 'Noch keine Preisanderung', titleFirmaGecmisi: 'FIRMENVERLAUF', btnFirmaGecmisi: 'FIRMENVERLAUF', noCompanyHistory: 'Noch keine Firmenanderung', titleTeslimatGecmisi: 'LIEFERVERLAUF', btnTeslimatGecmisi: 'LIEFERVERLAUF', btnBugunGeldi: 'LIEFERUNG SPEICHERN', btnSktDegistir: 'MHD ANDERN', titleSktDegistir: 'MHD ANDERN', lblHizliEkle: 'SCHNELL HINZUFUGEN', lblTeslimatTarihi: 'LIEFERDATUM (WANN ANGEKOMMEN)', lblSktTarihi: 'MHD', noDeliveryHistory: 'Noch keine Lieferung erfasst', phKoliAdedi: 'Kartonanzahl', deliveryExpiryHint: 'Dieses Datum ist nur ein Vermerk fur diese Lieferung, es andert nicht das allgemeine MHD des Produkts.', btnSiparisModu: 'BESTELLMODUS', orderModeInstruction: 'Produkte scannen, werden automatisch nach Firma sortiert. Bei unbekannter Firma werden Sie zur Auswahl aufgefordert.', titleFirmaSec: 'FIRMA WAHLEN', btnSecOnayla: 'WAHLEN UND BESTATIGEN', btnPaylas: 'TEILEN', btnTumunuPaylas: 'ALLES TEILEN', titleSiparisGecmisi: 'BESTELLVERLAUF', btnSipariseEkle: 'ZUR BESTELLUNG HINZUFUGEN',
+        btnAngebotHazirla: 'ANGEBOT ERSTELLEN', lblEtiket: 'ETIKETT', titleFiyatGecmisi: 'PREISVERLAUF', btnFiyatGecmisi: 'PREISVERLAUF', noPriceHistory: 'Noch keine Preisanderung', titleFirmaGecmisi: 'FIRMENVERLAUF', btnFirmaGecmisi: 'FIRMENVERLAUF', noCompanyHistory: 'Noch keine Firmenanderung', titleTeslimatGecmisi: 'LIEFERVERLAUF', btnTeslimatGecmisi: 'LIEFERVERLAUF', btnBugunGeldi: 'LIEFERUNG SPEICHERN', btnSktDegistir: 'MHD ANDERN', titleSktDegistir: 'MHD ANDERN', lblHizliEkle: 'SCHNELL HINZUFUGEN', lblBaslangic: 'BEGINN', lblBitis: 'ENDE', lblTeslimatTarihi: 'LIEFERDATUM (WANN ANGEKOMMEN)', lblSktTarihi: 'MHD', noDeliveryHistory: 'Noch keine Lieferung erfasst', phKoliAdedi: 'Kartonanzahl', deliveryExpiryHint: 'Dieses Datum ist nur ein Vermerk fur diese Lieferung, es andert nicht das allgemeine MHD des Produkts.', btnSiparisModu: 'BESTELLMODUS', orderModeInstruction: 'Produkte scannen, werden automatisch nach Firma sortiert. Bei unbekannter Firma werden Sie zur Auswahl aufgefordert.', titleFirmaSec: 'FIRMA WAHLEN', btnSecOnayla: 'WAHLEN UND BESTATIGEN', btnPaylas: 'TEILEN', btnTumunuPaylas: 'ALLES TEILEN', titleSiparisGecmisi: 'BESTELLVERLAUF', btnSipariseEkle: 'ZUR BESTELLUNG HINZUFUGEN',
         phBarkod: 'Barcode', phUrunAdi: 'Produktname', phUrunAdiMax: 'Produktname (max 35)', phFiyat: 'Preis (€)',
         phFiyatAuto: 'Preis (€) — 549 → 5.49 automatisch', phMaliyet: 'Kosten (€)', phMaliyetAuto: 'Kosten (€) — 349 → 3.49 automatisch',
         phStok: 'Bestand', phFirmaSec: '-- Firma wahlen --', catDolap: 'Kuhlprodukte', catKuru: 'Trockenware', catIcecek: 'Getranke', catAtistirmalik: 'Snacks', catTemizlik: 'Reinigung', catKisiselBakim: 'Korperpflege', catKagit: 'Papierprodukte', catDondurulmus: 'Tiefkuhlkost',
@@ -881,7 +880,7 @@ const I18N = {
         lblSkt: 'Expiry', lblBelirtilmedi: 'NOT SPECIFIED', lblSistem: 'System', lblMevcut: 'Current', lblEnYakinSkt: 'Nearest expiry',
         btnUzat: '+1 DAY EXTEND', btnDuzenle: 'EDIT', btnSil: 'DELETE', btnSatildi: 'SOLD',
         btnGaleri: 'GALLERY', btnKamera: 'CAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ADD TO LABEL LIST',
-        btnAngebotHazirla: 'CREATE OFFER', lblEtiket: 'LABEL', titleFiyatGecmisi: 'PRICE HISTORY', btnFiyatGecmisi: 'PRICE HISTORY', noPriceHistory: 'No price changes yet', titleFirmaGecmisi: 'SUPPLIER HISTORY', btnFirmaGecmisi: 'SUPPLIER HISTORY', noCompanyHistory: 'No supplier changes yet', titleTeslimatGecmisi: 'DELIVERY HISTORY', btnTeslimatGecmisi: 'DELIVERY HISTORY', btnBugunGeldi: 'SAVE DELIVERY', btnSktDegistir: 'CHANGE EXPIRY', titleSktDegistir: 'CHANGE EXPIRY', lblHizliEkle: 'QUICK ADD', lblTeslimatTarihi: 'DELIVERY DATE (WHEN IT ARRIVED)', lblSktTarihi: 'EXPIRY', noDeliveryHistory: 'No deliveries logged yet', phKoliAdedi: 'Box count', deliveryExpiryHint: "This date is only a record for this delivery, it does not change the product's overall expiry date.", btnSiparisModu: 'ORDER MODE', orderModeInstruction: 'Scan products, they will be automatically sorted by company. If company is unknown, you will be asked to choose.', titleFirmaSec: 'SELECT COMPANY', btnSecOnayla: 'SELECT AND CONFIRM', btnPaylas: 'SHARE', btnTumunuPaylas: 'SHARE ALL', titleSiparisGecmisi: 'ORDER HISTORY', btnSipariseEkle: 'ADD TO ORDER',
+        btnAngebotHazirla: 'CREATE OFFER', lblEtiket: 'LABEL', titleFiyatGecmisi: 'PRICE HISTORY', btnFiyatGecmisi: 'PRICE HISTORY', noPriceHistory: 'No price changes yet', titleFirmaGecmisi: 'SUPPLIER HISTORY', btnFirmaGecmisi: 'SUPPLIER HISTORY', noCompanyHistory: 'No supplier changes yet', titleTeslimatGecmisi: 'DELIVERY HISTORY', btnTeslimatGecmisi: 'DELIVERY HISTORY', btnBugunGeldi: 'SAVE DELIVERY', btnSktDegistir: 'CHANGE EXPIRY', titleSktDegistir: 'CHANGE EXPIRY', lblHizliEkle: 'QUICK ADD', lblBaslangic: 'START', lblBitis: 'END', lblTeslimatTarihi: 'DELIVERY DATE (WHEN IT ARRIVED)', lblSktTarihi: 'EXPIRY', noDeliveryHistory: 'No deliveries logged yet', phKoliAdedi: 'Box count', deliveryExpiryHint: "This date is only a record for this delivery, it does not change the product's overall expiry date.", btnSiparisModu: 'ORDER MODE', orderModeInstruction: 'Scan products, they will be automatically sorted by company. If company is unknown, you will be asked to choose.', titleFirmaSec: 'SELECT COMPANY', btnSecOnayla: 'SELECT AND CONFIRM', btnPaylas: 'SHARE', btnTumunuPaylas: 'SHARE ALL', titleSiparisGecmisi: 'ORDER HISTORY', btnSipariseEkle: 'ADD TO ORDER',
         phBarkod: 'Barcode', phUrunAdi: 'Product name', phUrunAdiMax: 'Product name (max 35)', phFiyat: 'Price (€)',
         phFiyatAuto: 'Price (€) — 549 → 5.49 automatic', phMaliyet: 'Cost (€)', phMaliyetAuto: 'Cost (€) — 349 → 3.49 automatic',
         phStok: 'Stock', phFirmaSec: '-- Select company --', catDolap: 'Fridge items', catKuru: 'Dry goods', catIcecek: 'Beverages', catAtistirmalik: 'Snacks', catTemizlik: 'Cleaning', catKisiselBakim: 'Personal Care', catKagit: 'Paper Products', catDondurulmus: 'Frozen Food',
@@ -1132,10 +1131,10 @@ async function openDeliveryHistoryModal(idx){
     let p = products[idx];
     let sel = document.getElementById('deliveryCompanySelect');
     if(sel) sel.innerHTML = buildCompanyOptions(p.company||'');
-    let expInp = document.getElementById('deliveryExpiryInput');
-    if(expInp) expInp.value = p.expiry||'';
-    let arrInp = document.getElementById('deliveryArrivalDateInput');
-    if(arrInp) arrInp.value = new Date().toISOString().slice(0,10);
+    document.getElementById('deliveryArrivalDatePickerSlot').innerHTML = buildCustomDatePicker('deliveryArrivalDateInput');
+    document.getElementById('deliveryExpiryDatePickerSlot').innerHTML = buildCustomDatePicker('deliveryExpiryInput');
+    populateCustomDatePicker('deliveryArrivalDateInput', new Date().toISOString().slice(0,10));
+    populateCustomDatePicker('deliveryExpiryInput', p.expiry||'');
     let boxInp = document.getElementById('deliveryBoxCountInput');
     if(boxInp) boxInp.value = '';
     renderDeliveryHistoryList();
@@ -1155,7 +1154,7 @@ function renderDeliveryHistoryList(){
     c.innerHTML = order.map(origIdx=>{
         let h = hist[origIdx];
         if(editingDeliveryEntryIdx===origIdx){
-            return `<div style="border-radius:24px;padding:14px 16px;margin-bottom:8px;background:rgba(255,255,255,0.5);"><input type="date" id="editDeliveryDate" value="${(h.date||'').slice(0,10)}" style="margin:0 0 8px;"><div style="font-size:0.62rem;color:var(--text-secondary);margin:-6px 0 10px 4px;font-weight:600;letter-spacing:0.2px;line-height:1.4;">1:Oca 2:Şub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:Ağu 9:Eyl 10:Eki 11:Kas 12:Ara</div><select id="editDeliveryCompany" style="margin:0 0 8px;">${buildCompanyOptions(h.company||'')}</select><input type="date" id="editDeliveryExpiry" value="${h.expiry||''}" style="margin:0 0 8px;"><div style="font-size:0.62rem;color:var(--text-secondary);margin:-6px 0 10px 4px;font-weight:600;letter-spacing:0.2px;line-height:1.4;">1:Oca 2:Şub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:Ağu 9:Eyl 10:Eki 11:Kas 12:Ara</div><input type="number" id="editDeliveryBoxes" value="${h.boxes!=null?h.boxes:''}" placeholder="${t('phKoliAdedi')}" min="0" style="margin:0 0 10px;"><div style="display:flex;gap:8px;"><button onclick="saveEditDeliveryEntry(${origIdx})" style="flex:1;background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:30px;padding:10px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;"><i class="fa-solid fa-check" style="margin-right:4px"></i>${t('btnKaydet')}</button><button onclick="cancelEditDeliveryEntry()" style="flex:1;background:linear-gradient(135deg,#64748b,#475569);border:none;border-radius:30px;padding:10px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;">${t('btnIptal')}</button></div></div>`;
+            return `<div style="border-radius:24px;padding:14px 16px;margin-bottom:8px;background:rgba(255,255,255,0.5);">${buildCustomDatePicker('editDeliveryDate')}<select id="editDeliveryCompany" style="margin:0 0 8px;">${buildCompanyOptions(h.company||'')}</select>${buildCustomDatePicker('editDeliveryExpiry')}<input type="number" id="editDeliveryBoxes" value="${h.boxes!=null?h.boxes:''}" placeholder="${t('phKoliAdedi')}" min="0" style="margin:0 0 10px;"><div style="display:flex;gap:8px;"><button onclick="saveEditDeliveryEntry(${origIdx})" style="flex:1;background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:30px;padding:10px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;"><i class="fa-solid fa-check" style="margin-right:4px"></i>${t('btnKaydet')}</button><button onclick="cancelEditDeliveryEntry()" style="flex:1;background:linear-gradient(135deg,#64748b,#475569);border:none;border-radius:30px;padding:10px;color:white;font-weight:800;font-size:0.8rem;cursor:pointer;">${t('btnIptal')}</button></div></div>`;
         }
         let dateStr = formatDateDMY((h.date||'').slice(0,10));
         let companyStr = h.company ? escapeHtml(h.company) : t('lblBelirtilmedi');
@@ -1163,6 +1162,11 @@ function renderDeliveryHistoryList(){
         let boxStr = (h.boxes!=null && h.boxes!=='') ? `<br><span style="font-size:0.72rem;color:#0ea5e9;font-weight:700;"><i class="fa-solid fa-box"></i> ${h.boxes}${translateText(' koli')}</span>` : '';
         return `<div class="history-card" style="border-radius:24px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;"><span style="font-weight:800;font-size:0.9rem;"><i class="fa-solid fa-truck" style="margin-right:6px;color:#10b981;"></i>${dateStr}</span><span style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;text-align:right;">${companyStr}${sktStr}${boxStr}</span><div style="display:flex;gap:6px;width:100%;justify-content:flex-end;"><button onclick="startEditDeliveryEntry(${origIdx})" style="background:rgba(245,158,11,0.15);color:#d97706;border:1px solid rgba(245,158,11,0.25);border-radius:20px;padding:5px 12px;font-size:0.72rem;font-weight:700;cursor:pointer;"><i class="fa-solid fa-pen"></i></button><button onclick="deleteDeliveryEntry(${origIdx})" style="background:rgba(239,68,68,0.15);color:#dc2626;border:1px solid rgba(239,68,68,0.25);border-radius:20px;padding:5px 12px;font-size:0.72rem;font-weight:700;cursor:pointer;"><i class="fa-solid fa-trash"></i></button></div></div>`;
     }).join('');
+    if(editingDeliveryEntryIdx!==null){
+        let h = hist[editingDeliveryEntryIdx];
+        populateCustomDatePicker('editDeliveryDate', (h.date||'').slice(0,10));
+        populateCustomDatePicker('editDeliveryExpiry', h.expiry||'');
+    }
 }
 let editingDeliveryEntryIdx = null;
 function startEditDeliveryEntry(idx){ editingDeliveryEntryIdx=idx; renderDeliveryHistoryList(); }
@@ -1861,7 +1865,8 @@ function openQuickExpiryModal(idx){
     if(!p) return;
     quickExpiryProductIdx = idx;
     document.getElementById('quickExpiryProductName').innerHTML = escapeHtml(p.name);
-    document.getElementById('quickExpiryInput').value = p.expiry || new Date().toISOString().slice(0,10);
+    document.getElementById('quickExpiryDatePickerSlot').innerHTML = buildCustomDatePicker('quickExpiryInput');
+    populateCustomDatePicker('quickExpiryInput', p.expiry || new Date().toISOString().slice(0,10));
     document.getElementById('quickExpiryModal').style.display='flex';
 }
 function closeQuickExpiryModal(){ document.getElementById('quickExpiryModal').style.display='none'; }
@@ -1871,7 +1876,7 @@ function shiftQuickExpiry(amount, unit){
     if(isNaN(base.getTime())) base = new Date();
     if(unit==='month') base.setMonth(base.getMonth()+amount);
     else if(unit==='year') base.setFullYear(base.getFullYear()+amount);
-    inp.value = base.toISOString().slice(0,10);
+    populateCustomDatePicker('quickExpiryInput', base.toISOString().slice(0,10));
 }
 async function saveQuickExpiry(){
     let p = products[quickExpiryProductIdx];
@@ -2067,6 +2072,52 @@ function formatDateDMY(dateStr){
     let parts = String(dateStr).split('-');
     if(parts.length!==3) return dateStr;
     return parts[2]+'.'+parts[1]+'.'+parts[0];
+}
+// ==============================================================
+//  KENDI TARIH SECICIMIZ: telefonun kendi takvim penceresi
+//  (yavas, ay ay ileri gidilen) yerine, ay ADINI dogrudan bir
+//  listeden sectigin, her telefonda ayni hizda calisan 3 ayri
+//  secim kutusu (Gun / Ay / Yil). Veri hala eskisi gibi gizli bir
+//  input'ta (orn. #epExpiry) YYYY-MM-DD olarak tutulur, bu yuzden
+//  kaydetme kodlarinin hicbirine dokunmaya gerek yok.
+// ==============================================================
+const AY_ADLARI_TR = ['Ocak','Subat','Mart','Nisan','Mayis','Haziran','Temmuz','Agustos','Eylul','Ekim','Kasim','Aralik'];
+function buildCustomDatePicker(idPrefix){
+    return `<div style="display:flex;gap:6px;margin-bottom:12px;">
+        <select id="${idPrefix}_day" onchange="syncCustomDate('${idPrefix}')" style="flex:0.8;margin:0;padding-left:10px;padding-right:4px;"></select>
+        <select id="${idPrefix}_month" onchange="syncCustomDate('${idPrefix}')" style="flex:1.5;margin:0;padding-left:10px;padding-right:4px;"></select>
+        <select id="${idPrefix}_year" onchange="syncCustomDate('${idPrefix}')" style="flex:1;margin:0;padding-left:10px;padding-right:4px;"></select>
+    </div>
+    <input type="hidden" id="${idPrefix}">`;
+}
+function populateCustomDatePicker(idPrefix, value){
+    let daySel = document.getElementById(idPrefix+'_day');
+    let monthSel = document.getElementById(idPrefix+'_month');
+    let yearSel = document.getElementById(idPrefix+'_year');
+    let hidden = document.getElementById(idPrefix);
+    if(!daySel || !monthSel || !yearSel || !hidden) return;
+    daySel.innerHTML = Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('');
+    monthSel.innerHTML = AY_ADLARI_TR.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
+    let curYear = new Date().getFullYear();
+    let years = []; for(let y=curYear-1; y<=curYear+6; y++) years.push(y);
+    yearSel.innerHTML = years.map(y=>`<option value="${y}">${y}</option>`).join('');
+    let d = value ? new Date(value) : new Date();
+    if(isNaN(d.getTime())) d = new Date();
+    daySel.value = d.getDate();
+    monthSel.value = d.getMonth()+1;
+    yearSel.value = d.getFullYear();
+    syncCustomDate(idPrefix);
+}
+function syncCustomDate(idPrefix){
+    let daySel = document.getElementById(idPrefix+'_day');
+    let monthSel = document.getElementById(idPrefix+'_month');
+    let yearSel = document.getElementById(idPrefix+'_year');
+    let hidden = document.getElementById(idPrefix);
+    if(!daySel || !monthSel || !yearSel || !hidden) return;
+    let day = String(daySel.value).padStart(2,'0');
+    let month = String(monthSel.value).padStart(2,'0');
+    let year = yearSel.value;
+    hidden.value = `${year}-${month}-${day}`;
 }
 function expiredTag(p){
     if(p.dormant) return '';
@@ -2434,7 +2485,8 @@ function openEditProductModal(idx, returnTo){
     let p = products[idx];
     if(!p) return;
     let c = document.getElementById('editProductFormContainer');
-    c.innerHTML = `<input id="epName" value="${escapeHtml(p.name)}" maxlength="35" placeholder="${t('phUrunAdi')}">${buildBarcodeRowHtml('ep', p.barcode, p.labelType)}<input id="epExpiry" type="date" value="${p.expiry||''}"><div style="font-size:0.62rem;color:var(--text-secondary);margin:-6px 0 10px 4px;font-weight:600;letter-spacing:0.2px;line-height:1.4;">1:Oca 2:Şub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:Ağu 9:Eyl 10:Eki 11:Kas 12:Ara</div><input id="epPrice" value="${p.price}" placeholder="${t('phFiyat')}"><input id="epCost" value="${p.cost||''}" placeholder="${t('phMaliyet')}"><div id="epProfitBox" class="profit-box"></div><select id="epCategory">${buildCategoryOptions(p.category)}</select><select id="epCompany">${buildCompanyOptions(p.company||'')}</select><input id="epQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}" placeholder="${t('phStok')}" type="number"><div class="edit-form-buttons"><button class="btn-save" onclick="saveEditProductModal(${idx})"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>${t('btnKaydet')}</button><button class="btn-cancel" onclick="closeEditProductModal()">${t('btnIptal')}</button></div>`;
+    c.innerHTML = `<input id="epName" value="${escapeHtml(p.name)}" maxlength="35" placeholder="${t('phUrunAdi')}">${buildBarcodeRowHtml('ep', p.barcode, p.labelType)}${buildCustomDatePicker('epExpiry')}<input id="epPrice" value="${p.price}" placeholder="${t('phFiyat')}"><input id="epCost" value="${p.cost||''}" placeholder="${t('phMaliyet')}"><div id="epProfitBox" class="profit-box"></div><select id="epCategory">${buildCategoryOptions(p.category)}</select><select id="epCompany">${buildCompanyOptions(p.company||'')}</select><input id="epQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}" placeholder="${t('phStok')}" type="number"><div class="edit-form-buttons"><button class="btn-save" onclick="saveEditProductModal(${idx})"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>${t('btnKaydet')}</button><button class="btn-cancel" onclick="closeEditProductModal()">${t('btnIptal')}</button></div>`;
+    populateCustomDatePicker('epExpiry', p.expiry||'');
     setupPriceFields('epCost','epPrice','epProfitBox');
     document.getElementById('editProductModal').style.display='flex';
 }
@@ -2475,7 +2527,8 @@ function toggleEditMode(){
     let editDiv=document.getElementById("editFields"),p=products[currentEditingProductId];
     if(editDiv.style.display==="none"){
         editDiv.style.display="block";
-        editDiv.innerHTML=`<input id="editName" value="${escapeHtml(p.name)}" maxlength="35" placeholder="${t('phUrunAdi')}"><input id="editBarcode" value="${p.barcode}" placeholder="${t('phBarkod')}"><input id="editPrice" value="${p.price}" placeholder="${t('phFiyat')}"><input id="editCost" value="${p.cost||''}" placeholder="${t('phMaliyet')}"><div id="editProfitBox" class="profit-box"></div><select id="editCategory">${buildCategoryOptions(p.category)}</select><select id="editCompany">${buildCompanyOptions(p.company||'')}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}" placeholder="${t('phStok')}" type="number"><input id="editExpiry" type="date" value="${p.expiry||''}"><div style="font-size:0.62rem;color:var(--text-secondary);margin:-6px 0 10px 4px;font-weight:600;letter-spacing:0.2px;line-height:1.4;">1:Oca 2:Şub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:Ağu 9:Eyl 10:Eki 11:Kas 12:Ara</div><div class="edit-form-buttons"><button class="btn-save" onclick="saveProductEdit()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>${t('btnKaydet')}</button><button class="btn-cancel" onclick="toggleEditMode()">${t('btnIptal')}</button></div>`;
+        editDiv.innerHTML=`<input id="editName" value="${escapeHtml(p.name)}" maxlength="35" placeholder="${t('phUrunAdi')}"><input id="editBarcode" value="${p.barcode}" placeholder="${t('phBarkod')}"><input id="editPrice" value="${p.price}" placeholder="${t('phFiyat')}"><input id="editCost" value="${p.cost||''}" placeholder="${t('phMaliyet')}"><div id="editProfitBox" class="profit-box"></div><select id="editCategory">${buildCategoryOptions(p.category)}</select><select id="editCompany">${buildCompanyOptions(p.company||'')}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}" placeholder="${t('phStok')}" type="number">${buildCustomDatePicker('editExpiry')}<div class="edit-form-buttons"><button class="btn-save" onclick="saveProductEdit()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>${t('btnKaydet')}</button><button class="btn-cancel" onclick="toggleEditMode()">${t('btnIptal')}</button></div>`;
+        populateCustomDatePicker('editExpiry', p.expiry||'');
         setupPriceFields('editCost','editPrice','editProfitBox');
     }else{editDiv.style.display="none";editDiv.innerHTML="";}
 }
@@ -2807,8 +2860,10 @@ function openAngebotFlow(indexes){
     document.getElementById('angebotPrice').value = items[0].price;
     let today = new Date();
     let in5 = new Date(today.getTime()+5*86400000);
-    document.getElementById('angebotStartDate').value = today.toISOString().slice(0,10);
-    document.getElementById('angebotEndDate').value = in5.toISOString().slice(0,10);
+    document.getElementById('angebotStartDateSlot').innerHTML = buildCustomDatePicker('angebotStartDate');
+    document.getElementById('angebotEndDateSlot').innerHTML = buildCustomDatePicker('angebotEndDate');
+    populateCustomDatePicker('angebotStartDate', today.toISOString().slice(0,10));
+    populateCustomDatePicker('angebotEndDate', in5.toISOString().slice(0,10));
     document.getElementById('angebotError').innerHTML='';
     renderAngebotTemplateGrid(items.length);
     document.getElementById('angebotModal').style.display='flex';
@@ -3797,7 +3852,8 @@ function showAddFormForBarcode(barcode){
     let exCompany=existing?(existing.company||''):'';
     let exCatOptions = buildCategoryOptions(existing&&existing.category);
     let headerText = existing ? `<i class="fa-solid fa-triangle-exclamation" style="margin-right:8px;color:#f59e0b"></i>${t('headerUrunZatenKayitli')}` : `<i class="fa-solid fa-plus" style="margin-right:8px;color:#3b82f6"></i>${t('headerYeniUrun')}`;
-    c.innerHTML=`<div><strong style="display:block;margin-bottom:12px;font-size:1.1rem;">${headerText}</strong><input id="addBarcode" value="${barcode}" placeholder="${t('phBarkod')}"><input id="addExpiry" type="date" value="${exExpiry}"><div style="font-size:0.62rem;color:var(--text-secondary);margin:-6px 0 10px 4px;font-weight:600;letter-spacing:0.2px;line-height:1.4;">1:Oca 2:Şub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:Ağu 9:Eyl 10:Eki 11:Kas 12:Ara</div><input id="addName" value="${exName}" placeholder="${t('phUrunAdiMax')}" maxlength="35"><select id="addCompany">${buildCompanyOptions(exCompany)}</select><input id="addPrice" value="${exPrice}" placeholder="${t('phFiyatAuto')}"><input id="addCost" value="${exCost}" placeholder="${t('phMaliyetAuto')}"><div id="addProfitBox" class="profit-box" style="display:none"></div><select id="addCategory">${exCatOptions}</select><input id="addQuantity" value="${exQty}" placeholder="${t('phStok')}" type="number"><div class="image-buttons-group"><button onclick="openGoogleSearchForAdd()" style="background:linear-gradient(135deg,#10b981,#059669);flex:unset;width:100%;"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i>${t('btnInternetGorsel')}</button></div><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button><button onclick="captureImageForAdd('camera')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProduct()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>${t('btnKaydet')}</button><button class="btn-cancel" onclick="closeAddForm()">${t('btnIptal')}</button></div></div>`;
+    c.innerHTML=`<div><strong style="display:block;margin-bottom:12px;font-size:1.1rem;">${headerText}</strong><input id="addBarcode" value="${barcode}" placeholder="${t('phBarkod')}">${buildCustomDatePicker('addExpiry')}<input id="addName" value="${exName}" placeholder="${t('phUrunAdiMax')}" maxlength="35"><select id="addCompany">${buildCompanyOptions(exCompany)}</select><input id="addPrice" value="${exPrice}" placeholder="${t('phFiyatAuto')}"><input id="addCost" value="${exCost}" placeholder="${t('phMaliyetAuto')}"><div id="addProfitBox" class="profit-box" style="display:none"></div><select id="addCategory">${exCatOptions}</select><input id="addQuantity" value="${exQty}" placeholder="${t('phStok')}" type="number"><div class="image-buttons-group"><button onclick="openGoogleSearchForAdd()" style="background:linear-gradient(135deg,#10b981,#059669);flex:unset;width:100%;"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i>${t('btnInternetGorsel')}</button></div><div class="image-buttons-group"><button onclick="captureImageForAdd('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button><button onclick="captureImageForAdd('camera')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProduct()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>${t('btnKaydet')}</button><button class="btn-cancel" onclick="closeAddForm()">${t('btnIptal')}</button></div></div>`;
+    populateCustomDatePicker('addExpiry', exExpiry);
     setupPriceFields('addCost','addPrice','addProfitBox');
 }
 async function saveNewProduct(){
@@ -3907,7 +3963,8 @@ function clearResult(){
 function closeResultAndOpenDetail(idx){ clearResult(); if(idx>=0 && idx<products.length) openProductDetailModal(idx); }
 function showInlineEdit(){
     let p=lastScannedProduct;
-    document.getElementById("resultArea").innerHTML=`<button class="close-result-btn" onclick="clearResult()"><i class="fa-solid fa-xmark"></i></button><div style="padding:8px;"><input id="editName" value="${escapeHtml(p.name)}" maxlength="35" placeholder="${t('phUrunAdi')}"><input id="editBarcode" value="${p.barcode}" placeholder="${t('phBarkod')}"><input id="editPrice" value="${p.price}" placeholder="${t('phFiyat')}"><input id="editCost" value="${p.cost||''}" placeholder="${t('phMaliyet')}"><div id="inlineProfitBox" class="profit-box"></div><select id="editCategory">${buildCategoryOptions(p.category)}</select><select id="editCompany">${buildCompanyOptions(p.company||'')}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}" type="number" placeholder="${t('phStok')}"><input id="editExpiry" type="date" value="${p.expiry||''}"><div style="font-size:0.62rem;color:var(--text-secondary);margin:-6px 0 10px 4px;font-weight:600;letter-spacing:0.2px;line-height:1.4;">1:Oca 2:Şub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:Ağu 9:Eyl 10:Eki 11:Kas 12:Ara</div><div class="edit-form-buttons"><button class="btn-save" onclick="saveInlineEdit()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>${t('btnKaydet')}</button><button class="btn-cancel" onclick="showResult(lastScannedProduct)">${t('btnIptal')}</button></div></div>`;
+    document.getElementById("resultArea").innerHTML=`<button class="close-result-btn" onclick="clearResult()"><i class="fa-solid fa-xmark"></i></button><div style="padding:8px;"><input id="editName" value="${escapeHtml(p.name)}" maxlength="35" placeholder="${t('phUrunAdi')}"><input id="editBarcode" value="${p.barcode}" placeholder="${t('phBarkod')}"><input id="editPrice" value="${p.price}" placeholder="${t('phFiyat')}"><input id="editCost" value="${p.cost||''}" placeholder="${t('phMaliyet')}"><div id="inlineProfitBox" class="profit-box"></div><select id="editCategory">${buildCategoryOptions(p.category)}</select><select id="editCompany">${buildCompanyOptions(p.company||'')}</select><input id="editQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}" type="number" placeholder="${t('phStok')}">${buildCustomDatePicker('editExpiry')}<div class="edit-form-buttons"><button class="btn-save" onclick="saveInlineEdit()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>${t('btnKaydet')}</button><button class="btn-cancel" onclick="showResult(lastScannedProduct)">${t('btnIptal')}</button></div></div>`;
+    populateCustomDatePicker('editExpiry', p.expiry||'');
     setupPriceFields('editCost','editPrice','inlineProfitBox');
 }
 async function saveInlineEdit(){
@@ -3935,7 +3992,8 @@ async function saveInlineEdit(){
 function openManualAddModal(){
     let container=document.getElementById("manualAddFormContainer");
     let autoCode = 'IC'+Date.now().toString(36).toUpperCase();
-    container.innerHTML=`<div>${buildBarcodeRowHtml('manualAdd', autoCode, 'barcode')}<input id="manualAddExpiry" type="date"><div style="font-size:0.62rem;color:var(--text-secondary);margin:-6px 0 10px 4px;font-weight:600;letter-spacing:0.2px;line-height:1.4;">1:Oca 2:Şub 3:Mar 4:Nis 5:May 6:Haz 7:Tem 8:Ağu 9:Eyl 10:Eki 11:Kas 12:Ara</div><input id="manualAddName" placeholder="${t('phUrunAdiMax')}" maxlength="35"><select id="manualAddCompany">${buildCompanyOptions('')}</select><input id="manualAddPrice" placeholder="${t('phFiyatAuto')}"><input id="manualAddCost" placeholder="${t('phMaliyetAuto')}"><div id="manualAddProfitBox" class="profit-box"></div><select id="manualAddCategory">${buildCategoryOptions('')}</select><input id="manualAddQuantity" placeholder="${t('phStok')}" value="1" type="number"><div class="image-buttons-group"><button onclick="openGoogleSearchForManualAdd()" style="background:linear-gradient(135deg,#10b981,#059669);flex:unset;width:100%;"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i>${t('btnInternetGorsel')}</button></div><div class="image-buttons-group"><button onclick="captureImageForManualAdd('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button><button onclick="captureImageForManualAdd('camera')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProductFromModal()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>${t('btnKaydet')}</button><button class="btn-cancel" onclick="closeManualAddModal()">${t('btnIptal')}</button></div></div>`;
+    container.innerHTML=`<div>${buildBarcodeRowHtml('manualAdd', autoCode, 'barcode')}${buildCustomDatePicker('manualAddExpiry')}<input id="manualAddName" placeholder="${t('phUrunAdiMax')}" maxlength="35"><select id="manualAddCompany">${buildCompanyOptions('')}</select><input id="manualAddPrice" placeholder="${t('phFiyatAuto')}"><input id="manualAddCost" placeholder="${t('phMaliyetAuto')}"><div id="manualAddProfitBox" class="profit-box"></div><select id="manualAddCategory">${buildCategoryOptions('')}</select><input id="manualAddQuantity" placeholder="${t('phStok')}" value="1" type="number"><div class="image-buttons-group"><button onclick="openGoogleSearchForManualAdd()" style="background:linear-gradient(135deg,#10b981,#059669);flex:unset;width:100%;"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i>${t('btnInternetGorsel')}</button></div><div class="image-buttons-group"><button onclick="captureImageForManualAdd('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button><button onclick="captureImageForManualAdd('camera')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProductFromModal()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>${t('btnKaydet')}</button><button class="btn-cancel" onclick="closeManualAddModal()">${t('btnIptal')}</button></div></div>`;
+    populateCustomDatePicker('manualAddExpiry', '');
     setupPriceFields('manualAddCost','manualAddPrice','manualAddProfitBox');
     document.getElementById("manualAddModal").style.display="flex";
     let bcEl=document.getElementById('manualAddBarcode');
