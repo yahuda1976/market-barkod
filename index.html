@@ -2084,9 +2084,9 @@ function formatDateDMY(dateStr){
 const AY_ADLARI_TR = ['Ocak','Subat','Mart','Nisan','Mayis','Haziran','Temmuz','Agustos','Eylul','Ekim','Kasim','Aralik'];
 function buildCustomDatePicker(idPrefix){
     return `<div style="display:flex;gap:6px;margin-bottom:12px;">
-        <select id="${idPrefix}_day" onchange="syncCustomDate('${idPrefix}')" style="flex:0.8;margin:0;padding-left:10px;padding-right:4px;"></select>
-        <select id="${idPrefix}_month" onchange="syncCustomDate('${idPrefix}')" style="flex:1.5;margin:0;padding-left:10px;padding-right:4px;"></select>
-        <select id="${idPrefix}_year" onchange="syncCustomDate('${idPrefix}')" style="flex:1;margin:0;padding-left:10px;padding-right:4px;"></select>
+        <select id="${idPrefix}_day" onchange="syncCustomDate('${idPrefix}')" style="flex:0.65;margin:0;padding-left:8px;padding-right:2px;"></select>
+        <select id="${idPrefix}_month" onchange="syncCustomDate('${idPrefix}')" style="flex:2;margin:0;padding-left:8px;padding-right:2px;"></select>
+        <select id="${idPrefix}_year" onchange="syncCustomDate('${idPrefix}')" style="flex:0.9;margin:0;padding-left:8px;padding-right:2px;"></select>
     </div>
     <input type="hidden" id="${idPrefix}">`;
 }
@@ -2097,7 +2097,7 @@ function populateCustomDatePicker(idPrefix, value){
     let hidden = document.getElementById(idPrefix);
     if(!daySel || !monthSel || !yearSel || !hidden) return;
     daySel.innerHTML = Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('');
-    monthSel.innerHTML = AY_ADLARI_TR.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
+    monthSel.innerHTML = AY_ADLARI_TR.map((m,i)=>`<option value="${i+1}">${i+1} - ${m}</option>`).join('');
     let curYear = new Date().getFullYear();
     let years = []; for(let y=curYear-1; y<=curYear+6; y++) years.push(y);
     yearSel.innerHTML = years.map(y=>`<option value="${y}">${y}</option>`).join('');
