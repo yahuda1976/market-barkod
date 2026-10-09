@@ -545,6 +545,10 @@
             <button class="close-modal-btn" onclick="closeQuickExpiryModal()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div id="quickExpiryProductName" style="font-weight:800;font-size:1rem;margin-bottom:16px;text-align:center;color:#fdba74;"></div>
+        <div id="quickExpiryStockWarning" style="display:none;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);border-radius:14px;padding:10px 14px;margin-bottom:14px;text-align:center;">
+            <div style="color:#ef4444;font-weight:800;font-size:0.8rem;margin-bottom:8px;" data-i18n="lblStokSifirUyari">STOK SIFIR - urun gri gorunuyor</div>
+            <button onclick="quickExpiryBumpStock()" style="background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:30px;padding:10px 20px;color:white;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-plus" style="margin-right:6px"></i><span data-i18n="btnStokArtir1">STOK +1 (NORMALE DONDUR)</span></button>
+        </div>
         <div id="quickExpiryDatePickerSlot" style="margin-bottom:12px;"></div>
         <div style="color:var(--text-secondary);font-size:0.72rem;font-weight:800;letter-spacing:0.5px;margin-bottom:8px;" data-i18n="lblHizliEkle">HIZLI EKLE</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
@@ -757,6 +761,7 @@ const PHRASE_DICT = [
     ["urun pasife alinacak (gri gorunecek, hicbir uyari vermeyecek). Envanterde gorunmeye devam ederler; hangisini SKT/fiyat guncelleyerek, teslimat girerek, satarak ya da sayarak kullanirsan o urun otomatik olarak normale doner. Devam edilsin mi?", "Produkte werden deaktiviert (grau angezeigt, keine Warnungen). Sie bleiben im Bestand sichtbar; sobald du ein Produkt durch MHD-/Preisanderung, Lieferung, Verkauf oder Zahlung wieder benutzt, wird es automatisch normal. Fortfahren?", "products will be deactivated (shown gray, no alerts). They stay visible in inventory; using one again via expiry/price update, delivery, sale, or stocktake automatically reactivates it. Continue?"],
     ["Tum urunler pasife alindi", "Alle Produkte deaktiviert", "All products deactivated"],
     ["SKT guncellendi", "MHD aktualisiert", "Expiry date updated"],
+    ["Stok guncellendi", "Bestand aktualisiert", "Stock updated"],
 ];
 function translateText(str){
     if(currentLang==='tr' || !str) return str;
@@ -822,7 +827,7 @@ const I18N = {
         lblSkt: 'SKT', lblBelirtilmedi: 'BELIRTILMEDI', lblSistem: 'Sistem', lblMevcut: 'Mevcut', lblEnYakinSkt: 'En yakin SKT',
         btnUzat: '+1 GUN UZAT', btnDuzenle: 'DUZENLE', btnSil: 'SIL', btnSatildi: 'SATILDI',
         btnGaleri: 'GALERI', btnKamera: 'KAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ETIKET LISTESINE EKLE',
-        btnAngebotHazirla: 'ANGEBOT HAZIRLA', lblEtiket: 'ETIKET', titleFiyatGecmisi: 'FIYAT GECMISI', btnFiyatGecmisi: 'FIYAT GECMISI', noPriceHistory: 'Henuz fiyat degisikligi yok', titleFirmaGecmisi: 'FIRMA GECMISI', btnFirmaGecmisi: 'FIRMA GECMISI', noCompanyHistory: 'Henuz firma degisikligi yok', titleTeslimatGecmisi: 'TESLIMAT GECMISI', btnTeslimatGecmisi: 'TESLIMAT GECMISI', btnBugunGeldi: 'TESLIMATI KAYDET', btnSktDegistir: 'SKT DEGISTIR', titleSktDegistir: 'SKT DEGISTIR', lblHizliEkle: 'HIZLI EKLE', lblBaslangic: 'BASLANGIC', lblBitis: 'BITIS', lblTeslimatTarihi: 'TESLIMAT TARIHI (NE ZAMAN GELDI)', lblSktTarihi: 'SKT', noDeliveryHistory: 'Henuz teslimat kaydi yok', phKoliAdedi: 'Koli adedi', deliveryExpiryHint: "Bu tarih sadece bu teslimatin kaydidir, urunun genel SKT'sini degistirmez.", btnSiparisModu: 'SIPARIS MODU', orderModeInstruction: 'Urunleri okutun, otomatik olarak firmasina gore listelenir. Firmasi tanimsizsa firma secmeniz istenir.', titleFirmaSec: 'FIRMA SEC', btnSecOnayla: 'SEC VE ONAYLA', btnPaylas: 'PAYLAS', btnTumunuPaylas: 'TUMUNU PAYLAS', titleSiparisGecmisi: 'SIPARIS GECMISI', btnSipariseEkle: 'SIPARISE EKLE',
+        btnAngebotHazirla: 'ANGEBOT HAZIRLA', lblEtiket: 'ETIKET', titleFiyatGecmisi: 'FIYAT GECMISI', btnFiyatGecmisi: 'FIYAT GECMISI', noPriceHistory: 'Henuz fiyat degisikligi yok', titleFirmaGecmisi: 'FIRMA GECMISI', btnFirmaGecmisi: 'FIRMA GECMISI', noCompanyHistory: 'Henuz firma degisikligi yok', titleTeslimatGecmisi: 'TESLIMAT GECMISI', btnTeslimatGecmisi: 'TESLIMAT GECMISI', btnBugunGeldi: 'TESLIMATI KAYDET', btnSktDegistir: 'SKT DEGISTIR', titleSktDegistir: 'SKT DEGISTIR', lblHizliEkle: 'HIZLI EKLE', lblStokSifirUyari: 'STOK SIFIR - urun gri gorunuyor', btnStokArtir1: 'STOK +1 (NORMALE DONDUR)', lblBaslangic: 'BASLANGIC', lblBitis: 'BITIS', lblTeslimatTarihi: 'TESLIMAT TARIHI (NE ZAMAN GELDI)', lblSktTarihi: 'SKT', noDeliveryHistory: 'Henuz teslimat kaydi yok', phKoliAdedi: 'Koli adedi', deliveryExpiryHint: "Bu tarih sadece bu teslimatin kaydidir, urunun genel SKT'sini degistirmez.", btnSiparisModu: 'SIPARIS MODU', orderModeInstruction: 'Urunleri okutun, otomatik olarak firmasina gore listelenir. Firmasi tanimsizsa firma secmeniz istenir.', titleFirmaSec: 'FIRMA SEC', btnSecOnayla: 'SEC VE ONAYLA', btnPaylas: 'PAYLAS', btnTumunuPaylas: 'TUMUNU PAYLAS', titleSiparisGecmisi: 'SIPARIS GECMISI', btnSipariseEkle: 'SIPARISE EKLE',
         phBarkod: 'Barkod', phUrunAdi: 'Urun adi', phUrunAdiMax: 'Urun adi (max 35)', phFiyat: 'Fiyat (€)',
         phFiyatAuto: 'Fiyat (€) — 549 → 5.49 otomatik', phMaliyet: 'Maliyet (€)', phMaliyetAuto: 'Maliyet (€) — 349 → 3.49 otomatik',
         phStok: 'Stok', phFirmaSec: '-- Firma sec --', catDolap: 'Dolap Urunleri', catKuru: 'Kuru Gida', catIcecek: 'Icecekler', catAtistirmalik: 'Atistirmalik', catTemizlik: 'Temizlik', catKisiselBakim: 'Kisisel Bakim', catKagit: 'Kagit Urunleri', catDondurulmus: 'Dondurulmus Gida',
@@ -851,7 +856,7 @@ const I18N = {
         lblSkt: 'MHD', lblBelirtilmedi: 'NICHT ANGEGEBEN', lblSistem: 'System', lblMevcut: 'Vorhanden', lblEnYakinSkt: 'Nächstes MHD',
         btnUzat: '+1 TAG VERLANGERN', btnDuzenle: 'BEARBEITEN', btnSil: 'LOSCHEN', btnSatildi: 'VERKAUFT',
         btnGaleri: 'GALERIE', btnKamera: 'KAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ZUR ETIKETTENLISTE HINZUFUGEN',
-        btnAngebotHazirla: 'ANGEBOT ERSTELLEN', lblEtiket: 'ETIKETT', titleFiyatGecmisi: 'PREISVERLAUF', btnFiyatGecmisi: 'PREISVERLAUF', noPriceHistory: 'Noch keine Preisanderung', titleFirmaGecmisi: 'FIRMENVERLAUF', btnFirmaGecmisi: 'FIRMENVERLAUF', noCompanyHistory: 'Noch keine Firmenanderung', titleTeslimatGecmisi: 'LIEFERVERLAUF', btnTeslimatGecmisi: 'LIEFERVERLAUF', btnBugunGeldi: 'LIEFERUNG SPEICHERN', btnSktDegistir: 'MHD ANDERN', titleSktDegistir: 'MHD ANDERN', lblHizliEkle: 'SCHNELL HINZUFUGEN', lblBaslangic: 'BEGINN', lblBitis: 'ENDE', lblTeslimatTarihi: 'LIEFERDATUM (WANN ANGEKOMMEN)', lblSktTarihi: 'MHD', noDeliveryHistory: 'Noch keine Lieferung erfasst', phKoliAdedi: 'Kartonanzahl', deliveryExpiryHint: 'Dieses Datum ist nur ein Vermerk fur diese Lieferung, es andert nicht das allgemeine MHD des Produkts.', btnSiparisModu: 'BESTELLMODUS', orderModeInstruction: 'Produkte scannen, werden automatisch nach Firma sortiert. Bei unbekannter Firma werden Sie zur Auswahl aufgefordert.', titleFirmaSec: 'FIRMA WAHLEN', btnSecOnayla: 'WAHLEN UND BESTATIGEN', btnPaylas: 'TEILEN', btnTumunuPaylas: 'ALLES TEILEN', titleSiparisGecmisi: 'BESTELLVERLAUF', btnSipariseEkle: 'ZUR BESTELLUNG HINZUFUGEN',
+        btnAngebotHazirla: 'ANGEBOT ERSTELLEN', lblEtiket: 'ETIKETT', titleFiyatGecmisi: 'PREISVERLAUF', btnFiyatGecmisi: 'PREISVERLAUF', noPriceHistory: 'Noch keine Preisanderung', titleFirmaGecmisi: 'FIRMENVERLAUF', btnFirmaGecmisi: 'FIRMENVERLAUF', noCompanyHistory: 'Noch keine Firmenanderung', titleTeslimatGecmisi: 'LIEFERVERLAUF', btnTeslimatGecmisi: 'LIEFERVERLAUF', btnBugunGeldi: 'LIEFERUNG SPEICHERN', btnSktDegistir: 'MHD ANDERN', titleSktDegistir: 'MHD ANDERN', lblHizliEkle: 'SCHNELL HINZUFUGEN', lblStokSifirUyari: 'BESTAND NULL - Produkt wird grau angezeigt', btnStokArtir1: 'BESTAND +1 (NORMALISIEREN)', lblBaslangic: 'BEGINN', lblBitis: 'ENDE', lblTeslimatTarihi: 'LIEFERDATUM (WANN ANGEKOMMEN)', lblSktTarihi: 'MHD', noDeliveryHistory: 'Noch keine Lieferung erfasst', phKoliAdedi: 'Kartonanzahl', deliveryExpiryHint: 'Dieses Datum ist nur ein Vermerk fur diese Lieferung, es andert nicht das allgemeine MHD des Produkts.', btnSiparisModu: 'BESTELLMODUS', orderModeInstruction: 'Produkte scannen, werden automatisch nach Firma sortiert. Bei unbekannter Firma werden Sie zur Auswahl aufgefordert.', titleFirmaSec: 'FIRMA WAHLEN', btnSecOnayla: 'WAHLEN UND BESTATIGEN', btnPaylas: 'TEILEN', btnTumunuPaylas: 'ALLES TEILEN', titleSiparisGecmisi: 'BESTELLVERLAUF', btnSipariseEkle: 'ZUR BESTELLUNG HINZUFUGEN',
         phBarkod: 'Barcode', phUrunAdi: 'Produktname', phUrunAdiMax: 'Produktname (max 35)', phFiyat: 'Preis (€)',
         phFiyatAuto: 'Preis (€) — 549 → 5.49 automatisch', phMaliyet: 'Kosten (€)', phMaliyetAuto: 'Kosten (€) — 349 → 3.49 automatisch',
         phStok: 'Bestand', phFirmaSec: '-- Firma wahlen --', catDolap: 'Kuhlprodukte', catKuru: 'Trockenware', catIcecek: 'Getranke', catAtistirmalik: 'Snacks', catTemizlik: 'Reinigung', catKisiselBakim: 'Korperpflege', catKagit: 'Papierprodukte', catDondurulmus: 'Tiefkuhlkost',
@@ -880,7 +885,7 @@ const I18N = {
         lblSkt: 'Expiry', lblBelirtilmedi: 'NOT SPECIFIED', lblSistem: 'System', lblMevcut: 'Current', lblEnYakinSkt: 'Nearest expiry',
         btnUzat: '+1 DAY EXTEND', btnDuzenle: 'EDIT', btnSil: 'DELETE', btnSatildi: 'SOLD',
         btnGaleri: 'GALLERY', btnKamera: 'CAMERA', btnInternet: 'INTERNET', btnEtiketEkle: 'ADD TO LABEL LIST',
-        btnAngebotHazirla: 'CREATE OFFER', lblEtiket: 'LABEL', titleFiyatGecmisi: 'PRICE HISTORY', btnFiyatGecmisi: 'PRICE HISTORY', noPriceHistory: 'No price changes yet', titleFirmaGecmisi: 'SUPPLIER HISTORY', btnFirmaGecmisi: 'SUPPLIER HISTORY', noCompanyHistory: 'No supplier changes yet', titleTeslimatGecmisi: 'DELIVERY HISTORY', btnTeslimatGecmisi: 'DELIVERY HISTORY', btnBugunGeldi: 'SAVE DELIVERY', btnSktDegistir: 'CHANGE EXPIRY', titleSktDegistir: 'CHANGE EXPIRY', lblHizliEkle: 'QUICK ADD', lblBaslangic: 'START', lblBitis: 'END', lblTeslimatTarihi: 'DELIVERY DATE (WHEN IT ARRIVED)', lblSktTarihi: 'EXPIRY', noDeliveryHistory: 'No deliveries logged yet', phKoliAdedi: 'Box count', deliveryExpiryHint: "This date is only a record for this delivery, it does not change the product's overall expiry date.", btnSiparisModu: 'ORDER MODE', orderModeInstruction: 'Scan products, they will be automatically sorted by company. If company is unknown, you will be asked to choose.', titleFirmaSec: 'SELECT COMPANY', btnSecOnayla: 'SELECT AND CONFIRM', btnPaylas: 'SHARE', btnTumunuPaylas: 'SHARE ALL', titleSiparisGecmisi: 'ORDER HISTORY', btnSipariseEkle: 'ADD TO ORDER',
+        btnAngebotHazirla: 'CREATE OFFER', lblEtiket: 'LABEL', titleFiyatGecmisi: 'PRICE HISTORY', btnFiyatGecmisi: 'PRICE HISTORY', noPriceHistory: 'No price changes yet', titleFirmaGecmisi: 'SUPPLIER HISTORY', btnFirmaGecmisi: 'SUPPLIER HISTORY', noCompanyHistory: 'No supplier changes yet', titleTeslimatGecmisi: 'DELIVERY HISTORY', btnTeslimatGecmisi: 'DELIVERY HISTORY', btnBugunGeldi: 'SAVE DELIVERY', btnSktDegistir: 'CHANGE EXPIRY', titleSktDegistir: 'CHANGE EXPIRY', lblHizliEkle: 'QUICK ADD', lblStokSifirUyari: 'STOCK IS ZERO - product shows as gray', btnStokArtir1: 'STOCK +1 (RETURN TO NORMAL)', lblBaslangic: 'START', lblBitis: 'END', lblTeslimatTarihi: 'DELIVERY DATE (WHEN IT ARRIVED)', lblSktTarihi: 'EXPIRY', noDeliveryHistory: 'No deliveries logged yet', phKoliAdedi: 'Box count', deliveryExpiryHint: "This date is only a record for this delivery, it does not change the product's overall expiry date.", btnSiparisModu: 'ORDER MODE', orderModeInstruction: 'Scan products, they will be automatically sorted by company. If company is unknown, you will be asked to choose.', titleFirmaSec: 'SELECT COMPANY', btnSecOnayla: 'SELECT AND CONFIRM', btnPaylas: 'SHARE', btnTumunuPaylas: 'SHARE ALL', titleSiparisGecmisi: 'ORDER HISTORY', btnSipariseEkle: 'ADD TO ORDER',
         phBarkod: 'Barcode', phUrunAdi: 'Product name', phUrunAdiMax: 'Product name (max 35)', phFiyat: 'Price (€)',
         phFiyatAuto: 'Price (€) — 549 → 5.49 automatic', phMaliyet: 'Cost (€)', phMaliyetAuto: 'Cost (€) — 349 → 3.49 automatic',
         phStok: 'Stock', phFirmaSec: '-- Select company --', catDolap: 'Fridge items', catKuru: 'Dry goods', catIcecek: 'Beverages', catAtistirmalik: 'Snacks', catTemizlik: 'Cleaning', catKisiselBakim: 'Personal Care', catKagit: 'Paper Products', catDondurulmus: 'Frozen Food',
@@ -1867,7 +1872,24 @@ function openQuickExpiryModal(idx){
     document.getElementById('quickExpiryProductName').innerHTML = escapeHtml(p.name);
     document.getElementById('quickExpiryDatePickerSlot').innerHTML = buildCustomDatePicker('quickExpiryInput');
     populateCustomDatePicker('quickExpiryInput', p.expiry || new Date().toISOString().slice(0,10));
+    updateQuickExpiryStockWarning(p);
     document.getElementById('quickExpiryModal').style.display='flex';
+}
+function updateQuickExpiryStockWarning(p){
+    let w = document.getElementById('quickExpiryStockWarning');
+    if(!w) return;
+    w.style.display = (p && p.quantity===0) ? 'block' : 'none';
+}
+async function quickExpiryBumpStock(){
+    let p = products[quickExpiryProductIdx];
+    if(!p) return;
+    wakeUpProduct(p);
+    p.quantity = (parseInt(p.quantity)||0) + 1;
+    await saveProducts();
+    await updateUI();
+    playBeep();
+    showToast(translateText('Stok guncellendi'));
+    updateQuickExpiryStockWarning(p);
 }
 function closeQuickExpiryModal(){ document.getElementById('quickExpiryModal').style.display='none'; }
 function shiftQuickExpiry(amount, unit){
@@ -1888,6 +1910,7 @@ async function saveQuickExpiry(){
     await saveProducts();
     await updateUI();
     closeQuickExpiryModal();
+    playBeep();
     showToast(translateText('SKT guncellendi'));
     if(document.getElementById('productDetailModal').style.display==='flex'){
         openProductDetailModal(quickExpiryProductIdx);
