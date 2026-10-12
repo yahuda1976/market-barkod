@@ -298,6 +298,7 @@
         </div>
     </div>
     <div style="display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;justify-content:center">
+        <button id="closeFocusBtn" onclick="toggleCloseFocus()" style="background:linear-gradient(135deg,#06b6d4,#0891b2);padding:14px 24px;border-radius:40px;color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(6,182,212,0.3);transition:all 0.2s"><i class="fa-solid fa-magnifying-glass-plus" style="margin-right:6px"></i><span data-i18n="btnYakin">YAKIN</span></button>
         <button id="torchToggleBtn" onclick="toggleTorch()" style="background:linear-gradient(135deg,#f59e0b,#d97706);padding:14px 24px;border-radius:40px;color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(245,158,11,0.3);transition:all 0.2s"><i class="fa-solid fa-bolt" style="margin-right:6px"></i><span data-i18n="btnFener">FENER</span></button>
         <button id="closeCameraModalBtn" style="background:linear-gradient(135deg,#ef4444,#dc2626);padding:14px 28px;border-radius:40px;color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(239,68,68,0.3);transition:all 0.2s"><i class="fa-solid fa-xmark" style="margin-right:6px"></i><span data-i18n="btnKapat">KAPAT</span></button>
         <button onclick="manualBarcodeEntry()" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);padding:14px 24px;border-radius:40px;color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(139,92,246,0.3);transition:all 0.2s"><i class="fa-solid fa-keyboard" style="margin-right:6px"></i><span data-i18n="btnElleGir">ELLE GIR</span></button>
@@ -692,6 +693,9 @@ const PHRASE_DICT = [
     ["Cihaz manuel odaklamayi desteklemiyor, biraz geri/ileri hareket ettir", "Gerät unterstützt manuellen Fokus nicht, Telefon leicht bewegen", "Device doesn't support manual focus, move the phone slightly"],
     ["Kamera hazir degil", "Kamera ist nicht bereit", "Camera is not ready"],
     ["Bu cihaz fener ozelligini desteklemiyor", "Dieses Gerät unterstützt keine Taschenlampe", "This device does not support flashlight"],
+    ["Bu cihaz yakin odak ayarini desteklemiyor, otomatik odak kullaniliyor", "Dieses Gerät unterstützt keinen Nahfokus, Autofokus wird verwendet", "This device does not support close focus, using autofocus"],
+    ["Yakin odak acildi", "Nahfokus aktiviert", "Close focus on"],
+    ["Otomatik odak acildi", "Autofokus aktiviert", "Autofocus on"],
     ["Fener acilamadi", "Taschenlampe konnte nicht aktiviert werden", "Could not turn on flashlight"],
     ["Gecersiz barkod", "Ungültiger Barcode", "Invalid barcode"],
     ["eklendi", "hinzugefügt", "added"],
@@ -814,7 +818,7 @@ const I18N = {
         drawerYedek: 'YEDEKLEME', btnYedekTelefon: 'TELEFONA YEDEK AL', btnYedekDrive: "GOOGLE DRIVE'A YEDEKLE", btnYedekGeri: 'YEDEKTEN GERI YUKLE',
         drawerRapor: 'RAPORLAR', btnCsv: 'CSV RAPORU INDIR', btnYazdir: 'ENVANTERI YAZDIR', btnEtiketOnizle: 'ONIZLE', btnEtiketYazdir: 'YAZDIR',
         drawerDiger: 'DIGER', btnSikistir: 'RESIMLERI SIKISTIR', drawerDil: 'DIL / LANGUAGE',
-        btnKapat: 'KAPAT', btnFener: 'FENER', btnElleGir: 'ELLE GIR', camBaslatiliyor: 'KAMERA BASLATILIYOR...',
+        btnKapat: 'KAPAT', btnYakin: 'YAKIN', btnFener: 'FENER', btnElleGir: 'ELLE GIR', camBaslatiliyor: 'KAMERA BASLATILIYOR...',
         titleEnvanter: 'ENVANTER', phInventorySearch: 'Urun adi veya barkod ara...',
         titleSktUyari: 'SKT UYARILARI', titleStokSayimi: 'STOK SAYIMI',
         sayimInstruction: "Barkodu okutun, sayilan miktari girin. Bitince GUNCELLE'ye basin.",
@@ -843,7 +847,7 @@ const I18N = {
         drawerYedek: 'SICHERUNG', btnYedekTelefon: 'AUF TELEFON SICHERN', btnYedekDrive: 'IN GOOGLE DRIVE SICHERN', btnYedekGeri: 'AUS SICHERUNG WIEDERHERSTELLEN',
         drawerRapor: 'BERICHTE', btnCsv: 'CSV-BERICHT HERUNTERLADEN', btnYazdir: 'BESTAND DRUCKEN', btnEtiketOnizle: 'VORSCHAU', btnEtiketYazdir: 'DRUCKEN',
         drawerDiger: 'WEITERES', btnSikistir: 'BILDER KOMPRIMIEREN', drawerDil: 'SPRACHE / DIL',
-        btnKapat: 'SCH', btnFener: 'LICHT', btnElleGir: 'MANUELL EINGEBEN', camBaslatiliyor: 'KAMERA WIRD GESTARTET...',
+        btnKapat: 'SCHLIESSEN', btnYakin: 'NAH', btnFener: 'LICHT', btnElleGir: 'MANUELL EINGEBEN', camBaslatiliyor: 'KAMERA WIRD GESTARTET...',
         titleEnvanter: 'BESTAND', phInventorySearch: 'Produktname oder Barcode suchen...',
         titleSktUyari: 'MHD WARNUNGEN', titleStokSayimi: 'INVENTUR',
         sayimInstruction: 'Barcode scannen, gezählte Menge eingeben. Am Ende AKTUALISIEREN drücken.',
@@ -872,7 +876,7 @@ const I18N = {
         drawerYedek: 'BACKUP', btnYedekTelefon: 'BACKUP TO PHONE', btnYedekDrive: 'BACKUP TO GOOGLE DRIVE', btnYedekGeri: 'RESTORE FROM BACKUP',
         drawerRapor: 'REPORTS', btnCsv: 'DOWNLOAD CSV REPORT', btnYazdir: 'PRINT INVENTORY', btnEtiketOnizle: 'PREVIEW', btnEtiketYazdir: 'PRINT',
         drawerDiger: 'OTHER', btnSikistir: 'COMPRESS IMAGES', drawerDil: 'LANGUAGE / DIL',
-        btnKapat: 'CLOSE', btnFener: 'FLASHLIGHT', btnElleGir: 'MANUAL ENTRY', camBaslatiliyor: 'STARTING CAMERA...',
+        btnKapat: 'CLOSE', btnYakin: 'CLOSE-UP', btnFener: 'FLASHLIGHT', btnElleGir: 'MANUAL ENTRY', camBaslatiliyor: 'STARTING CAMERA...',
         titleEnvanter: 'INVENTORY', phInventorySearch: 'Search product name or barcode...',
         titleSktUyari: 'EXPIRY WARNINGS', titleStokSayimi: 'STOCKTAKE',
         sayimInstruction: 'Scan the barcode, enter the counted quantity. Press UPDATE when done.',
@@ -2288,18 +2292,44 @@ function withTimeout(promise, ms){
         new Promise(resolve=>setTimeout(resolve, ms))
     ]);
 }
+// Odak: varsayilan olarak kamera kendi kendine (surekli) odaklanir.
+// Eskiden odak orta-uzak bir mesafeye SABITLENIYORDU; bu yuzden yakin
+// barkodlar bulanik kaliyordu. "YAKIN" modu acikken odak, kameranin
+// odaklayabildigi EN YAKIN mesafeye kilitlenir (dar dolap aralari icin).
+let closeFocusMode = false;
+try{ closeFocusMode = localStorage.getItem('marketpro_closefocus')==='1'; }catch(e){}
+function updateCloseFocusBtn(){
+    let btn=document.getElementById('closeFocusBtn');
+    if(btn) btn.classList.toggle('torch-active', closeFocusMode);
+}
 async function forceContinuousFocus(track){
+    updateCloseFocusBtn();
     if(!track || !track.getCapabilities) return;
     try{
         let caps = track.getCapabilities();
-        let advanced = [];
-        if(caps.focusMode && caps.focusMode.includes('continuous')) advanced.push({focusMode:'continuous'});
-        if(caps.focusDistance && typeof caps.focusDistance.min==='number' && typeof caps.focusDistance.max==='number'){
-            let biasedDistance = caps.focusDistance.min + (caps.focusDistance.max - caps.focusDistance.min) * 0.55;
-            advanced.push({focusDistance: biasedDistance});
+        if(closeFocusMode && caps.focusDistance && typeof caps.focusDistance.min==='number' && caps.focusMode && caps.focusMode.includes('manual')){
+            await withTimeout(track.applyConstraints({advanced:[{focusMode:'manual', focusDistance:caps.focusDistance.min}]}), 900);
+            return;
         }
-        if(advanced.length) await withTimeout(track.applyConstraints({advanced}), 900);
+        if(caps.focusMode && caps.focusMode.includes('continuous')){
+            await withTimeout(track.applyConstraints({advanced:[{focusMode:'continuous'}]}), 900);
+        }
     }catch(e){}
+}
+async function toggleCloseFocus(){
+    let track = currentVideoTrack;
+    if(!closeFocusMode && track && track.getCapabilities){
+        let caps = {};
+        try{ caps = track.getCapabilities(); }catch(e){}
+        if(!(caps.focusDistance && caps.focusMode && caps.focusMode.includes('manual'))){
+            showToast('Bu cihaz yakin odak ayarini desteklemiyor, otomatik odak kullaniliyor');
+            return;
+        }
+    }
+    closeFocusMode = !closeFocusMode;
+    try{ localStorage.setItem('marketpro_closefocus', closeFocusMode?'1':'0'); }catch(e){}
+    await forceContinuousFocus(track);
+    showToast(closeFocusMode ? 'Yakin odak acildi' : 'Otomatik odak acildi');
 }
 function showFocusPulse(video, x, y){
     let wrap = video.parentElement;
@@ -2319,6 +2349,7 @@ function attachTapToFocus(video, getTrack){
         let rect = video.getBoundingClientRect();
         let x = e.clientX - rect.left, y = e.clientY - rect.top;
         showFocusPulse(video, x, y);
+        if(closeFocusMode){ forceContinuousFocus(track); return; }
         try{
             let caps = track.getCapabilities();
             let advanced = [];
