@@ -28,9 +28,9 @@
             --accent-purple: #8b5cf6;
             --text-primary: #0f172a;
             --text-secondary: #475569;
-            --product-name-color: #15803d;
+            --product-name-color: #be185d;
         }
-        body.dark-mode{ --product-name-color: #4ade80; }
+        body.dark-mode{ --product-name-color: #fb7185; }
         *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',system-ui,-apple-system,sans-serif}
         body{background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #e0f2fe 100%);display:flex;justify-content:center;min-height:100vh;padding:12px;color:var(--text-primary)}
         .app-container{max-width:550px;width:100%;background:var(--bg-card);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:28px;padding:12px 16px;border:1px solid var(--glass-border);box-shadow:0 25px 50px -12px rgba(0,0,0,0.15);animation:fadeInUp 0.5s ease}
@@ -1138,12 +1138,12 @@ async function openDeliveryHistoryModal(idx){
     if(sel) sel.innerHTML = buildCompanyOptions(p.company||'');
     document.getElementById('deliveryArrivalDatePickerSlot').innerHTML = buildCustomDatePicker('deliveryArrivalDateInput');
     document.getElementById('deliveryExpiryDatePickerSlot').innerHTML = buildCustomDatePicker('deliveryExpiryInput');
-    populateCustomDatePicker('deliveryArrivalDateInput', new Date().toISOString().slice(0,10));
-    populateCustomDatePicker('deliveryExpiryInput', p.expiry||'');
     let boxInp = document.getElementById('deliveryBoxCountInput');
     if(boxInp) boxInp.value = '';
     renderDeliveryHistoryList();
     document.getElementById('deliveryHistoryModal').style.display='flex';
+    populateCustomDatePicker('deliveryArrivalDateInput', new Date().toISOString().slice(0,10));
+    populateCustomDatePicker('deliveryExpiryInput', p.expiry||'');
 }
 function closeDeliveryHistoryModal(){ document.getElementById('deliveryHistoryModal').style.display='none'; currentDeliveryProductIdx=null; }
 function renderDeliveryHistoryList(){
@@ -1871,8 +1871,8 @@ function openQuickExpiryModal(idx){
     quickExpiryProductIdx = idx;
     document.getElementById('quickExpiryProductName').innerHTML = escapeHtml(p.name);
     document.getElementById('quickExpiryDatePickerSlot').innerHTML = buildCustomDatePicker('quickExpiryInput');
-    populateCustomDatePicker('quickExpiryInput', p.expiry || new Date().toISOString().slice(0,10));
     document.getElementById('quickExpiryModal').style.display='flex';
+    populateCustomDatePicker('quickExpiryInput', p.expiry || new Date().toISOString().slice(0,10));
 }
 function closeQuickExpiryModal(){ document.getElementById('quickExpiryModal').style.display='none'; }
 async function saveQuickExpiry(){
@@ -2097,9 +2097,9 @@ function buildWheelItems(part){
 function buildCustomDatePicker(idPrefix){
     return `<div class="date-wheel-wrap">
         <div class="date-wheel-row">
-            <div id="${idPrefix}_day" class="date-wheel" style="flex:0.65;"></div>
-            <div id="${idPrefix}_month" class="date-wheel" style="flex:2;"></div>
             <div id="${idPrefix}_year" class="date-wheel" style="flex:0.9;"></div>
+            <div id="${idPrefix}_month" class="date-wheel" style="flex:2;"></div>
+            <div id="${idPrefix}_day" class="date-wheel" style="flex:0.65;"></div>
         </div>
         <div class="date-wheel-highlight"></div>
     </div>
@@ -2114,6 +2114,7 @@ function renderWheelColumn(idPrefix, part, selectedValue){
     if(idx<0) idx = 0;
     col.scrollTop = idx*WHEEL_ITEM_H;
     updateWheelHighlightClass(idPrefix, part);
+    requestAnimationFrame(()=>{ col.scrollTop = idx*WHEEL_ITEM_H; updateWheelHighlightClass(idPrefix, part); });
     if(!col._wheelBound){
         col._wheelBound = true;
         col.addEventListener('scroll', ()=>{
@@ -2507,7 +2508,7 @@ function openProductDetailModal(idx){
     let codeBlockHtml = p.labelType==='qr'
         ? `<div style="margin:12px auto 2px;width:130px;height:130px;background:white;border-radius:10px;padding:4px;box-sizing:border-box;box-shadow:0 2px 8px rgba(0,0,0,0.08);">${buildQrSvgString(p.barcode, 122)}</div>`
         : `<div style="margin:12px auto 2px;max-width:210px;background:white;border-radius:14px;padding:8px 10px 4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);"><svg id="detailBarcodeSvg" style="width:100%;height:auto;display:block;"></svg></div>`;
-    let imageBlockHtml = `<div style="position:relative;display:inline-block;">${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}<button onclick="openQuickExpiryModal(${idx})" title="${t('btnSktDegistir')}" style="position:absolute;top:2px;right:2px;width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#0284c7);border:3px solid white;box-shadow:0 4px 10px rgba(0,0,0,0.3);color:white;font-size:1.05rem;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;"><i class="fa-solid fa-calendar-days"></i></button></div>`;
+    let imageBlockHtml = `<button onclick="openQuickExpiryModal(${idx})" style="display:block;margin:2px auto 0;background:linear-gradient(135deg,#0ea5e9,#0284c7);border:none;border-radius:30px;padding:9px 20px;color:white;font-weight:800;font-size:0.82rem;cursor:pointer;box-shadow:0 4px 10px rgba(14,165,233,0.3);"><i class="fa-solid fa-calendar-days" style="margin-right:6px"></i><span data-i18n="btnSktDegistir">SKT DEGISTIR</span></button>${p.image?`<img src="${p.image}" class="detail-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}`;
     content.innerHTML=`<div class="modal-header"><span class="modal-title"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>${t('titleUrunDetayi')}</span><button class="close-modal-btn" onclick="closeProductDetailModal()"><i class="fa-solid fa-xmark"></i></button></div><div class="product-detail-card ${color}">${imageBlockHtml}<div style="margin-top:8px;"><strong style="font-size:1.1rem;color:var(--product-name-color);">${escapeHtml(p.name)}</strong> ${getCategoryEmoji(p.category)}${codeBlockHtml}<div style="text-align:center;font-weight:900;font-size:0.9rem;letter-spacing:1.5px;color:#1e293b;margin-bottom:8px;">${p.barcode}</div><div style="color:#475569;margin-top:6px;font-size:0.9rem;line-height:1.6;">${t('lblFiyat')}: <span style="color:#f87171;font-weight:800;font-size:1.1rem;">${p.price.toFixed(2)} €</span><br>${t('lblStok')}: <span style="font-weight:700">${p.quantity}</span><br><span style="color:#ef4444;font-weight:900;font-size:1.05rem;">${t('lblSkt')}: ${formatDateDMY(p.expiry)}</span>${expiredTag(p)}${getLastDeliverySummary(p)}</div>${p.company?`<button onclick="closeProductDetailModal();viewCompanyProducts('${escapeJsString(p.company)}')" style="margin-top:10px;background:rgba(30,41,59,0.08);border:1px solid rgba(30,41,59,0.15);border-radius:30px;padding:8px 16px;color:#1e293b;font-weight:800;font-size:0.85rem;cursor:pointer;"><i class="fa-solid fa-building" style="margin-right:6px"></i>${escapeHtml(p.company)}</button>`:''}</div></div><div class="detail-actions"><div class="button-row"><button onclick="deleteCurrentProduct()" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i class="fa-solid fa-trash" style="margin-right:4px"></i>${t('btnSil')}</button><button onclick="openEditProductModal(${idx},{type:'detail'})" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fa-solid fa-pen" style="margin-right:4px"></i>${t('btnDuzenle')}</button></div><div class="button-row"><button onclick="quickAdjustOrder(${idx},1)" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">Spr +</button><button onclick="quickAdjustOrder(${idx},-1)" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6);">Spr -</button></div><div class="button-row"><button onclick="sellProduct(products[${idx}],${idx})" style="background:linear-gradient(135deg,#f97316,#ea580c);"><i class="fa-solid fa-cart-shopping" style="margin-right:4px"></i>${t('btnSatildi')}</button><button onclick="addImageToCurrentProduct('gallery')" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button></div><div class="button-row"><button onclick="addImageToCurrentProduct('camera')" style="background:linear-gradient(135deg,#06b6d4,#0891b2);"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button><button onclick="openGoogleSearchForCurrent()" style="background:linear-gradient(135deg,#ec4899,#db2777);"><i class="fa-solid fa-magnifying-glass" style="margin-right:4px"></i>${t('btnInternet')}</button></div><div class="button-row"><button onclick="addToPrintQueue(products[${idx}])" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fa-solid fa-tag" style="margin-right:4px"></i>${t('btnEtiketEkle')}</button><button onclick="openPriceHistoryModal(${idx})" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);"><i class="fa-solid fa-chart-line" style="margin-right:4px"></i>${t('btnFiyatGecmisi')}</button></div><div class="button-row"><button onclick="openCompanyHistoryModal(${idx})" style="background:linear-gradient(135deg,#64748b,#475569);"><i class="fa-solid fa-clock-rotate-left" style="margin-right:4px"></i>${t('btnFirmaGecmisi')}</button><button onclick="openDeliveryHistoryModal(${idx})" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fa-solid fa-truck" style="margin-right:4px"></i>${t('btnTeslimatGecmisi')}</button></div><button class="full-width-btn" onclick="openAngebotFlow([${idx}])" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)!important;margin-top:0;"><i class="fa-solid fa-percent" style="margin-right:6px"></i>${t('btnAngebotHazirla')}</button><div id="editFields" style="display:none;margin-top:14px;"></div></div>`;
     modal.style.display="flex";
     setTimeout(()=>{
@@ -2540,9 +2541,9 @@ function openEditProductModal(idx, returnTo){
     if(!p) return;
     let c = document.getElementById('editProductFormContainer');
     c.innerHTML = `<input id="epName" value="${escapeHtml(p.name)}" maxlength="35" placeholder="${t('phUrunAdi')}">${buildBarcodeRowHtml('ep', p.barcode, p.labelType)}${buildCustomDatePicker('epExpiry')}<input id="epPrice" value="${p.price}" placeholder="${t('phFiyat')}"><input id="epCost" value="${p.cost||''}" placeholder="${t('phMaliyet')}"><div id="epProfitBox" class="profit-box"></div><select id="epCategory">${buildCategoryOptions(p.category)}</select><select id="epCompany">${buildCompanyOptions(p.company||'')}</select><input id="epQuantity" value="${(parseInt(p.quantity)>0)?parseInt(p.quantity):1}" placeholder="${t('phStok')}" type="number"><div class="edit-form-buttons"><button class="btn-save" onclick="saveEditProductModal(${idx})"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>${t('btnKaydet')}</button><button class="btn-cancel" onclick="closeEditProductModal()">${t('btnIptal')}</button></div>`;
-    populateCustomDatePicker('epExpiry', p.expiry||'');
     setupPriceFields('epCost','epPrice','epProfitBox');
     document.getElementById('editProductModal').style.display='flex';
+    populateCustomDatePicker('epExpiry', p.expiry||'');
 }
 function closeEditProductModal(){
     document.getElementById('editProductModal').style.display='none';
@@ -2916,11 +2917,11 @@ function openAngebotFlow(indexes){
     let in5 = new Date(today.getTime()+5*86400000);
     document.getElementById('angebotStartDateSlot').innerHTML = buildCustomDatePicker('angebotStartDate');
     document.getElementById('angebotEndDateSlot').innerHTML = buildCustomDatePicker('angebotEndDate');
-    populateCustomDatePicker('angebotStartDate', today.toISOString().slice(0,10));
-    populateCustomDatePicker('angebotEndDate', in5.toISOString().slice(0,10));
     document.getElementById('angebotError').innerHTML='';
     renderAngebotTemplateGrid(items.length);
     document.getElementById('angebotModal').style.display='flex';
+    populateCustomDatePicker('angebotStartDate', today.toISOString().slice(0,10));
+    populateCustomDatePicker('angebotEndDate', in5.toISOString().slice(0,10));
 }
 function renderAngebotTemplateGrid(itemCount){
     let grid = document.getElementById('angebotTemplateGrid');
@@ -3973,7 +3974,8 @@ function showResult(p){
         : `<div style="background:white;border-radius:10px;padding:6px 10px;margin:6px auto 0;display:inline-block;"><svg id="resultBarcodeSvg"></svg></div>`;
     document.getElementById("resultArea").innerHTML=`
         <button class="close-result-btn" onclick="clearResult()"><i class="fa-solid fa-xmark"></i></button>
-        <div style="position:relative;display:inline-block;">${p.image?`<img src="${p.image}" class="product-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}<button onclick="openQuickExpiryModal(${idx})" title="${t('btnSktDegistir')}" style="position:absolute;top:2px;right:2px;width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#0284c7);border:3px solid white;box-shadow:0 4px 10px rgba(0,0,0,0.3);color:white;font-size:1.05rem;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;"><i class="fa-solid fa-calendar-days"></i></button></div>
+        <button onclick="openQuickExpiryModal(${idx})" style="display:block;margin:2px auto 0;background:linear-gradient(135deg,#0ea5e9,#0284c7);border:none;border-radius:30px;padding:9px 20px;color:white;font-weight:800;font-size:0.82rem;cursor:pointer;box-shadow:0 4px 10px rgba(14,165,233,0.3);"><i class="fa-solid fa-calendar-days" style="margin-right:6px"></i><span data-i18n="btnSktDegistir">SKT DEGISTIR</span></button>
+        ${p.image?`<img src="${p.image}" class="product-image" onerror="this.style.display='none';">`:getNoImagePlaceholder(p.category)}
         <div class="result-name">${escapeHtml(p.name)} ${getCategoryEmoji(p.category)}</div>
         ${resultCodeHtml}
         <div class="result-price">${p.price.toFixed(2)} €</div>
@@ -4044,9 +4046,9 @@ function openManualAddModal(){
     let container=document.getElementById("manualAddFormContainer");
     let autoCode = 'IC'+Date.now().toString(36).toUpperCase();
     container.innerHTML=`<div>${buildBarcodeRowHtml('manualAdd', autoCode, 'barcode')}${buildCustomDatePicker('manualAddExpiry')}<input id="manualAddName" placeholder="${t('phUrunAdiMax')}" maxlength="35"><select id="manualAddCompany">${buildCompanyOptions('')}</select><input id="manualAddPrice" placeholder="${t('phFiyatAuto')}"><input id="manualAddCost" placeholder="${t('phMaliyetAuto')}"><div id="manualAddProfitBox" class="profit-box"></div><select id="manualAddCategory">${buildCategoryOptions('')}</select><input id="manualAddQuantity" placeholder="${t('phStok')}" value="1" type="number"><div class="image-buttons-group"><button onclick="openGoogleSearchForManualAdd()" style="background:linear-gradient(135deg,#10b981,#059669);flex:unset;width:100%;"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i>${t('btnInternetGorsel')}</button></div><div class="image-buttons-group"><button onclick="captureImageForManualAdd('gallery')"><i class="fa-solid fa-images" style="margin-right:4px"></i>${t('btnGaleri')}</button><button onclick="captureImageForManualAdd('camera')"><i class="fa-solid fa-camera" style="margin-right:4px"></i>${t('btnKamera')}</button></div><div class="edit-form-buttons"><button class="btn-save" onclick="saveNewProductFromModal()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px"></i>${t('btnKaydet')}</button><button class="btn-cancel" onclick="closeManualAddModal()">${t('btnIptal')}</button></div></div>`;
-    populateCustomDatePicker('manualAddExpiry', '');
     setupPriceFields('manualAddCost','manualAddPrice','manualAddProfitBox');
     document.getElementById("manualAddModal").style.display="flex";
+    populateCustomDatePicker('manualAddExpiry', '');
     let bcEl=document.getElementById('manualAddBarcode');
     if(bcEl) bcEl.addEventListener('blur', ()=>prefillIfExisting('manualAdd'));
 }
