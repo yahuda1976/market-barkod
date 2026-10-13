@@ -302,6 +302,7 @@
         </div>
     </div>
     <div style="display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;justify-content:center">
+        <button id="switchCamBtn" onclick="switchCamera()" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);padding:14px 24px;border-radius:40px;color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(139,92,246,0.3);transition:all 0.2s"><i class="fa-solid fa-camera-rotate" style="margin-right:6px"></i><span data-i18n="btnKameraDegistir">KAMERA</span></button>
         <button id="closeFocusBtn" onclick="toggleCloseFocus()" style="background:linear-gradient(135deg,#06b6d4,#0891b2);padding:14px 24px;border-radius:40px;color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(6,182,212,0.3);transition:all 0.2s"><i class="fa-solid fa-magnifying-glass-plus" style="margin-right:6px"></i><span data-i18n="btnYakin">YAKIN</span></button>
         <button id="torchToggleBtn" onclick="toggleTorch()" style="background:linear-gradient(135deg,#f59e0b,#d97706);padding:14px 24px;border-radius:40px;color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(245,158,11,0.3);transition:all 0.2s"><i class="fa-solid fa-bolt" style="margin-right:6px"></i><span data-i18n="btnFener">FENER</span></button>
         <button id="closeCameraModalBtn" style="background:linear-gradient(135deg,#ef4444,#dc2626);padding:14px 28px;border-radius:40px;color:white;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(239,68,68,0.3);transition:all 0.2s"><i class="fa-solid fa-xmark" style="margin-right:6px"></i><span data-i18n="btnKapat">KAPAT</span></button>
@@ -698,6 +699,7 @@ const PHRASE_DICT = [
     ["Kamera hazir degil", "Kamera ist nicht bereit", "Camera is not ready"],
     ["Bu cihaz fener ozelligini desteklemiyor", "Dieses Gerät unterstützt keine Taschenlampe", "This device does not support flashlight"],
     ["Bu cihaz yakin odak ayarini desteklemiyor, otomatik odak kullaniliyor", "Dieses Gerät unterstützt keinen Nahfokus, Autofokus wird verwendet", "This device does not support close focus, using autofocus"],
+    ["Bu telefonda baska arka kamera bulunamadi", "Keine weitere Rückkamera gefunden", "No other back camera found"],
     ["Yakin odak acildi", "Nahfokus aktiviert", "Close focus on"],
     ["Otomatik odak acildi", "Autofokus aktiviert", "Autofocus on"],
     ["Fener acilamadi", "Taschenlampe konnte nicht aktiviert werden", "Could not turn on flashlight"],
@@ -822,7 +824,7 @@ const I18N = {
         drawerYedek: 'YEDEKLEME', btnYedekTelefon: 'TELEFONA YEDEK AL', btnYedekDrive: "GOOGLE DRIVE'A YEDEKLE", btnYedekGeri: 'YEDEKTEN GERI YUKLE',
         drawerRapor: 'RAPORLAR', btnCsv: 'CSV RAPORU INDIR', btnYazdir: 'ENVANTERI YAZDIR', btnEtiketOnizle: 'ONIZLE', btnEtiketYazdir: 'YAZDIR',
         drawerDiger: 'DIGER', btnSikistir: 'RESIMLERI SIKISTIR', drawerDil: 'DIL / LANGUAGE',
-        btnKapat: 'KAPAT', btnYakin: 'YAKIN', btnFener: 'FENER', btnElleGir: 'ELLE GIR', camBaslatiliyor: 'KAMERA BASLATILIYOR...',
+        btnKapat: 'KAPAT', btnKameraDegistir: 'KAMERA', btnYakin: 'YAKIN', btnFener: 'FENER', btnElleGir: 'ELLE GIR', camBaslatiliyor: 'KAMERA BASLATILIYOR...',
         titleEnvanter: 'ENVANTER', phInventorySearch: 'Urun adi veya barkod ara...',
         titleSktUyari: 'SKT UYARILARI', titleStokSayimi: 'STOK SAYIMI',
         sayimInstruction: "Barkodu okutun, sayilan miktari girin. Bitince GUNCELLE'ye basin.",
@@ -851,7 +853,7 @@ const I18N = {
         drawerYedek: 'SICHERUNG', btnYedekTelefon: 'AUF TELEFON SICHERN', btnYedekDrive: 'IN GOOGLE DRIVE SICHERN', btnYedekGeri: 'AUS SICHERUNG WIEDERHERSTELLEN',
         drawerRapor: 'BERICHTE', btnCsv: 'CSV-BERICHT HERUNTERLADEN', btnYazdir: 'BESTAND DRUCKEN', btnEtiketOnizle: 'VORSCHAU', btnEtiketYazdir: 'DRUCKEN',
         drawerDiger: 'WEITERES', btnSikistir: 'BILDER KOMPRIMIEREN', drawerDil: 'SPRACHE / DIL',
-        btnKapat: 'SCHLIESSEN', btnYakin: 'NAH', btnFener: 'LICHT', btnElleGir: 'MANUELL EINGEBEN', camBaslatiliyor: 'KAMERA WIRD GESTARTET...',
+        btnKapat: 'SCHLIESSEN', btnKameraDegistir: 'KAMERA', btnYakin: 'NAH', btnFener: 'LICHT', btnElleGir: 'MANUELL EINGEBEN', camBaslatiliyor: 'KAMERA WIRD GESTARTET...',
         titleEnvanter: 'BESTAND', phInventorySearch: 'Produktname oder Barcode suchen...',
         titleSktUyari: 'MHD WARNUNGEN', titleStokSayimi: 'INVENTUR',
         sayimInstruction: 'Barcode scannen, gezählte Menge eingeben. Am Ende AKTUALISIEREN drücken.',
@@ -880,7 +882,7 @@ const I18N = {
         drawerYedek: 'BACKUP', btnYedekTelefon: 'BACKUP TO PHONE', btnYedekDrive: 'BACKUP TO GOOGLE DRIVE', btnYedekGeri: 'RESTORE FROM BACKUP',
         drawerRapor: 'REPORTS', btnCsv: 'DOWNLOAD CSV REPORT', btnYazdir: 'PRINT INVENTORY', btnEtiketOnizle: 'PREVIEW', btnEtiketYazdir: 'PRINT',
         drawerDiger: 'OTHER', btnSikistir: 'COMPRESS IMAGES', drawerDil: 'LANGUAGE / DIL',
-        btnKapat: 'CLOSE', btnYakin: 'CLOSE-UP', btnFener: 'FLASHLIGHT', btnElleGir: 'MANUAL ENTRY', camBaslatiliyor: 'STARTING CAMERA...',
+        btnKapat: 'CLOSE', btnKameraDegistir: 'CAMERA', btnYakin: 'CLOSE-UP', btnFener: 'FLASHLIGHT', btnElleGir: 'MANUAL ENTRY', camBaslatiliyor: 'STARTING CAMERA...',
         titleEnvanter: 'INVENTORY', phInventorySearch: 'Search product name or barcode...',
         titleSktUyari: 'EXPIRY WARNINGS', titleStokSayimi: 'STOCKTAKE',
         sayimInstruction: 'Scan the barcode, enter the counted quantity. Press UPDATE when done.',
@@ -2335,6 +2337,70 @@ async function toggleCloseFocus(){
     await forceContinuousFocus(track);
     showToast(closeFocusMode ? 'Yakin odak acildi' : 'Otomatik odak acildi');
 }
+// ==============================================================
+//  GENIS KAMERA GORUNUMU: Eskiden kamera 16:9 aciliyordu; telefon dik
+//  tutulunca bu, goruntunun SAG-SOL kenarlarini kirpiyor ve urunleri
+//  oldugundan yakin gosteriyordu. Artik sensorun tam 4:3 alani
+//  kullaniliyor ve kamera en genis (en az yakinlastirilmis) ayarda
+//  aciliyor. Telefonda birden fazla arka kamera varsa (genis aci vb.)
+//  "KAMERA" dugmesiyle aralarinda gecilebilir; secim hatirlanir.
+// ==============================================================
+async function applyWidestZoom(track){
+    try{
+        if(!track || !track.getCapabilities) return;
+        let caps = track.getCapabilities();
+        if(caps.zoom && typeof caps.zoom.min==='number'){
+            await withTimeout(track.applyConstraints({advanced:[{zoom:caps.zoom.min}]}), 900);
+        }
+    }catch(e){}
+}
+async function getCameraStream(){
+    let savedId = null;
+    try{ savedId = localStorage.getItem('marketpro_cameraId'); }catch(e){}
+    let base = {width:{ideal:1280}, height:{ideal:960}, aspectRatio:{ideal:4/3}};
+    let stream = null;
+    if(savedId){
+        try{ stream = await navigator.mediaDevices.getUserMedia({video:Object.assign({deviceId:{exact:savedId}}, base)}); }
+        catch(e){ try{ localStorage.removeItem('marketpro_cameraId'); }catch(e2){} stream=null; }
+    }
+    if(!stream){
+        try{ stream = await navigator.mediaDevices.getUserMedia({video:Object.assign({facingMode:"environment"}, base)}); }
+        catch(e){ stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment", width:{ideal:1280}, height:{ideal:720}}}); }
+    }
+    await applyWidestZoom(stream.getVideoTracks()[0]);
+    return stream;
+}
+async function getBackCameras(){
+    try{
+        let devs = (await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');
+        let back = devs.filter(d=>/back|rear|environment|arka|rück|hinten/i.test(d.label||''));
+        return back.length ? back : devs;
+    }catch(e){ return []; }
+}
+async function switchCamera(){
+    let cams = await getBackCameras();
+    if(cams.length<2){ showToast('Bu telefonda baska arka kamera bulunamadi'); return; }
+    let curId = null;
+    try{ curId = currentVideoTrack && currentVideoTrack.getSettings ? currentVideoTrack.getSettings().deviceId : null; }catch(e){}
+    let idx = cams.findIndex(c=>c.deviceId===curId);
+    let next = cams[(idx+1) % cams.length];
+    try{ localStorage.setItem('marketpro_cameraId', next.deviceId); }catch(e){}
+    let video = document.getElementById('cameraVideo');
+    try{
+        if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); }
+        let stream = await getCameraStream();
+        video.srcObject = stream;
+        currentStream = stream;
+        currentVideoTrack = stream.getVideoTracks()[0]||null;
+        await video.play();
+        forceContinuousFocus(currentVideoTrack);
+        let n = cams.findIndex(c=>c.deviceId===next.deviceId)+1;
+        showToast('Kamera '+n+'/'+cams.length);
+    }catch(e){
+        try{ localStorage.removeItem('marketpro_cameraId'); }catch(e2){}
+        showToast('Kamera acilamadi!');
+    }
+}
 function showFocusPulse(video, x, y){
     let wrap = video.parentElement;
     if(!wrap) return;
@@ -3499,7 +3565,7 @@ async function openCameraModal(mode){
     try{
         if(currentStopScan){ currentStopScan(); currentStopScan=null; }
         if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-        let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment", width:{ideal:1280}, height:{ideal:720}}});
+        let stream=await getCameraStream();
         video.srcObject=stream;
         currentStream=stream;
         currentVideoTrack=stream.getVideoTracks()[0]||null;
@@ -3559,7 +3625,7 @@ async function openContinuousScanCamera(mode, statusHtml, handlerFn){
     try{
         if(currentStopScan){ currentStopScan(); currentStopScan=null; }
         if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-        let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment", width:{ideal:1280}, height:{ideal:720}}});
+        let stream=await getCameraStream();
         video.srcObject=stream;
         currentStream=stream;
         currentVideoTrack=stream.getVideoTracks()[0]||null;
@@ -3849,7 +3915,7 @@ async function openOrderKamera(){
     try{
         if(currentStopScan){ currentStopScan(); currentStopScan=null; }
         if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-        let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment", width:{ideal:1280}, height:{ideal:720}}});
+        let stream=await getCameraStream();
         video.srcObject=stream;
         currentStream=stream;
         currentVideoTrack=stream.getVideoTracks()[0]||null;
@@ -3894,7 +3960,7 @@ async function openSayimKamera(){
     try{
         if(currentStopScan){ currentStopScan(); currentStopScan=null; }
         if(currentStream){ currentStream.getTracks().forEach(t=>t.stop()); currentStream=null; }
-        let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment", width:{ideal:1280}, height:{ideal:720}}});
+        let stream=await getCameraStream();
         video.srcObject=stream;
         currentStream=stream;
         currentVideoTrack=stream.getVideoTracks()[0]||null;
