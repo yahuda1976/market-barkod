@@ -71,14 +71,14 @@
         .detail-image{max-width:100%;max-height:180px;border-radius:24px;margin:14px auto;display:block;box-shadow:0 12px 32px rgba(0,0,0,0.3)}
         input,select{width:100%;padding:14px 20px;border-radius:60px;border:none;background:rgba(255,255,255,0.7);color:var(--text-primary);font-size:0.95rem;margin:6px 0;border:1px solid rgba(255,255,255,0.08);transition:all 0.2s}
         input:focus,select:focus{outline:none;background:rgba(255,255,255,0.1);border-color:rgba(59,130,246,0.4);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
-        .date-wheel-wrap{position:relative;margin-bottom:12px}
+        .date-wheel-wrap{position:relative;margin:0 auto 10px;width:82%}
         .date-wheel-row{display:flex;gap:6px}
-        .date-wheel{height:132px;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;border-radius:16px;background:rgba(255,255,255,0.6);scrollbar-width:none;-ms-overflow-style:none}
+        .date-wheel{height:93px;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;border-radius:16px;background:rgba(255,255,255,0.6);scrollbar-width:none;-ms-overflow-style:none}
         .date-wheel::-webkit-scrollbar{display:none}
-        .date-wheel-pad{height:44px;scroll-snap-align:none}
-        .date-wheel-item{height:44px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;font-size:1.05rem;font-weight:800;color:#1e293b;cursor:pointer;opacity:0.45;transition:opacity .15s}
+        .date-wheel-pad{height:31px;scroll-snap-align:none}
+        .date-wheel-item{height:31px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;font-size:0.8rem;font-weight:800;color:#1e293b;cursor:pointer;opacity:0.45;transition:opacity .15s}
         .date-wheel-item.wheel-selected{opacity:1}
-        .date-wheel-highlight{position:absolute;left:0;right:0;top:44px;height:44px;border-top:2px solid #0ea5e9;border-bottom:2px solid #0ea5e9;background:rgba(14,165,233,0.1);pointer-events:none;border-radius:10px}
+        .date-wheel-highlight{position:absolute;left:0;right:0;top:31px;height:31px;border-top:2px solid #0ea5e9;border-bottom:2px solid #0ea5e9;background:rgba(14,165,233,0.1);pointer-events:none;border-radius:10px}
         body.dark-mode .date-wheel{background:rgba(255,255,255,0.08)}
         body.dark-mode .date-wheel-item{color:#f1f5f9}
         .detail-actions{display:flex;flex-direction:column;gap:6px;margin-top:10px}
@@ -2091,7 +2091,7 @@ function formatDateDMY(dateStr){
 //  kaydetme kodlarinin hicbirine dokunmaya gerek yok.
 // ==============================================================
 const AY_ADLARI_TR = ['Ocak','Subat','Mart','Nisan','Mayis','Haziran','Temmuz','Agustos','Eylul','Ekim','Kasim','Aralik'];
-const WHEEL_ITEM_H = 44;
+const WHEEL_ITEM_H = 31;
 let wheelScrollTimers = {};
 function buildWheelItems(part){
     if(part==='day'){
